@@ -1,10 +1,38 @@
-version: "3.4"
+version: '3.8'
 
 services:
-  github.com/DBrange/didis-comp-bk:
-    image: github.com/DBrange/didis-comp-bk
+  mongo:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: didis-comp-bk
+    command: mongod --auth
+
+  api:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
+    container_name: my-api
+    restart: on-failure
+    volumes:
+      - .:/app  # Monta tu código fuente en el contenedor de la API
     ports:
-      - 8080:8080
+      - "8080:8080"
+    environment:
+      MONGO_URI: mongodb://admin:password@mongo:27017/didis-comp-bk?authSource=admin
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  default:
+    name: my-network

@@ -1,13 +1,13 @@
 # Build stage
 FROM golang:1.22.3-alpine3.20 AS builder
 
-# Instalar git y otras dependencias necesarias
+# Instalar git, openssh y otras dependencias necesarias
 RUN apk add --no-cache git openssh-client upx
 
-# Configurar SSH para usar la clave privada
+# Configurar SSH
 RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
-COPY keys/ssh.pub /root/.ssh/id_rsa.pub
-COPY keys/ssh /root/.ssh/id_rsa
+COPY id_rsa /root/.ssh/id_rsa
+COPY id_rsa.pub /root/.ssh/id_rsa.pub
 RUN chmod 600 /root/.ssh/id_rsa
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 
@@ -16,10 +16,11 @@ RUN git config --global url."git@github.com:".insteadOf "https://github.com/"
 
 WORKDIR /app
 
-# Copiar los archivos necesarios
+# Copiar y descargar dependencias
 COPY go.mod go.sum ./
 RUN go mod download -x
 
+# Copiar el resto del código fuente
 COPY . .
 
 # Construir la aplicación
@@ -40,4 +41,4 @@ WORKDIR /app
 
 COPY --from=builder /app .
 
-ENTRYPOINT [ "./app" ]
+ENTRYPOINT ["./app"]
