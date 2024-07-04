@@ -11,5 +11,5 @@ func userRoutes(router *gin.Engine, handler *handlers.Handler) {
 
 	userRouter.POST("/", handler.CreateUser)
 
-	router.GET("/:id", handler.GetUserByID)
+	userRouter.GET("/:id", handler.GetUserByID)
 }

@@ -21,9 +21,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// type Dashboard interface {
-// 	User() user_ports_drivers.ForUser
-// }
+//	type Dashboard interface {
+//		User() user_ports_drivers.ForUser
+//	}
 func NewRouter() *gin.Engine {
 	router := gin.Default()
 	config := cors.DefaultConfig()
@@ -39,11 +39,8 @@ func NewRouter() *gin.Engine {
 }
 
 func RoutesHandler(router *gin.Engine, dashboard dashboard.Dashboard) {
-
 	userRoutes(router, handlers.NewHandlerUser(dashboard.User()))
-
 }
-
 
 // func Compose() (Dashboard, error) {
 // 	ctx := context.Background()
@@ -88,5 +85,3 @@ func RoutesHandler(router *gin.Engine, dashboard dashboard.Dashboard) {
 // func (d *DashboardService) User() user_ports_drivers.ForUser {
 // 	return d.ForUser
 // }
-
-

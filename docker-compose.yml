@@ -21,7 +21,7 @@ services:
     container_name: my-api
     restart: on-failure
     volumes:
-      - .:/app  # Monta tu código fuente en el contenedor de la API
+      - .:/go/src/api
     ports:
       - "8080:8080"
     environment:
