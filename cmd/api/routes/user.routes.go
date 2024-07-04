@@ -1,7 +1,7 @@
 package routes
 
 import (
-	handlers "didis-comp-bk/cmd/api/handlers/users"
+	handlers "github.com/DBrange/didis-comp-bk/cmd/api/handlers/users"
 
 	"github.com/gin-gonic/gin"
 )

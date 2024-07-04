@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
-	repo_dto "didis-comp-bk/internal/repository/models/user/dto"
-	customerrors "didis-comp-bk/pkg/custom_errors"
 	"fmt"
+
+	repo_dto "github.com/DBrange/didis-comp-bk/internal/repository/models/user/dto"
+	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,7 +22,7 @@ func (r *Repository) CreateUser(ctx context.Context, user *repo_dto.CreateUserDT
 
 func (r *Repository) GetUserByID(ctx context.Context, id string) (*repo_dto.GetUserByIDDTO, error) {
 	var user repo_dto.GetUserByIDDTO
-	
+
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, fmt.Errorf("%w: error when searching for user: %s", customerrors.ErrUserInvalidID, err.Error())

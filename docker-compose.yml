@@ -1,0 +1,10 @@
+version: "3.4"
+
+services:
+  github.com/DBrange/didis-comp-bk:
+    image: github.com/DBrange/didis-comp-bk
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 8080:8080

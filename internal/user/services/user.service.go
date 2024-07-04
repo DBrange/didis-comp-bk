@@ -2,11 +2,12 @@ package services
 
 import (
 	"context"
-	user_dto "didis-comp-bk/internal/user/models/dto"
-	ports "didis-comp-bk/internal/user/ports/drivens"
-	customerrors "didis-comp-bk/pkg/custom_errors"
 	"errors"
 	"fmt"
+
+	user_dto "github.com/DBrange/didis-comp-bk/internal/user/models/dto"
+	ports "github.com/DBrange/didis-comp-bk/internal/user/ports/drivens"
+	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
 
 type UserService struct {
@@ -34,7 +35,6 @@ func (d *UserService) CreateUser(ctx context.Context, userDTO *user_dto.CreateUs
 
 	return nil
 }
-
 
 func (d *UserService) GetUserByID(ctx context.Context, id string) (*user_dto.GetUserByIDDTO, error) {
 	userDTO, err := d.userQueryer.GetUserByID(ctx, id)

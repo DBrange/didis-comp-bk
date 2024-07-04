@@ -1,8 +1,10 @@
-module didis-comp-bk
+module github.com/DBrange/didis-comp-bk
 
 go 1.22.3
 
 require (
+  github.com/DBrange/didis-comp-bk/tree/main/cmd/api/compose v1.22.3
+  github.com/DBrange/didis-comp-bk/tree/main/cmd/api/compose/dashboard v1.22.3
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect

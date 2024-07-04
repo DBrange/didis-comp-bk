@@ -1,6 +1,6 @@
 package handlers
 
-import ports "didis-comp-bk/internal/user/ports/drivers"
+import ports "github.com/DBrange/didis-comp-bk/internal/user/ports/drivers"
 
 type Handler struct {
 	user ports.ForUser

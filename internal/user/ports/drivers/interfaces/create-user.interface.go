@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	user_dto "didis-comp-bk/internal/user/models/dto"
+	user_dto "github.com/DBrange/didis-comp-bk/internal/user/models/dto"
 )
 
 type CreateUser interface {

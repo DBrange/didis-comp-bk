@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	customerrors "didis-comp-bk/pkg/custom_errors"
 	"net/http"
+
+	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,10 +1,11 @@
 package routes
 
 import (
-	"didis-comp-bk/cmd/api/compose"
-	"didis-comp-bk/cmd/api/compose/dashboard"
-	handlers "didis-comp-bk/cmd/api/handlers/users"
 	"time"
+
+	handlers "github.com/DBrange/didis-comp-bk/cmd/api/handlers/users"
+	"github.com/DBrange/didis-comp-bk/compose"
+	"github.com/DBrange/didis-comp-bk/compose/dashboard"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

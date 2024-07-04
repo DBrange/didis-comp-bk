@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"didis-comp-bk/internal/user/models/dto"
-	customerrors "didis-comp-bk/pkg/custom_errors"
-	"didis-comp-bk/pkg/utils"
 	"errors"
 	"fmt"
+
+	"github.com/DBrange/didis-comp-bk/internal/user/models/dto"
+	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
+	"github.com/DBrange/didis-comp-bk/pkg/utils"
 
 	"log"
 
@@ -32,7 +33,7 @@ func saveBodyData(c *gin.Context) (*dto.CreateUserDTO, error) {
 			}
 			return nil, appErr
 		}
-		
+
 		return nil, fmt.Errorf("error validation: %w", err)
 	}
 

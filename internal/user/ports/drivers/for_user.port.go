@@ -1,6 +1,6 @@
 package ports
 
-import "didis-comp-bk/internal/user/ports/drivers/interfaces"
+import "github.com/DBrange/didis-comp-bk/internal/user/ports/drivers/interfaces"
 
 type ForUser interface {
 	interfaces.CreateUser

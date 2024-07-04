@@ -2,8 +2,9 @@ package adapters
 
 import (
 	"context"
-	user_dto "didis-comp-bk/internal/user/models/dto"
-	"didis-comp-bk/internal/user/services"
+
+	user_dto "github.com/DBrange/didis-comp-bk/internal/user/models/dto"
+	"github.com/DBrange/didis-comp-bk/internal/user/services"
 )
 
 type UserAdapter struct {

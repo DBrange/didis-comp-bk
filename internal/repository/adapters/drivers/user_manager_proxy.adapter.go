@@ -2,8 +2,9 @@ package adapters
 
 import (
 	"context"
-	repo_dto "didis-comp-bk/internal/repository/models/user/dto"
-	"didis-comp-bk/internal/repository/repository"
+
+	repo_dto "github.com/DBrange/didis-comp-bk/internal/repository/models/user/dto"
+	"github.com/DBrange/didis-comp-bk/internal/repository/repository"
 )
 
 type UserMangerProxyAdapter struct {

@@ -2,7 +2,8 @@ package ports
 
 import (
 	"context"
-	repo_dto "didis-comp-bk/internal/repository/models/user/dto"
+
+	repo_dto "github.com/DBrange/didis-comp-bk/internal/repository/models/user/dto"
 )
 
 type ForManagingUser interface {

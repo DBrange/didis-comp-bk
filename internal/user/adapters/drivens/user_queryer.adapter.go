@@ -2,9 +2,10 @@ package adapters
 
 import (
 	"context"
-	repo_dto "didis-comp-bk/internal/repository/models/user/dto"
-	ports "didis-comp-bk/internal/repository/ports/drivers"
-	user_dto "didis-comp-bk/internal/user/models/dto"
+
+	repo_dto "github.com/DBrange/didis-comp-bk/internal/repository/models/user/dto"
+	ports "github.com/DBrange/didis-comp-bk/internal/repository/ports/drivers"
+	user_dto "github.com/DBrange/didis-comp-bk/internal/user/models/dto"
 )
 
 type UserQueryerAdapter struct {
