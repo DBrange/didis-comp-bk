@@ -12,6 +12,13 @@ var (
 	ErrSchemaViolation     = errors.New("schema violation")
 )
 
+var (
+	ErrLocationNotFound        = errors.New("user not found")
+	ErrLocationInsertionFailed = errors.New("user insertion failed")
+	ErrLocationInvalidID       = errors.New("invalid ID format")
+	ErrLocationDuplicateKey    = errors.New("duplicate key error")
+)
+
 const (
 	ErrCodeNotFound         = "not_found"
 	ErrCodeCouldNotBeAdded  = "could_not_be_added"

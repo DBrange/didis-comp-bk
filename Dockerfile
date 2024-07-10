@@ -5,11 +5,11 @@ FROM golang:1.22.3-alpine3.20 AS builder
 RUN apk add --no-cache git openssh-client upx
 
 # Configure SSH
-RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
-COPY id_rsa /root/.ssh/id_rsa
-COPY id_rsa.pub /root/.ssh/id_rsa.pub
-RUN chmod 600 /root/.ssh/id_rsa
-RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+# RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
+# COPY id_rsa /root/.ssh/id_rsa
+# COPY id_rsa.pub /root/.ssh/id_rsa.pub
+# RUN chmod 600 /root/.ssh/id_rsa
+# RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 # Configuring Git for use SSH
 RUN git config --global url."git@github.com:".insteadOf "https://github.com/"

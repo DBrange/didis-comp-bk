@@ -9,12 +9,21 @@ import (
 )
 
 func (h *Handler) CreateUser(c *gin.Context) {
-	user, err := saveBodyData(c)
+	user, location, err := saveBodyData(c)
 
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
+
+	locationID, err := h.location.CreateLocation(location)
+
+	if err != nil {
+		customerrors.ErrorResponse(err, c)
+		return
+	}
+
+	user.LocationID = &locationID
 
 	if err := h.user.CreateUser(user); err != nil {
 		customerrors.ErrorResponse(err, c)

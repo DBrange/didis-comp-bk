@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/DBrange/didis-comp-bk/internal/user/models/dto"
+	api_dto "github.com/DBrange/didis-comp-bk/cmd/api/handlers/users/dto"
+	"github.com/DBrange/didis-comp-bk/cmd/api/handlers/users/mappers"
+	location_dto "github.com/DBrange/didis-comp-bk/domains/location/models/dto"
+	user_dto "github.com/DBrange/didis-comp-bk/domains/user/models/dto"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"github.com/DBrange/didis-comp-bk/pkg/utils"
 
@@ -13,13 +16,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func saveBodyData(c *gin.Context) (*dto.CreateUserDTO, error) {
-	var user dto.CreateUserDTO
+func saveBodyData(c *gin.Context) (*user_dto.CreateUserDTOReq, *location_dto.CreateLocationDTOReq, error) {
+	var user api_dto.CreateUserDTOReq
 	if err := c.ShouldBindJSON(&user); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-
-	user.SetTimeStamp()
 
 	err := utils.Validate.Struct(user)
 
@@ -31,11 +32,15 @@ func saveBodyData(c *gin.Context) (*dto.CreateUserDTO, error) {
 				Code: customerrors.ErrCodeValidationFailed,
 				Msg:  fmt.Sprintf("error validation: %v", err),
 			}
-			return nil, appErr
+			return nil, nil, appErr
 		}
 
-		return nil, fmt.Errorf("error validation: %w", err)
+		return nil, nil, fmt.Errorf("error validation: %w", err)
 	}
 
-	return &user, nil
+	onlyUser := mappers.OnlyUser(user)
+
+	onlyLocation := mappers.OnlyLocation(user)
+
+	return onlyUser, onlyLocation, nil
 }

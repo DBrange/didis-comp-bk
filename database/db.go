@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"log"
-	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,10 +21,11 @@ var (
 var MongoClient *mongo.Client
 
 func init() {
-	uri := os.Getenv("MONGO_URI")
-	if uri == "" {
-		uri = "mongodb://admin:password@mongo:27017/didis-comp-bk?authSource=admin"
-	}
+	// uri := os.Getenv("MONGO_URI")
+	// if uri == "" {
+	// 	uri = "mongodb://admin:password@mongo:27017/didis-comp-bk?authSource=admin"
+	// }
+	uri := "mongodb://localhost:27017/"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

@@ -13,13 +13,14 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: didis-comp-bk
     command: mongod --auth
+    restart: always
 
   api:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: my-api
-    restart: on-failure
+    restart: always
     volumes:
       - .:/go/src/api
     ports:

@@ -1,13 +1,18 @@
 package handlers
 
-import ports "github.com/DBrange/didis-comp-bk/internal/user/ports/drivers"
+import (
+	location_ports "github.com/DBrange/didis-comp-bk/domains/location/ports/drivers"
+	user_ports "github.com/DBrange/didis-comp-bk/domains/user/ports/drivers"
+)
 
 type Handler struct {
-	user ports.ForUser
+	user     user_ports.ForUser
+	location location_ports.ForLocation
 }
 
-func NewHandlerUser(user ports.ForUser) *Handler {
+func NewHandlerUser(user user_ports.ForUser, location location_ports.ForLocation) *Handler {
 	return &Handler{
-		user: user,
+		user:     user,
+		location: location,
 	}
 }
