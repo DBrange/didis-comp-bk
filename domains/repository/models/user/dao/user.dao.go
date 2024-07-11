@@ -10,7 +10,7 @@ type CreateUserDAO struct {
 	FirstName   string         `bson:"first_name"`
 	LastName    string         `bson:"last_name"`
 	Username    *string        `bson:"username"`
-	Age         *int8          `bson:"age"`
+	Birthdate   *time.Time     `bson:"birthdate"`
 	Password    *string        `bson:"password"`
 	Email       string         `bson:"email"`
 	Phone       *string        `bson:"phone"`

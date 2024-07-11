@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -52,4 +53,18 @@ func init() {
 
 func GetCollection(collection string) *mongo.Collection {
 	return MongoClient.Database(database).Collection(collection)
+}
+
+func GetCollections(collectionNames []string) (map[string]*mongo.Collection, error) {
+	collectionMap := make(map[string]*mongo.Collection)
+
+	for _, collName := range collectionNames {
+		coll := GetCollection(collName)
+		if coll == nil {
+			return nil, fmt.Errorf("failed to get collection: %s", collName)
+		}
+		collectionMap[collName] = coll
+	}
+
+	return collectionMap, nil
 }

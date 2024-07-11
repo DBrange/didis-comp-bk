@@ -12,7 +12,7 @@ func CreateUserDTOReqtoDAO(userDTO *user_dto.CreateUserDTOReq) *dao.CreateUserDA
 		LastName:    userDTO.LastName,
 		Username:    userDTO.Username,
 		Password:    userDTO.Password,
-		Age:         userDTO.Age,
+		Birthdate:   userDTO.Birthdate,
 		LocationID:  userDTO.LocationID,
 		PaymentID:   userDTO.PaymentID,
 		ScheduleID:  userDTO.ScheduleID,

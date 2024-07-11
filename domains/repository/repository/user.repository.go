@@ -43,3 +43,20 @@ func (r *Repository) GetUserByID(ctx context.Context, id string) (*dao.GetUserBy
 
 	return &user, nil
 }
+
+func (r *Repository) UpdateUser(ctx context.Context, filter bson.M, update bson.M) error {
+		result, err := r.user_coll.UpdateOne(
+			ctx,
+			filter,
+			bson.M{"$set": update},
+		)
+		if err != nil {
+			return fmt.Errorf("error updating user: %w", err)
+		}
+
+		if result.MatchedCount == 0 {
+		return fmt.Errorf("no document found with the given filter")
+	}
+
+	return nil
+}

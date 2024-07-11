@@ -12,7 +12,7 @@ func GetUserByIDDAOtoDTO(userDAO *dao.GetUserByIDDAO) *user_dto.GetUserByIDDTO {
 		LastName:    userDAO.LastName,
 		Username:    userDAO.Username,
 		Password:    userDAO.Password,
-		Age:         userDAO.Age,
+		Birthdate:   userDAO.Birthdate,
 		LocationID:  userDAO.LocationID,
 		PaymentID:   userDAO.PaymentID,
 		ScheduleID:  userDAO.ScheduleID,

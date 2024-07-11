@@ -8,22 +8,24 @@ import (
 )
 
 type UserProxyAdapter struct {
-	ctx         context.Context
 	userService *services.UserService
 }
 
-func NewUserProxyAdapter(ctx context.Context, userService *services.UserService) *UserProxyAdapter {
+func NewUserProxyAdapter(userService *services.UserService) *UserProxyAdapter {
 	return &UserProxyAdapter{
-		ctx:         ctx,
 		userService: userService,
 	}
 }
 
-func (a *UserProxyAdapter) CreateUser(userDTO *user_dto.CreateUserDTOReq) error {
-	return a.userService.CreateUser(a.ctx, userDTO)
+func (a *UserProxyAdapter) CreateUser(ctx context.Context, userDTO *user_dto.CreateUserDTOReq) error {
+	return a.userService.CreateUser(ctx, userDTO)
 
 }
 
-func (a *UserProxyAdapter) GetUserByID(id string) (*user_dto.GetUserByIDDTO, error) {
-	return a.userService.GetUserByID(a.ctx, id)
+func (a *UserProxyAdapter) GetUserByID(ctx context.Context, id string) (*user_dto.GetUserByIDDTO, error) {
+	return a.userService.GetUserByID(ctx, id)
+}
+
+func (a *UserProxyAdapter) UpdateUser(ctx context.Context, userID string, newUser *user_dto.UpdateUserDTOReq) error {
+	return a.userService.UpdateUser(ctx, userID, newUser)
 }

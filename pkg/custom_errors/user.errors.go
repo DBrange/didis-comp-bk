@@ -13,8 +13,8 @@ var (
 )
 
 var (
-	ErrLocationNotFound        = errors.New("user not found")
-	ErrLocationInsertionFailed = errors.New("user insertion failed")
+	ErrLocationNotFound        = errors.New("location not found")
+	ErrLocationInsertionFailed = errors.New("location insertion failed")
 	ErrLocationInvalidID       = errors.New("invalid ID format")
 	ErrLocationDuplicateKey    = errors.New("duplicate key error")
 )

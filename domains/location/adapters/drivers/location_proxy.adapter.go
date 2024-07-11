@@ -8,17 +8,23 @@ import (
 )
 
 type LocationProxyAdapter struct {
-	ctx             context.Context
 	locationService *services.LocationService
 }
 
-func NewLocationProxyAdapter(ctx context.Context, locationService *services.LocationService) *LocationProxyAdapter {
+func NewLocationProxyAdapter(locationService *services.LocationService) *LocationProxyAdapter {
 	return &LocationProxyAdapter{
-		ctx:             ctx,
 		locationService: locationService,
 	}
 }
 
-func (a *LocationProxyAdapter) CreateLocation(locationDTO *location_dto.CreateLocationDTOReq) (string, error) {
-	return a.locationService.CreateLocation(a.ctx, locationDTO)
+func (a *LocationProxyAdapter) CreateLocation(ctx context.Context, locationDTO *location_dto.CreateLocationDTOReq) (string, error) {
+	return a.locationService.CreateLocation(ctx, locationDTO)
+}
+
+func (a *LocationProxyAdapter) GetLocationByID(ctx context.Context, id string) (*location_dto.GetLocationByIDDTORes, error) {
+	return a.locationService.GetLocationByID(ctx, id)
+}
+
+func (a *LocationProxyAdapter) UpdateLocation(ctx context.Context,locationID string, location *location_dto.UpdateLocationDTOReq) error {
+	return a.locationService.UpdateLocation(ctx,locationID, location)
 }

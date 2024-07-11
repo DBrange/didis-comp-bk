@@ -68,3 +68,17 @@ func (mr *MockForQueryingUserMockRecorder) GetUserByID(arg0, arg1 any) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockForQueryingUser)(nil).GetUserByID), arg0, arg1)
 }
+
+// UpdateUser mocks base method.
+func (m *MockForQueryingUser) UpdateUser(arg0 context.Context, arg1 string, arg2 *dto.UpdateUserDTOReq) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUser", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUser indicates an expected call of UpdateUser.
+func (mr *MockForQueryingUserMockRecorder) UpdateUser(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockForQueryingUser)(nil).UpdateUser), arg0, arg1, arg2)
+}

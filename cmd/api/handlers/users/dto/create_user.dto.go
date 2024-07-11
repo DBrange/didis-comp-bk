@@ -1,7 +1,9 @@
 package dto
 
 import (
-	"github.com/DBrange/didis-comp-bk/cmd/api/assets/dto"
+	"time"
+
+	dto "github.com/DBrange/didis-comp-bk/cmd/api/assets/dto/location"
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 )
 
@@ -9,7 +11,7 @@ type CreateUserDTOReq struct {
 	FirstName   string                 `json:"first_name" validate:"required"`
 	LastName    string                 `json:"last_name" validate:"required"`
 	Username    *string                `json:"username"`
-	Age         *int8                  `json:"age"`
+	Birthdate   *time.Time             `json:"birthdate"`
 	Password    *string                `json:"password"`
 	Email       string                 `json:"email" validate:"required"`
 	Phone       *string                `json:"phone"`

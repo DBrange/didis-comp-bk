@@ -1,7 +1,11 @@
 package interfaces
 
-import "github.com/DBrange/didis-comp-bk/domains/location/models/dto"
+import (
+	"context"
+
+	"github.com/DBrange/didis-comp-bk/domains/location/models/dto"
+)
 
 type CreateLocation interface {
-	CreateLocation(location *dto.CreateLocationDTOReq) (string, error)
+	CreateLocation(ctx context.Context, location *dto.CreateLocationDTOReq) (string, error)
 }

@@ -6,14 +6,16 @@ import (
 
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateLocation(ctx context.Context, user *dao.CreateLocationDAOReq) (string, error) {
+func (r *Repository) CreateLocation(ctx context.Context, location *dao.CreateLocationDAOReq) (string, error) {
 
-	user.SetTimeStamp()
+	location.SetTimeStamp()
 
-	result, err := r.location_coll.InsertOne(ctx, user)
+	result, err := r.location_coll.InsertOne(ctx, location)
 	if err != nil {
 		return "", fmt.Errorf("%w: error inserting location: %s", customerrors.ErrLocationInsertionFailed, err.Error())
 	}
@@ -22,3 +24,78 @@ func (r *Repository) CreateLocation(ctx context.Context, user *dao.CreateLocatio
 
 	return id, nil
 }
+
+func (r *Repository) GetLocationByID(ctx context.Context, id string) (*dao.GetLocationByIDDAORes, error) {
+	var location dao.GetLocationByIDDAORes
+
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrLocationInvalidID, err.Error())
+	}
+
+	filter := bson.M{"_id": oid}
+
+	err = r.location_coll.FindOne(ctx, filter).Decode(&location)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrLocationNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for location: %w", err)
+	}
+
+	return &location, nil
+}
+
+func (r *Repository) UpdateLocation(ctx context.Context, filter bson.M, update bson.M) error {
+	result, err := r.location_coll.UpdateOne(
+		ctx,
+		filter,
+		bson.M{"$set": update},
+	)
+	if err != nil {
+		return fmt.Errorf("error updating location: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("no document found with the given filter")
+	}
+
+	return nil
+}
+
+//para ver como se haria si solo quisiera datos espectificos, y ver por log, como es la respuesta
+// func (r *Repository) GetLocationByID(ctx context.Context, id string) (*dao.GetLocationByIDDAORes, error) {
+//     oid, err := primitive.ObjectIDFromHex(id)
+//     if err != nil {
+//         return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrLocationInvalidID, err.Error())
+//     }
+
+//     filter := bson.M{"_id": oid}
+
+//     projection := bson.M{
+//         "state": 1,
+//         "city": 1,
+//     }
+
+//     opts := options.FindOne().SetProjection(projection)
+
+//     // Usar bson.M para recibir los datos crudos
+//     var rawResult bson.M
+//     err = r.location_coll.FindOne(ctx, filter, opts).Decode(&rawResult)
+//     if err != nil {
+//         if err == mongo.ErrNoDocuments {
+//             return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrLocationNotFound, err.Error())
+//         }
+//         return nil, fmt.Errorf("error when searching for location: %w", err)
+//     }
+
+//     // Imprimir o loguear los datos crudos
+//     fmt.Printf("Datos crudos de MongoDB: %+v\n", rawResult)
+
+//     // Ahora puedes decodificar los datos crudos en tu estructura
+//     var location dao.GetLocationByIDDAORes
+//     bsonBytes, _ := bson.Marshal(rawResult)
+//     bson.Unmarshal(bsonBytes, &location)
+
+//     return &location, nil
+// }

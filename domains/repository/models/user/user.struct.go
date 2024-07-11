@@ -7,11 +7,11 @@ import (
 )
 
 type User struct {
-	ID          string         `bson:"id"`
+	ID          string         `bson:"_id"`
 	FirstName   string         `bson:"first_name"`
 	LastName    string         `bson:"last_name"`
 	Username    string         `bson:"username"`
-	Age         int8           `bson:"age"`
+	Birthdate   int8           `bson:"birthdate"`
 	Password    string         `bson:"password"`
 	Email       string         `bson:"email"`
 	Phone       string         `bson:"phone"`
