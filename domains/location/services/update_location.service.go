@@ -9,8 +9,8 @@ import (
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
 
-func (driver *LocationService) UpdateLocation(ctx context.Context,locationID string, newLocation *dto.UpdateLocationDTOReq) error {
-	err := driver.locationQueryer.UpdateLocation(ctx,locationID, newLocation)
+func (driver *LocationService) UpdateLocation(ctx context.Context, locationID string, newLocationInfo *dto.UpdateLocationDTOReq) error {
+	err := driver.locationQueryer.UpdateLocation(ctx, locationID, newLocationInfo)
 
 	if err != nil {
 		if errors.Is(err, customerrors.ErrLocationInsertionFailed) {

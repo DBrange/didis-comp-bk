@@ -6,4 +6,5 @@ type ForLocation interface {
 	interfaces.CreateLocation
 	interfaces.GetLocation
 	interfaces.UpdateLocation
+	interfaces.DeleteLocation
 }

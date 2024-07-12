@@ -26,6 +26,10 @@ func (a *UserProxyAdapter) GetUserByID(ctx context.Context, id string) (*user_dt
 	return a.userService.GetUserByID(ctx, id)
 }
 
-func (a *UserProxyAdapter) UpdateUser(ctx context.Context, userID string, newUser *user_dto.UpdateUserDTOReq) error {
-	return a.userService.UpdateUser(ctx, userID, newUser)
+func (a *UserProxyAdapter) UpdateUser(ctx context.Context, userID string, newUserInfo *user_dto.UpdateUserDTOReq) error {
+	return a.userService.UpdateUser(ctx, userID, newUserInfo)
+}
+
+func (a *UserProxyAdapter) DeleteUser(ctx context.Context, userID string) (*user_dto.UserRelationsToDeleteDTO, error) {
+	return a.userService.DeleteUser(ctx, userID)
 }

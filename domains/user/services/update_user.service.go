@@ -9,19 +9,30 @@ import (
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
 
-func (driver *UserService) UpdateUser(ctx context.Context, userID string, newUser *user_dto.UpdateUserDTOReq) error {
-	err := driver.userQueryer.UpdateUser(ctx, userID, newUser)
-
-	if err != nil {
-		if errors.Is(err, customerrors.ErrUserInsertionFailed) {
-			appErr := customerrors.AppError{
-				Code: customerrors.ErrCodeInsertionFailed,
-				Msg:  fmt.Sprintf("error inserting user: %v", err),
-			}
-			return appErr
-		}
-		return fmt.Errorf("error inserting user: %w", err)
+func (driver *UserService) UpdateUser(ctx context.Context, userID string, newUserInfo *user_dto.UpdateUserDTOReq) error {
+	if err := driver.userQueryer.UpdateUser(ctx, userID, newUserInfo); err != nil {
+		return updateUserHandleError(err)
 	}
 
 	return nil
+}
+
+type updateUserErrorHandler func(error) customerrors.AppError
+
+var updateUserErrorHandlers = map[error]updateUserErrorHandler{
+	customerrors.ErrUserUpdated: func(err error) customerrors.AppError {
+		return customerrors.AppError{
+			Code: customerrors.ErrCodeUpdated,
+			Msg:  fmt.Sprintf("error updating user: %v", err),
+		}
+	},
+}
+
+func updateUserHandleError(err error) error {
+	for knownErr, handler := range updateUserErrorHandlers {
+		if errors.Is(err, knownErr) {
+			return handler(err)
+		}
+	}
+	return fmt.Errorf("error updating user: %w", err)
 }

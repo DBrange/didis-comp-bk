@@ -25,6 +25,9 @@ func (a *LocationProxyAdapter) GetLocationByID(ctx context.Context, id string) (
 	return a.locationService.GetLocationByID(ctx, id)
 }
 
-func (a *LocationProxyAdapter) UpdateLocation(ctx context.Context,locationID string, location *location_dto.UpdateLocationDTOReq) error {
-	return a.locationService.UpdateLocation(ctx,locationID, location)
+func (a *LocationProxyAdapter) UpdateLocation(ctx context.Context, locationID string, location *location_dto.UpdateLocationDTOReq) error {
+	return a.locationService.UpdateLocation(ctx, locationID, location)
+}
+func (a *LocationProxyAdapter) DeleteLocation(ctx context.Context, locationID string) error {
+	return a.locationService.DeleteLocation(ctx, locationID)
 }

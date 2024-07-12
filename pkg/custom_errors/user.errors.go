@@ -7,9 +7,14 @@ var (
 	ErrUserInsertionFailed = errors.New("user insertion failed")
 	ErrUserInvalidID       = errors.New("invalid ID format")
 	ErrUserDuplicateKey    = errors.New("duplicate key error")
-	ErrValidationFailed    = errors.New("validation failed")
-	ErrConnectionFailed    = errors.New("connection failed")
-	ErrSchemaViolation     = errors.New("schema violation")
+	ErrUserUpdated          = errors.New("user not updated")
+	ErrUserDeleted          = errors.New("user not deleted")
+)
+
+var (
+	ErrValidationFailed = errors.New("validation failed")
+	ErrConnectionFailed = errors.New("connection failed")
+	ErrSchemaViolation  = errors.New("schema violation")
 )
 
 var (
@@ -28,4 +33,6 @@ const (
 	ErrCodeValidationFailed = "validation_failed"
 	ErrCodeConnectionFailed = "connection_failed"
 	ErrCodeSchemaViolation  = "schema_violation"
+	ErrCodeUpdated          = "could_not_be_updated"
+	ErrCodeDeleted          = "could_not_be_deleted"
 )

@@ -28,7 +28,7 @@ type CreateUserDAO struct {
 }
 
 func (u *CreateUserDAO) SetTimeStamp() {
-	currentDate := time.Now()
+	currentDate := time.Now().UTC()
 	if u.CreatedAt.IsZero() {
 		u.CreatedAt = currentDate
 	}
@@ -36,5 +36,5 @@ func (u *CreateUserDAO) SetTimeStamp() {
 }
 
 func (u *CreateUserDAO) RenewUpdate() {
-	u.UpdatedAt = time.Now()
+	u.UpdatedAt = time.Now().UTC()
 }

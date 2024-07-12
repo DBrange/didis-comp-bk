@@ -63,6 +63,15 @@ func (r *Repository) UpdateLocation(ctx context.Context, filter bson.M, update b
 	return nil
 }
 
+func (r *Repository) DeleteLocation(ctx context.Context, locationID string) error {
+	err := r.setDeletedAt(r.location_coll, ctx, locationID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 //para ver como se haria si solo quisiera datos espectificos, y ver por log, como es la respuesta
 // func (r *Repository) GetLocationByID(ctx context.Context, id string) (*dao.GetLocationByIDDAORes, error) {
 //     oid, err := primitive.ObjectIDFromHex(id)

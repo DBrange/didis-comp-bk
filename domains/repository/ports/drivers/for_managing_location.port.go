@@ -11,4 +11,5 @@ type ForManagingLocation interface {
 	CreateLocation(ctx context.Context, locationDAO *dao.CreateLocationDAOReq) (string, error)
 	GetLocationByID(ctx context.Context, id string) (*dao.GetLocationByIDDAORes, error)
 	UpdateLocation(ctx context.Context, filter bson.M, update bson.M) error
+	DeleteLocation(ctx context.Context, locationID string) error
 }

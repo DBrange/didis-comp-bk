@@ -14,7 +14,7 @@ type CreateLocationDAOReq struct {
 }
 
 func (u *CreateLocationDAOReq) SetTimeStamp() {
-	currentDate := time.Now()
+	currentDate := time.Now().UTC()
 	if u.CreatedAt.IsZero() {
 		u.CreatedAt = currentDate
 	}
@@ -22,5 +22,5 @@ func (u *CreateLocationDAOReq) SetTimeStamp() {
 }
 
 func (u *CreateLocationDAOReq) RenewUpdate() {
-	u.UpdatedAt = time.Now()
+	u.UpdatedAt = time.Now().UTC()
 }

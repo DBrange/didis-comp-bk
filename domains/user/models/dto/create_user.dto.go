@@ -26,7 +26,7 @@ type CreateUserDTOReq struct {
 }
 
 // func (u *CreateUserDTOReq) SetTimeStamp() {
-// 	currentDate := time.Now()
+// 	currentDate := time.Now().UTC()
 // 	if u.CreatedAt.IsZero() {
 // 		u.CreatedAt = currentDate
 // 	}
@@ -34,5 +34,5 @@ type CreateUserDTOReq struct {
 // }
 
 // func (u *CreateUserDTOReq) RenewUpdate() {
-// 	u.UpdatedAt = time.Now()
+// 	u.UpdatedAt = time.Now().UTC()
 // }

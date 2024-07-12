@@ -57,3 +57,6 @@ func (a *LocationQueryerAdapter) UpdateLocation(ctx context.Context, locationID 
 
 	return a.drivers.UpdateLocation(ctx, filter, update)
 }
+func (a *LocationQueryerAdapter) DeleteLocation(ctx context.Context, locationID string) error {
+	return a.drivers.DeleteLocation(ctx, locationID)
+}

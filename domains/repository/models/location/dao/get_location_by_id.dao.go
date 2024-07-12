@@ -15,7 +15,7 @@ type GetLocationByIDDAORes struct {
 }
 
 func (u *GetLocationByIDDAORes) SetTimeStamp() {
-	currentDate := time.Now()
+	currentDate := time.Now().UTC()
 	if u.CreatedAt.IsZero() {
 		u.CreatedAt = currentDate
 	}
@@ -23,5 +23,5 @@ func (u *GetLocationByIDDAORes) SetTimeStamp() {
 }
 
 func (u *GetLocationByIDDAORes) RenewUpdate() {
-	u.UpdatedAt = time.Now()
+	u.UpdatedAt = time.Now().UTC()
 }

@@ -6,4 +6,5 @@ type ForUser interface {
 	interfaces.CreateUser
 	interfaces.GetUserByID
 	interfaces.UpdateUser
+	interfaces.DeleteUser
 }

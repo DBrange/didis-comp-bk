@@ -29,3 +29,7 @@ func (a *LocationManagerProxyAdapter) GetLocationByID(ctx context.Context, id st
 func (a *LocationManagerProxyAdapter) UpdateLocation(ctx context.Context, filter bson.M, update bson.M) error {
 	return a.repository.UpdateLocation(ctx, filter, update)
 }
+
+func (a *LocationManagerProxyAdapter) DeleteLocation(ctx context.Context, locationID string) error {
+	return a.repository.DeleteLocation(ctx, locationID)
+}

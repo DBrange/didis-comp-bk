@@ -2,14 +2,10 @@ package adapters
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/DBrange/didis-comp-bk/cmd/api/assets"
 	ports "github.com/DBrange/didis-comp-bk/domains/repository/ports/drivers"
 	"github.com/DBrange/didis-comp-bk/domains/user/adapters/mappers"
 	user_dto "github.com/DBrange/didis-comp-bk/domains/user/models/dto"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserQueryerAdapter struct {
@@ -43,17 +39,19 @@ func (a *UserQueryerAdapter) GetUserByID(ctx context.Context, id string) (*user_
 	return mappedUser, nil
 }
 
-func (a *UserQueryerAdapter) UpdateUser(ctx context.Context, userID string, newUser *user_dto.UpdateUserDTOReq) error {
-	oid, err := primitive.ObjectIDFromHex(userID)
+func (a *UserQueryerAdapter) UpdateUser(ctx context.Context, userID string, newUserInfo *user_dto.UpdateUserDTOReq) error {
+	newUserInfoDAO := mappers.UpdateUserDTOtoDAO(newUserInfo)
+
+	return a.drivers.UpdateUser(ctx, userID, newUserInfoDAO)
+}
+
+func (a *UserQueryerAdapter) DeleteUser(ctx context.Context, userID string) (*user_dto.UserRelationsToDeleteDTO, error) {
+	userRelationsToDeleteDAO, err := a.drivers.DeleteUser(ctx, userID)
 	if err != nil {
-		return fmt.Errorf("invalid id format: %w", err)
-	}
-	
-	filter := bson.M{"_id": oid}
-	update, err := assets.StructToBsonMap(newUser)
-	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return a.drivers.UpdateUser(ctx, filter, update)
+	mappedUserRelationsToDelete := mappers.UserRelationsToDeleteDAOtoDTO(userRelationsToDeleteDAO)
+
+	return mappedUserRelationsToDelete, nil
 }

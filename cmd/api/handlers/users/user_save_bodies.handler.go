@@ -14,35 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// func saveBodyData(c *gin.Context) (*user_dto.CreateUserDTOReq, *location_dto.CreateLocationDTOReq, error) {
-// 	var user api_dto.CreateUserDTOReq
-// 	if err := c.ShouldBindJSON(&user); err != nil {
-// 		return nil, nil, err
-// 	}
-
-// 	err := utils.Validate.Struct(user)
-
-// 	if err != nil {
-// 		log.Printf("este es el error real: %v", err)
-// 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
-// 		if errors.Is(err, customerrors.ErrValidationFailed) {
-// 			appErr := customerrors.AppError{
-// 				Code: customerrors.ErrCodeValidationFailed,
-// 				Msg:  fmt.Sprintf("error validation: %v", err),
-// 			}
-// 			return nil, nil, appErr
-// 		}
-
-// 		return nil, nil, fmt.Errorf("error validation: %w", err)
-// 	}
-
-// 	onlyUser := mappers.OnlyCreateUser(user)
-
-// 	onlyLocation := mappers.OnlyCreateLocation(user)
-
-// 	return onlyUser, onlyLocation, nil
-// }
-
 func saveBodyData(c *gin.Context) (*user_dto.CreateUserDTOReq, *location_dto.CreateLocationDTOReq, error) {
 	var user api_dto.CreateUserDTOReq
 	if err := c.ShouldBindJSON(&user); err != nil {

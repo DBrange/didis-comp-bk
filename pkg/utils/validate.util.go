@@ -1,40 +1,38 @@
 package utils
 
 import (
+	"regexp"
+
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var Validate *validator.Validate = validator.New()
+var Validate *validator.Validate
 
 func init() {
-    // Creamos una nueva instancia del validador
     Validate = validator.New()
-    
-    // Registramos validaciones personalizadas para GENRE
+
+    // Registramos validaciones personalizadas
     Validate.RegisterValidation("genre", validateGenre)
+  	Validate.RegisterValidation("mongoid", validateMongoDBObjectID)
+
 }
 
 // Función de validación personalizada para GENRE
 func validateGenre(fl validator.FieldLevel) bool {
-    // Convertimos el valor del campo a tipo GENRE
     genre := models.GENRE(fl.Field().String())
-    
-    // Llamamos al método IsValid() para verificar si el valor es válido
     return genre.IsValid()
 }
 
-// Custom validation for UUID without hyphens
-func uuidWithoutHyphens(fl validator.FieldLevel) bool {
-	id := fl.Field().String()
-	_, err := uuid.Parse(id)
-	return err == nil
-}
+// Validación personalizada para UUID sin guiones
+var mongoObjectIDRegex = regexp.MustCompile("^[a-fA-F0-9]{24}$")
 
-// Initialize the validator
-func NewValidator() *validator.Validate {
-	validate := validator.New()
-	validate.RegisterValidation("uuid4_noghyphens", uuidWithoutHyphens)
-	return validate
+func validateMongoDBObjectID(fl validator.FieldLevel) bool {
+	id := fl.Field().String()
+	if !mongoObjectIDRegex.MatchString(id) {
+		return false
+	}
+	_, err := primitive.ObjectIDFromHex(id)
+	return err == nil
 }
