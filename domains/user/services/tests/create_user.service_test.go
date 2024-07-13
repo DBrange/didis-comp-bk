@@ -40,7 +40,7 @@ func TestService_CreateUser(t *testing.T) {
 
 		"duplicate key error": {
 			setup: func(mockForQueryUser *mocks.MockForQueryingUser) {
-				mockForQueryUser.EXPECT().CreateUser(gomock.Any(), userDTO).Return(customerrors.ErrUserDuplicateKey)
+				mockForQueryUser.EXPECT().CreateUser(gomock.Any(), userDTO).Return(customerrors.ErrDuplicateKey)
 			},
 			assertionFunc: func(subTest *testing.T, err error) {
 				assert.Error(subTest, err)

@@ -1,6 +1,8 @@
 package compose
 
 import (
+	"fmt"
+
 	"github.com/DBrange/didis-comp-bk/compose/dashboard"
 	"github.com/DBrange/didis-comp-bk/database"
 	location_adap_drivens "github.com/DBrange/didis-comp-bk/domains/location/adapters/drivens"
@@ -28,7 +30,10 @@ func Compose() (dashboard.Dashboard, error) {
 	locationColl := collectionMap["locations"]
 
 	// Create repository
-	repository := repository.NewRepository(userColl, locationColl)
+	repository, err := repository.NewRepository(userColl, locationColl)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to initialize repository: %v", err))
+	}
 
 	// Create repository drivers
 	userManagerProxyAdapter := repo_adap_divers.NewUserManagerProxyAdapter(repository)

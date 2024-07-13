@@ -37,10 +37,52 @@ func ErrorResponse(err error, c *gin.Context) {
 		case ErrCodeValidationFailed:
 			c.JSON(http.StatusConflict, appErr)
 
+		case ErrCodeSchemaViolation:
+			c.JSON(http.StatusBadRequest, appErr)
+
+		case ErrCodeUpdated:
+			c.JSON(http.StatusBadRequest, appErr)
+
+		case ErrCodeDeleted:
+			c.JSON(http.StatusBadRequest, appErr)
+
 		}
 
 		return
 	}
 	c.JSON(http.StatusInternalServerError, gin.H{"status": ErrCodeNotFound, "error": "something has gone wrong"})
 
+}
+
+type ErrorHandler func(error) AppError
+
+func GenerateErrorHandler(code string, entityName string, msgTemplate string) ErrorHandler {
+	return func(err error) AppError {
+		return AppError{
+			Code: code,
+			Msg:  fmt.Sprintf(msgTemplate, entityName, err),
+		}
+	}
+}
+
+func CreateErrorHandlers(entityName string) map[error]ErrorHandler {
+	return map[error]ErrorHandler{
+		ErrNotFound:         GenerateErrorHandler(ErrCodeNotFound, entityName, "error when searching for %s: %v"),
+		ErrInsertionFailed:  GenerateErrorHandler(ErrCodeInsertionFailed, entityName, "error inserting %s: %v"),
+		ErrInvalidID:        GenerateErrorHandler(ErrCodeInvalidID, entityName, "invalid %s id format: %v"),
+		ErrDuplicateKey:     GenerateErrorHandler(ErrCodeDuplicateKey, entityName, "error duplicate key for %s: %v"),
+		ErrSchemaViolation:  GenerateErrorHandler(ErrCodeSchemaViolation, entityName, "error %s scheme type: %v"),
+		ErrUpdated:          GenerateErrorHandler(ErrCodeUpdated, entityName, "error updating %s: %v"),
+		ErrDeleted:          GenerateErrorHandler(ErrCodeDeleted, entityName, "error deleting %s: %v"),
+		ErrValidationFailed: GenerateErrorHandler(ErrCodeValidationFailed, entityName, "error deleting %s: %v"),
+	}
+}
+
+func HandleError(err error, handlers map[error]ErrorHandler, msgTemplate string) error {
+	for knownErr, handler := range handlers {
+		if errors.Is(err, knownErr) {
+			return handler(err)
+		}
+	}
+	return fmt.Errorf("%s: %w", msgTemplate, err)
 }

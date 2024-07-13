@@ -5,7 +5,7 @@ import (
 	location_dto "github.com/DBrange/didis-comp-bk/domains/location/models/dto"
 )
 
-func OnlyCreateLocation(user *req_dto.CreateUserDTOReq) *location_dto.CreateLocationDTOReq {
+func OnlyCreateLocation(user *req_dto.RegisterUserDTOReq) *location_dto.CreateLocationDTOReq {
 	onlyLocation := &location_dto.CreateLocationDTOReq{
 		State:   user.Location.State,
 		Country: user.Location.Country,

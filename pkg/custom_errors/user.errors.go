@@ -2,37 +2,32 @@ package customerrors
 
 import "errors"
 
+// Errors
 var (
-	ErrUserNotFound        = errors.New("user not found")
-	ErrUserInsertionFailed = errors.New("user insertion failed")
-	ErrUserInvalidID       = errors.New("invalid ID format")
-	ErrUserDuplicateKey    = errors.New("duplicate key error")
-	ErrUserUpdated          = errors.New("user not updated")
-	ErrUserDeleted          = errors.New("user not deleted")
-)
-
-var (
+	ErrNotFound         = errors.New("not found")
+	ErrInsertionFailed  = errors.New("insertion failed")
+	ErrInvalidID        = errors.New("invalid ID format")
+	ErrDuplicateKey     = errors.New("duplicate key error")
+	ErrSchemaViolation  = errors.New("scheme violation")
+	ErrUpdated          = errors.New("not updated")
+	ErrDeleted          = errors.New("not deleted")
 	ErrValidationFailed = errors.New("validation failed")
-	ErrConnectionFailed = errors.New("connection failed")
-	ErrSchemaViolation  = errors.New("schema violation")
+	// ErrTransaction        = errors.New("transacion failed")
+	// ErrStartSessionFailed = errors.New("start of session failed")
+	// ErrConnectionFailed   = errors.New("connection failed")
 )
 
-var (
-	ErrLocationNotFound        = errors.New("location not found")
-	ErrLocationInsertionFailed = errors.New("location insertion failed")
-	ErrLocationInvalidID       = errors.New("invalid ID format")
-	ErrLocationDuplicateKey    = errors.New("duplicate key error")
-)
-
+// Error codes
 const (
 	ErrCodeNotFound         = "not_found"
-	ErrCodeCouldNotBeAdded  = "could_not_be_added"
 	ErrCodeInsertionFailed  = "could_not_be_inserted"
-	ErrCodeDuplicateKey     = "duplicate_value"
 	ErrCodeInvalidID        = "invalid_id"
+	ErrCodeDuplicateKey     = "duplicate_value"
 	ErrCodeValidationFailed = "validation_failed"
-	ErrCodeConnectionFailed = "connection_failed"
 	ErrCodeSchemaViolation  = "schema_violation"
 	ErrCodeUpdated          = "could_not_be_updated"
 	ErrCodeDeleted          = "could_not_be_deleted"
+	// ErrCodeTransaction        = "transacion_failed"
+	// ErrCodeStartSessionFailed = "start_of_session_failed"
+	// ErrCodeConnectionFailed   = "connection_failed"
 )

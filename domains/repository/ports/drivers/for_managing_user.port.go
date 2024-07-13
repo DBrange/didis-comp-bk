@@ -3,12 +3,14 @@ package ports
 import (
 	"context"
 
-	"github.com/DBrange/didis-comp-bk/domains/repository/models/user/dao"
+	location_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
+	user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/user/dao"
 )
 
 type ForManagingUser interface {
-	CreateUser(ctx context.Context, user *dao.CreateUserDAO) error
-	GetUserByID(ctx context.Context, id string) (*dao.GetUserByIDDAO, error)
-	UpdateUser(ctx context.Context, userID string, newUserInfo *dao.UpdateUserDAOReq) error
-	DeleteUser(ctx context.Context, userID string) (*dao.UserRelationsToDeleteDAO, error)
+	CreateUserAndLocation(ctx context.Context, userDAO *user_dao.CreateUserDAO, locationDAO *location_dao.CreateLocationDAOReq) error
+	CreateUser(ctx context.Context, userDAO *user_dao.CreateUserDAO) error
+	GetUserByID(ctx context.Context, userID string) (*user_dao.GetUserByIDDAO, error)
+	UpdateUser(ctx context.Context, userID string, newUserInfo *user_dao.UpdateUserDAOReq) error
+	DeleteUser(ctx context.Context, userID string) (*user_dao.UserRelationsToDeleteDAO, error)
 }

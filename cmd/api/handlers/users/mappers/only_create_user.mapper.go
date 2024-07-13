@@ -5,7 +5,7 @@ import (
 	user_dto "github.com/DBrange/didis-comp-bk/domains/user/models/dto"
 )
 
-func OnlyCreateUser(user *req_dto.CreateUserDTOReq) *user_dto.CreateUserDTOReq {
+func OnlyCreateUser(user *req_dto.RegisterUserDTOReq) *user_dto.CreateUserDTOReq {
 	onlyUser := &user_dto.CreateUserDTOReq{
 		FirstName: user.FirstName,
 		LastName:  user.LastName,

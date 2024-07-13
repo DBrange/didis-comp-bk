@@ -5,8 +5,8 @@ import (
 	user_dto "github.com/DBrange/didis-comp-bk/domains/user/models/dto"
 )
 
-func GetUserByIDDAOtoDTO(userDAO *dao.GetUserByIDDAO) *user_dto.GetUserByIDDTO {
-	userDTO := &user_dto.GetUserByIDDTO{
+func GetUserByIDDAOtoDTO(userDAO *dao.GetUserByIDDAO) *user_dto.GetUserByIDDTORes {
+	userDTO := &user_dto.GetUserByIDDTORes{
 		ID:          userDAO.ID,
 		FirstName:   userDAO.FirstName,
 		LastName:    userDAO.LastName,

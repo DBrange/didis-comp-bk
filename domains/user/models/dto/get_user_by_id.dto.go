@@ -6,7 +6,7 @@ import (
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 )
 
-type GetUserByIDDTO struct {
+type GetUserByIDDTORes struct {
 	ID          string         `json:"id"`
 	FirstName   string         `json:"first_name"`
 	LastName    string         `json:"last_name"`

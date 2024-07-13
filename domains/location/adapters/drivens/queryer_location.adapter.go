@@ -2,14 +2,10 @@ package drivens
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/DBrange/didis-comp-bk/cmd/api/assets"
 	"github.com/DBrange/didis-comp-bk/domains/location/adapters/mappers"
 	location_dto "github.com/DBrange/didis-comp-bk/domains/location/models/dto"
 	ports "github.com/DBrange/didis-comp-bk/domains/repository/ports/drivers"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type LocationQueryerAdapter struct {
@@ -43,20 +39,12 @@ func (a *LocationQueryerAdapter) GetLocationByID(ctx context.Context, id string)
 	return mappedLocation, nil
 }
 
-func (a *LocationQueryerAdapter) UpdateLocation(ctx context.Context, locationID string, newLocation *location_dto.UpdateLocationDTOReq) error {
-	oid, err := primitive.ObjectIDFromHex(locationID)
-	if err != nil {
-		return fmt.Errorf("invalid id format: %w", err)
-	}
+func (a *LocationQueryerAdapter) UpdateLocation(ctx context.Context, locationID string, newLocationInfoDTO *location_dto.UpdateLocationDTOReq) error {
+	newLocationInfoDAO := mappers.UpdateLocationDTOtoDAO(newLocationInfoDTO)
 
-	filter := bson.M{"_id": oid}
-	update, err := assets.StructToBsonMap(newLocation)
-	if err != nil {
-		return err
-	}
-
-	return a.drivers.UpdateLocation(ctx, filter, update)
+	return a.drivers.UpdateLocation(ctx, locationID, newLocationInfoDAO)
 }
+
 func (a *LocationQueryerAdapter) DeleteLocation(ctx context.Context, locationID string) error {
 	return a.drivers.DeleteLocation(ctx, locationID)
 }

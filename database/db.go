@@ -26,7 +26,7 @@ func init() {
 	// if uri == "" {
 	// 	uri = "mongodb://admin:password@mongo:27017/didis-comp-bk?authSource=admin"
 	// }
-	uri := "mongodb://localhost:27017/"
+	uri := "mongodb://localhost:27017"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -49,6 +49,12 @@ func init() {
 	if err != nil {
 		log.Fatal("Failed to connect to MongoDB after 5 attempts", err)
 	}
+
+	// Initialize the Replica Set
+	// err = initiateReplicaSet(ctx, MongoClient)
+	// if err != nil {
+	// 	log.Fatal("Failed to initiate replica set", err)
+	// }
 }
 
 func GetCollection(collection string) *mongo.Collection {
@@ -68,3 +74,20 @@ func GetCollections(collectionNames []string) (map[string]*mongo.Collection, err
 
 	return collectionMap, nil
 }
+
+// func initiateReplicaSet(ctx context.Context, client *mongo.Client) error {
+// 	var result bson.M
+// 	err := client.Database("admin").RunCommand(ctx, bson.D{
+// 		{Key: "replSetInitiate", Value: bson.D{
+// 			{Key: "_id", Value: "rs0"},
+// 			{Key: "members", Value: bson.A{
+// 				bson.D{{Key: "_id", Value: 0}, {Key: "host", Value: "localhost:27017"}},
+// 			}},
+// 		}},
+// 	}).Decode(&result)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to initiate replica set: %v", err)
+// 	}
+// 	log.Println("Replica set initiated: ", result)
+// 	return nil
+// }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
 	"github.com/DBrange/didis-comp-bk/domains/repository/repository"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 type LocationManagerProxyAdapter struct {
@@ -26,8 +25,8 @@ func (a *LocationManagerProxyAdapter) GetLocationByID(ctx context.Context, id st
 	return a.repository.GetLocationByID(ctx, id)
 }
 
-func (a *LocationManagerProxyAdapter) UpdateLocation(ctx context.Context, filter bson.M, update bson.M) error {
-	return a.repository.UpdateLocation(ctx, filter, update)
+func (a *LocationManagerProxyAdapter) UpdateLocation(ctx context.Context, locationID string, newLocationInfoDAO *dao.UpdateLocationDAOReq) error {
+	return a.repository.UpdateLocation(ctx, locationID, newLocationInfoDAO)
 }
 
 func (a *LocationManagerProxyAdapter) DeleteLocation(ctx context.Context, locationID string) error {

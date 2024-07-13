@@ -12,7 +12,7 @@ func (driver *LocationService) DeleteLocation(ctx context.Context, locationID st
 	err := driver.locationQueryer.DeleteLocation(ctx, locationID)
 
 	if err != nil {
-		if errors.Is(err, customerrors.ErrLocationInsertionFailed) {
+		if errors.Is(err, customerrors.ErrInsertionFailed) {
 			appErr := customerrors.AppError{
 				Code: customerrors.ErrCodeInsertionFailed,
 				Msg:  fmt.Sprintf("error inserting location: %v", err),

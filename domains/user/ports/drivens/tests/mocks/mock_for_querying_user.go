@@ -40,60 +40,16 @@ func (m *MockForQueryingUser) EXPECT() *MockForQueryingUserMockRecorder {
 	return m.recorder
 }
 
-// CreateUser mocks base method.
-func (m *MockForQueryingUser) CreateUser(arg0 context.Context, arg1 *dto.CreateUserDTOReq) error {
+// RegisterUser mocks base method.
+func (m *MockForQueryingUser) RegisterUser(arg0 context.Context, arg1 *dto.RegisterUserDTOReq) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUser", arg0, arg1)
+	ret := m.ctrl.Call(m, "RegisterUser", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// CreateUser indicates an expected call of CreateUser.
-func (mr *MockForQueryingUserMockRecorder) CreateUser(arg0, arg1 any) *gomock.Call {
+// RegisterUser indicates an expected call of RegisterUser.
+func (mr *MockForQueryingUserMockRecorder) RegisterUser(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockForQueryingUser)(nil).CreateUser), arg0, arg1)
-}
-
-// DeleteUser mocks base method.
-func (m *MockForQueryingUser) DeleteUser(arg0 context.Context, arg1 string) (*dto.UserRelationsToDeleteDTO, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteUser", arg0, arg1)
-	ret0, _ := ret[0].(*dto.UserRelationsToDeleteDTO)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DeleteUser indicates an expected call of DeleteUser.
-func (mr *MockForQueryingUserMockRecorder) DeleteUser(arg0, arg1 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockForQueryingUser)(nil).DeleteUser), arg0, arg1)
-}
-
-// GetUserByID mocks base method.
-func (m *MockForQueryingUser) GetUserByID(arg0 context.Context, arg1 string) (*dto.GetUserByIDDTO, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByID", arg0, arg1)
-	ret0, _ := ret[0].(*dto.GetUserByIDDTO)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUserByID indicates an expected call of GetUserByID.
-func (mr *MockForQueryingUserMockRecorder) GetUserByID(arg0, arg1 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockForQueryingUser)(nil).GetUserByID), arg0, arg1)
-}
-
-// UpdateUser mocks base method.
-func (m *MockForQueryingUser) UpdateUser(arg0 context.Context, arg1 string, arg2 *dto.UpdateUserDTOReq) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUser", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateUser indicates an expected call of UpdateUser.
-func (mr *MockForQueryingUserMockRecorder) UpdateUser(arg0, arg1, arg2 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockForQueryingUser)(nil).UpdateUser), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterUser", reflect.TypeOf((*MockForQueryingUser)(nil).RegisterUser), arg0, arg1)
 }

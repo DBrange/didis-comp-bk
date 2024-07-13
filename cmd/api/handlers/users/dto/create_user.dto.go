@@ -7,7 +7,7 @@ import (
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 )
 
-type CreateUserDTOReq struct {
+type RegisterUserDTOReq struct {
 	FirstName   string                 `json:"first_name" validate:"required"`
 	LastName    string                 `json:"last_name" validate:"required"`
 	Username    *string                `json:"username"`

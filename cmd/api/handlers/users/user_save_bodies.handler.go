@@ -14,14 +14,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func saveBodyData(c *gin.Context) (*user_dto.CreateUserDTOReq, *location_dto.CreateLocationDTOReq, error) {
-	var user api_dto.CreateUserDTOReq
-	if err := c.ShouldBindJSON(&user); err != nil {
-		return nil, nil, err
+func saveBodyData(c *gin.Context) (*user_dto.RegisterUserDTOReq, error) {
+	var userInfoDTO user_dto.RegisterUserDTOReq
+	if err := c.ShouldBindJSON(&userInfoDTO); err != nil {
+		return nil, err
 	}
 
 	// Validar la estructura excepto el campo Location
-	err := utils.Validate.StructExcept(user, "Location")
+	err := utils.Validate.StructExcept(userInfoDTO, "Location")
 	if err != nil {
 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
 		if errors.Is(err, customerrors.ErrValidationFailed) {
@@ -29,15 +29,14 @@ func saveBodyData(c *gin.Context) (*user_dto.CreateUserDTOReq, *location_dto.Cre
 				Code: customerrors.ErrCodeValidationFailed,
 				Msg:  fmt.Sprintf("error validation: %v", err),
 			}
-			return nil, nil, appErr
+			return nil, appErr
 		}
-		return nil, nil, fmt.Errorf("error validation: %w", err)
+		return nil, fmt.Errorf("error validation: %w", err)
 	}
 
 	// Validar el campo Location si no es nil
-	var onlyCreateLocation *location_dto.CreateLocationDTOReq
-	if user.Location != nil {
-		err = utils.Validate.Struct(user.Location)
+	if userInfoDTO.Location != nil {
+		err = utils.Validate.Struct(userInfoDTO.Location)
 		if err != nil {
 			err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
 			if errors.Is(err, customerrors.ErrValidationFailed) {
@@ -45,16 +44,13 @@ func saveBodyData(c *gin.Context) (*user_dto.CreateUserDTOReq, *location_dto.Cre
 					Code: customerrors.ErrCodeValidationFailed,
 					Msg:  fmt.Sprintf("error validation: %v", err),
 				}
-				return nil, nil, appErr
+				return nil, appErr
 			}
-			return nil, nil, fmt.Errorf("error validation: %w", err)
+			return nil, fmt.Errorf("error validation: %w", err)
 		}
-		onlyCreateLocation = mappers.OnlyCreateLocation(&user)
 	}
 
-	onlyCreateUser := mappers.OnlyCreateUser(&user)
-
-	return onlyCreateUser, onlyCreateLocation, nil
+	return &userInfoDTO, nil
 }
 
 func UpdateUserSaveBody(c *gin.Context) (*user_dto.UpdateUserDTOReq, *location_dto.UpdateLocationDTOReq, error) {

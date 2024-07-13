@@ -9,8 +9,5 @@ import (
 )
 
 type ForQueryingUser interface {
-	CreateUser(ctx context.Context, userDTO *user_dto.CreateUserDTOReq) error
-	GetUserByID(ctx context.Context, id string) (*user_dto.GetUserByIDDTO, error)
-	UpdateUser(ctx context.Context, userID string, user *user_dto.UpdateUserDTOReq) error
-	DeleteUser(ctx context.Context, userID string) (*user_dto.UserRelationsToDeleteDTO, error)
+	RegisterUser(ctx context.Context, userInfoDTO *user_dto.RegisterUserDTOReq) error
 }

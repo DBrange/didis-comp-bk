@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DBrange/didis-comp-bk/cmd/api/assets"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,10 +18,25 @@ func (r *Repository) CreateLocation(ctx context.Context, location *dao.CreateLoc
 
 	result, err := r.location_coll.InsertOne(ctx, location)
 	if err != nil {
-		return "", fmt.Errorf("%w: error inserting location: %s", customerrors.ErrLocationInsertionFailed, err.Error())
+		if mongo.IsDuplicateKeyError(err) {
+			return "", fmt.Errorf("%w: error duplicate key for location: %s", customerrors.ErrDuplicateKey, err.Error())
+		}
+
+
+		if writeErr, ok := err.(mongo.WriteException); ok {
+			for _, we := range writeErr.WriteErrors {
+				if we.Code == 14 {
+					return "", fmt.Errorf("%w: error location scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
+				}
+			}
+		}
+
+		return "", fmt.Errorf("error when inserting location: %w", err)
 	}
 
+
 	id := result.InsertedID.(primitive.ObjectID).Hex()
+
 
 	return id, nil
 }
@@ -30,7 +46,7 @@ func (r *Repository) GetLocationByID(ctx context.Context, id string) (*dao.GetLo
 
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrLocationInvalidID, err.Error())
+		return nil, fmt.Errorf("%w: invalid location id format: %s", customerrors.ErrInvalidID, err.Error())
 	}
 
 	filter := bson.M{"_id": oid}
@@ -38,15 +54,26 @@ func (r *Repository) GetLocationByID(ctx context.Context, id string) (*dao.GetLo
 	err = r.location_coll.FindOne(ctx, filter).Decode(&location)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrLocationNotFound, err.Error())
+			return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrNotFound, err.Error())
 		}
-		return nil, fmt.Errorf("error when searching for location: %w", err)
+		return nil, fmt.Errorf("error when searching for the location: %w", err)
 	}
 
 	return &location, nil
 }
 
-func (r *Repository) UpdateLocation(ctx context.Context, filter bson.M, update bson.M) error {
+func (r *Repository) UpdateLocation(ctx context.Context, locationID string, newLocationInfoDAO *dao.UpdateLocationDAOReq) error {
+	oid, err := primitive.ObjectIDFromHex(locationID)
+	if err != nil {
+		return fmt.Errorf("%w: invalid location id format: %s", customerrors.ErrInvalidID, err.Error())
+	}
+
+	filter := bson.M{"_id": oid}
+	update, err := assets.StructToBsonMap(newLocationInfoDAO)
+	if err != nil {
+		return err
+	}
+
 	result, err := r.location_coll.UpdateOne(
 		ctx,
 		filter,
@@ -57,14 +84,14 @@ func (r *Repository) UpdateLocation(ctx context.Context, filter bson.M, update b
 	}
 
 	if result.MatchedCount == 0 {
-		return fmt.Errorf("no document found with the given filter")
+		return fmt.Errorf("%w: no location found with id: %s", customerrors.ErrNotFound, locationID)
 	}
 
 	return nil
 }
 
 func (r *Repository) DeleteLocation(ctx context.Context, locationID string) error {
-	err := r.setDeletedAt(r.location_coll, ctx, locationID)
+	err := r.setDeletedAt(r.location_coll, ctx, locationID, "location")
 	if err != nil {
 		return err
 	}
@@ -72,11 +99,11 @@ func (r *Repository) DeleteLocation(ctx context.Context, locationID string) erro
 	return nil
 }
 
-//para ver como se haria si solo quisiera datos espectificos, y ver por log, como es la respuesta
+// para ver como se haria si solo quisiera datos espectificos, y ver por log, como es la respuesta
 // func (r *Repository) GetLocationByID(ctx context.Context, id string) (*dao.GetLocationByIDDAORes, error) {
 //     oid, err := primitive.ObjectIDFromHex(id)
 //     if err != nil {
-//         return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrLocationInvalidID, err.Error())
+//         return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrInvalidID, err.Error())
 //     }
 
 //     filter := bson.M{"_id": oid}
@@ -93,7 +120,7 @@ func (r *Repository) DeleteLocation(ctx context.Context, locationID string) erro
 //     err = r.location_coll.FindOne(ctx, filter, opts).Decode(&rawResult)
 //     if err != nil {
 //         if err == mongo.ErrNoDocuments {
-//             return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrLocationNotFound, err.Error())
+//             return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrNotFound, err.Error())
 //         }
 //         return nil, fmt.Errorf("error when searching for location: %w", err)
 //     }

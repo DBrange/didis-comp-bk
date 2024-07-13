@@ -5,7 +5,6 @@ import (
 )
 
 type UpdateUserDTOReq struct {
-	// ID         string    `json:"id,omitempty" validate:"omitempty"`
 	FirstName  *string    `json:"first_name,omitempty" validate:"omitempty,min=2"`
 	LastName   *string    `json:"last_name,omitempty" validate:"omitempty,min=2"`
 	Username   *string    `json:"username,omitempty" validate:"omitempty,min=3"`

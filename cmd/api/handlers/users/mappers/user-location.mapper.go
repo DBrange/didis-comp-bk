@@ -6,7 +6,7 @@ import (
 	user_dto "github.com/DBrange/didis-comp-bk/domains/user/models/dto"
 )
 
-func UserAndLocation(user *user_dto.GetUserByIDDTO, location *location_dto.GetLocationByIDDTORes) *api_dto.GetUserByIDDTORes {
+func UserAndLocation(user *user_dto.GetUserByIDDTORes, location *location_dto.GetLocationByIDDTORes) *api_dto.GetUserByIDDTORes {
 	completeUser := &api_dto.GetUserByIDDTORes{
 		ID:          user.ID,
 		FirstName:   user.FirstName,

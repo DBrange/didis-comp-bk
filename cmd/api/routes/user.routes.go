@@ -9,11 +9,7 @@ import (
 func userRoutes(router *gin.Engine, handler *handlers.Handler) {
 	userRouter := router.Group("users")
 
-	userRouter.POST("/", handler.CreateUser)
+	userRouter.POST("/", handler.RegisterUser)
 	
-	userRouter.GET("/:id", handler.GetUserByID)
 
-	userRouter.PUT("/:id", handler.UpdateUser)
-
-	userRouter.DELETE("/:id", handler.DeleteUser)
 }

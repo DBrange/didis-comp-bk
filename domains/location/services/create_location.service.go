@@ -2,25 +2,18 @@ package services
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/DBrange/didis-comp-bk/domains/location/models/dto"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
 
-func (driver *LocationService) CreateLocation(ctx context.Context, body *dto.CreateLocationDTOReq) (string, error) {
-	id, err := driver.locationQueryer.CreateLocation(ctx, body)
+func (driven *LocationService) CreateLocation(ctx context.Context, locationInfoDTO *dto.CreateLocationDTOReq) (string, error) {
+	id, err := driven.locationQueryer.CreateLocation(ctx, locationInfoDTO)
 
 	if err != nil {
-		if errors.Is(err, customerrors.ErrLocationInsertionFailed) {
-			appErr := customerrors.AppError{
-				Code: customerrors.ErrCodeInsertionFailed,
-				Msg:  fmt.Sprintf("error inserting location: %v", err),
-			}
-			return "", appErr
-		}
-		return "", fmt.Errorf("error inserting location: %w", err)
+		locationErrorHandlers := customerrors.CreateErrorHandlers("location")
+		errMsgTemplate := "error inserting location"
+		return "", customerrors.HandleError(err, locationErrorHandlers, errMsgTemplate)
 	}
 
 	return id, nil

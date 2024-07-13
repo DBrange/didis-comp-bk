@@ -17,10 +17,10 @@ type setDeletedAtAndReturnIDsGeneric interface {
 	*dao.UserRelationsToDeleteDAO
 }
 
-func setDeletedAtAndReturnIDs[T setDeletedAtAndReturnIDsGeneric](mc *mongo.Collection, ctx context.Context, userID string, projections bson.M, structToUpdate T) (T, error) {
-	userOID, err := primitive.ObjectIDFromHex(userID)
+func setDeletedAtAndReturnIDs[T setDeletedAtAndReturnIDsGeneric](mc *mongo.Collection, ctx context.Context, ID string, name string, projections bson.M, structToUpdate T) (T, error) {
+	OID, err := primitive.ObjectIDFromHex(ID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: invalid id format: %s", customerrors.ErrUserInvalidID, err.Error())
+		return nil, fmt.Errorf("%w: invalid %s id format: %s", customerrors.ErrInvalidID, name, err.Error())
 	}
 
 	currentDate := time.Now().UTC()
@@ -30,7 +30,7 @@ func setDeletedAtAndReturnIDs[T setDeletedAtAndReturnIDsGeneric](mc *mongo.Colle
 	}
 	update["updated_at"] = currentDate
 
-	filter := bson.M{"_id": userOID}
+	filter := bson.M{"_id": OID}
 
 	opts := options.FindOneAndUpdate().
 		SetReturnDocument(options.After).
@@ -44,18 +44,18 @@ func setDeletedAtAndReturnIDs[T setDeletedAtAndReturnIDsGeneric](mc *mongo.Colle
 	).Decode(structToUpdate)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%w: error when searching: %s", customerrors.ErrUserNotFound, err.Error())
+			return nil, fmt.Errorf("%w: error when searching %s: %s", customerrors.ErrNotFound, name, err.Error())
 		}
-		return nil, fmt.Errorf("%w: error updating: %s", customerrors.ErrUserUpdated, err.Error())
+		return nil, fmt.Errorf("%w: error updating %s: %s", customerrors.ErrUpdated, name, err.Error())
 	}
 
 	return structToUpdate, nil
 }
 
-func (r *Repository) setDeletedAt(mc *mongo.Collection, ctx context.Context, ID string) error {
+func (r *Repository) setDeletedAt(mc *mongo.Collection, ctx context.Context, ID string, name string) error {
 	OID, err := primitive.ObjectIDFromHex(ID)
 	if err != nil {
-		return fmt.Errorf("%w: invalid id format: %s", customerrors.ErrUserInvalidID, err.Error())
+		return fmt.Errorf("%w: invalid %s id format: %s", customerrors.ErrInvalidID, name, err.Error())
 	}
 
 	currentDate := time.Now().UTC()
@@ -73,11 +73,31 @@ func (r *Repository) setDeletedAt(mc *mongo.Collection, ctx context.Context, ID 
 		bson.M{"$set": update},
 	)
 	if err != nil {
-		return fmt.Errorf("%w: error updating: %s", customerrors.ErrUserUpdated, err.Error())
+		return fmt.Errorf("%w: error updating %s: %s", customerrors.ErrUpdated, name, err.Error())
 	}
 
 	if result.MatchedCount == 0 {
-		return fmt.Errorf("%w: no document found with the given filter", customerrors.ErrUserUpdated)
+		return fmt.Errorf("%w: no %s found with id: %s", customerrors.ErrNotFound, name, ID)
+	}
+
+	return nil
+}
+
+func (r *Repository) DeleteByID(ctx context.Context, mc *mongo.Collection, ID string, name string) error {
+	OID, err := primitive.ObjectIDFromHex(ID)
+	if err != nil {
+		return fmt.Errorf("%w: invalid %s id format: %s", customerrors.ErrInvalidID, name, err.Error())
+	}
+
+	filter := bson.M{"_id": OID}
+
+	result, err := mc.DeleteOne(ctx, filter)
+	if err != nil {
+		return fmt.Errorf("%w: error deleting %s: %s", customerrors.ErrDeleted, name, err.Error())
+	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("%w: no %s found with id: %s", customerrors.ErrNotFound, name, ID)
 	}
 
 	return nil
