@@ -12,10 +12,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateLocation(ctx context.Context, location *dao.CreateLocationDAOReq) (string, error) {
-	location.SetTimeStamp()
+func (r *Repository) CreateLocation(ctx context.Context, locationInfoDAO *dao.CreateLocationDAOReq) (string, error) {
+	locationInfoDAO.SetTimeStamp()
 
-	result, err := r.locationColl.InsertOne(ctx, location)
+	result, err := r.locationColl.InsertOne(ctx, locationInfoDAO)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
 			return "", fmt.Errorf("%w: error duplicate key for location: %s", customerrors.ErrDuplicateKey, err.Error())

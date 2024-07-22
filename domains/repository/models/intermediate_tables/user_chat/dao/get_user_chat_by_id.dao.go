@@ -5,7 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type GetUserChatByIDDAOReS struct {
+type GetUserChatByIDDAORes struct {
 	UserID primitive.ObjectID `bson:"user_id"`
 	ChatID primitive.ObjectID `bson:"chat_id"`
 	common.GetBaseDAO

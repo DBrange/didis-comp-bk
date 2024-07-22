@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type GetTournamentRegistrationByiDDAORes struct {
+type GetTournamentRegistrationByIDDAORes struct {
 	ID           primitive.ObjectID `bson:"_id"`
 	CompetitorID primitive.ObjectID `bson:"competitor_id"`
 	TournamentID primitive.ObjectID `bson:"tournament_id"`

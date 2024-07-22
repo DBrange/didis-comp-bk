@@ -7,7 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type CreateLigueDAOReq struct {
+type GetLeagueByIDDAORes struct {
+	ID                primitive.ObjectID    `bson:"_id"`
 	Name              string                `bson:"name"`
 	Genre             models.GENRE          `bson:"genre"`
 	TotalParticipants int                   `bson:"total_participants"`
@@ -19,12 +20,4 @@ type CreateLigueDAOReq struct {
 	CreatedAt         time.Time             `bson:"created_at"`
 	UpdatedAt         time.Time             `bson:"updated_at"`
 	DeletedAt         *time.Time            `bson:"deleted_at,omitempty"`
-}
-
-func (u *CreateLigueDAOReq) SetTimeStamp() {
-	currentDate := time.Now().UTC()
-	if u.CreatedAt.IsZero() {
-		u.CreatedAt = currentDate
-	}
-	u.UpdatedAt = currentDate
 }

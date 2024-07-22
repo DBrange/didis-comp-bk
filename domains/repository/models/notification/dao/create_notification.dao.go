@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type CreateCompetitorUserDAOReq struct {
+type CreateNotificationDAOReq struct {
 	Receiber primitive.ObjectID           `bson:"receiber"`
 	Priority models.NOTIFICATION_PRIORITY `bson:"priority"`
 	Type     models.NOTIFICATION_TYPE     `bson:"type"`

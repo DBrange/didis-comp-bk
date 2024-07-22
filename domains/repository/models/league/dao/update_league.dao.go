@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type UpdateLigueDAOReq struct {
+type UpdateLeagueDAOReq struct {
 	Name              *string                `bson:"name,omitempty"`
 	Genre             *models.GENRE          `bson:"genre,omitempty"`
 	TotalParticipants *int                   `bson:"total_participants,omitempty"`
@@ -17,6 +17,6 @@ type UpdateLigueDAOReq struct {
 	UpdatedAt         time.Time              `bson:"updated_at,omitempty"`
 }
 
-func (u *UpdateLigueDAOReq) RenewUpdate() {
+func (u *UpdateLeagueDAOReq) RenewUpdate() {
 	u.UpdatedAt = time.Now().UTC()
 }

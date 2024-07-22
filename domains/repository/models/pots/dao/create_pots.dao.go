@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type CreatePotsDAOReq struct {
+type CreatePotDAOReq struct {
 	TournamentID  primitive.ObjectID   `bson:"tournament_id"`
 	Competitors []primitive.ObjectID `bson:"competitors"`
 	CreatedAt     time.Time            `bson:"created_at"`
@@ -14,7 +14,7 @@ type CreatePotsDAOReq struct {
 	DeletedAt     *time.Time           `bson:"deleted_at,omitempty"`
 }
 
-func (u *CreatePotsDAOReq) SetTimeStamp() {
+func (u *CreatePotDAOReq) SetTimeStamp() {
 	currentDate := time.Now().UTC()
 	if u.CreatedAt.IsZero() {
 		u.CreatedAt = currentDate

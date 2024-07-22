@@ -17,7 +17,7 @@ type Repository struct {
 	availabilityColl      *mongo.Collection
 	roleColl              *mongo.Collection
 	organizerColl         *mongo.Collection
-	ligueColl             *mongo.Collection
+	leagueColl            *mongo.Collection
 	tournamentColl        *mongo.Collection
 	potColl               *mongo.Collection
 	tournamentGroupColl   *mongo.Collection
@@ -31,7 +31,7 @@ type Repository struct {
 	matchColl             *mongo.Collection
 	chatColl              *mongo.Collection
 	chatMessageColl       *mongo.Collection
-	ghestPlayerColl       *mongo.Collection
+	guestPlayerColl       *mongo.Collection
 	notificationColl      *mongo.Collection
 
 	competitorMatchColl        *mongo.Collection // Intermediate table
@@ -52,7 +52,7 @@ func NewRepository(
 	availabilityColl *mongo.Collection,
 	roleColl *mongo.Collection,
 	organizerColl *mongo.Collection,
-	ligueColl *mongo.Collection,
+	leagueColl *mongo.Collection,
 	tournamentColl *mongo.Collection,
 	potColl *mongo.Collection,
 	tournamentGroupColl *mongo.Collection,
@@ -66,7 +66,7 @@ func NewRepository(
 	matchColl *mongo.Collection,
 	chatColl *mongo.Collection,
 	chatMessageColl *mongo.Collection,
-	ghestPlayerColl *mongo.Collection,
+	guestPlayerColl *mongo.Collection,
 	notificationColl *mongo.Collection,
 
 	competitorMatchColl *mongo.Collection, // Intermediate table
@@ -87,7 +87,7 @@ func NewRepository(
 		availabilityColl:      availabilityColl,
 		roleColl:              roleColl,
 		organizerColl:         organizerColl,
-		ligueColl:             ligueColl,
+		leagueColl:            leagueColl,
 		tournamentColl:        tournamentColl,
 		potColl:               potColl,
 		tournamentGroupColl:   tournamentGroupColl,
@@ -101,7 +101,7 @@ func NewRepository(
 		matchColl:             matchColl,
 		chatColl:              chatColl,
 		chatMessageColl:       chatMessageColl,
-		ghestPlayerColl:       ghestPlayerColl,
+		guestPlayerColl:       guestPlayerColl,
 		notificationColl:      notificationColl,
 
 		competitorMatchColl:        competitorMatchColl,        // Intermediate table

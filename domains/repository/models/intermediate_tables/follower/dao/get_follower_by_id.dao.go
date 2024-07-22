@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type GetFollowerByiDDAORes struct {
+type GetFollowerByIDDAORes struct {
 	ID        primitive.ObjectID `bson:"_id"`
 	Of        primitive.ObjectID `bson:"of"`
 	To        primitive.ObjectID `bson:"to"`
