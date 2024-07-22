@@ -26,7 +26,8 @@ func init() {
 	// if uri == "" {
 	// 	uri = "mongodb://admin:password@mongo:27017/didis-comp-bk?authSource=admin"
 	// }
-	uri := "mongodb://localhost:27017"
+	// uri := "mongodb://localhost:27017/"
+	uri := "mongodb://localhost:27018,localhost:27019,localhost:27020/admin?authSource=admin&replicaSet=didi"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

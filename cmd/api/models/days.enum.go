@@ -1,0 +1,21 @@
+package models
+
+type DAY string
+
+const (
+	DAY_SUNDAY    DAY = "SUNDAY"
+	DAY_MONDAY    DAY = "MONDAY"
+	DAY_TUESDAY   DAY = "TUESDAY"
+	DAY_WEDNESDAY DAY = "WEDNESDAY"
+	DAY_THURSDAY  DAY = "THURSDAY"
+	DAY_FRIDAY    DAY = "FRIDAY"
+	DAY_SATURDAY  DAY = "SATURDAY"
+)
+
+func (d DAY) IsValid() bool {
+	switch d {
+	case DAY_SUNDAY, DAY_MONDAY, DAY_TUESDAY, DAY_WEDNESDAY, DAY_THURSDAY, DAY_FRIDAY, DAY_SATURDAY:
+		return true
+	}
+	return false
+}

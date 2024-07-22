@@ -17,10 +17,10 @@ type setDeletedAtAndReturnIDsGeneric interface {
 	*dao.UserRelationsToDeleteDAO
 }
 
-func setDeletedAtAndReturnIDs[T setDeletedAtAndReturnIDsGeneric](mc *mongo.Collection, ctx context.Context, ID string, name string, projections bson.M, structToUpdate T) (T, error) {
+func setDeletedAtAndReturnIDs[T setDeletedAtAndReturnIDsGeneric](ctx context.Context, mc *mongo.Collection, ID string, name string, projections bson.M, structToUpdate T) (T, error) {
 	OID, err := primitive.ObjectIDFromHex(ID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: invalid %s id format: %s", customerrors.ErrInvalidID, name, err.Error())
+		return nil, fmt.Errorf("%w: invalid availability id format: %s", customerrors.ErrInvalidID, err.Error())
 	}
 
 	currentDate := time.Now().UTC()
@@ -52,10 +52,10 @@ func setDeletedAtAndReturnIDs[T setDeletedAtAndReturnIDsGeneric](mc *mongo.Colle
 	return structToUpdate, nil
 }
 
-func (r *Repository) setDeletedAt(mc *mongo.Collection, ctx context.Context, ID string, name string) error {
-	OID, err := primitive.ObjectIDFromHex(ID)
+func (r *Repository) setDeletedAt(ctx context.Context, mc *mongo.Collection, ID string, name string) error {
+	OID, err := r.ConvertToObjectID(ID)
 	if err != nil {
-		return fmt.Errorf("%w: invalid %s id format: %s", customerrors.ErrInvalidID, name, err.Error())
+		return err
 	}
 
 	currentDate := time.Now().UTC()
@@ -65,7 +65,7 @@ func (r *Repository) setDeletedAt(mc *mongo.Collection, ctx context.Context, ID 
 	}
 	update["updated_at"] = currentDate
 
-	filter := bson.M{"_id": OID}
+	filter := bson.M{"_id": *OID}
 
 	result, err := mc.UpdateOne(
 		ctx,
@@ -83,22 +83,31 @@ func (r *Repository) setDeletedAt(mc *mongo.Collection, ctx context.Context, ID 
 	return nil
 }
 
-func (r *Repository) DeleteByID(ctx context.Context, mc *mongo.Collection, ID string, name string) error {
-	OID, err := primitive.ObjectIDFromHex(ID)
-	if err != nil {
-		return fmt.Errorf("%w: invalid %s id format: %s", customerrors.ErrInvalidID, name, err.Error())
-	}
+// func (r *Repository) deleteByID(ctx context.Context, mc *mongo.Collection, ID string, name string) error {
+// 	OID, err := r.ConvertToObjectID(ID)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	filter := bson.M{"_id": OID}
+// 	filter := bson.M{"_id": *OID}
 
-	result, err := mc.DeleteOne(ctx, filter)
-	if err != nil {
-		return fmt.Errorf("%w: error deleting %s: %s", customerrors.ErrDeleted, name, err.Error())
-	}
+// 	result, err := mc.DeleteOne(ctx, filter)
+// 	if err != nil {
+// 		return fmt.Errorf("%w: error deleting %s: %s", customerrors.ErrDeleted, name, err.Error())
+// 	}
 
-	if result.DeletedCount == 0 {
-		return fmt.Errorf("%w: no %s found with id: %s", customerrors.ErrNotFound, name, ID)
-	}
+// 	if result.DeletedCount == 0 {
+// 		return fmt.Errorf("%w: no %s found with id: %s", customerrors.ErrNotFound, name, ID)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
+
+// func (r *Repository) deleteManyByID(ctx context.Context, valuesForDelete []models.ValuesForDelete) error {
+// 	for _, v := range valuesForDelete {
+// 		if err := r.deleteByID(ctx, v.MC, v.ID, v.Name); err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }

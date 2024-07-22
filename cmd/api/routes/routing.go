@@ -3,7 +3,8 @@ package routes
 import (
 	"time"
 
-	handlers "github.com/DBrange/didis-comp-bk/cmd/api/handlers/users"
+	profile_handlers "github.com/DBrange/didis-comp-bk/cmd/api/handlers/profiles"
+	tournament_handlers "github.com/DBrange/didis-comp-bk/cmd/api/handlers/tournaments"
 	"github.com/DBrange/didis-comp-bk/compose"
 	"github.com/DBrange/didis-comp-bk/compose/dashboard"
 	"github.com/gin-contrib/cors"
@@ -25,5 +26,6 @@ func NewRouter() *gin.Engine {
 }
 
 func RoutesHandler(router *gin.Engine, dashboard dashboard.Dashboard) {
-	userRoutes(router, handlers.NewHandlerUser(dashboard.User(), dashboard.Location()))
+	profileRoutes(router, profile_handlers.NewHandlerProfile(dashboard.Profile()))
+	tournamentRoutes(router, tournament_handlers.NewHandlerTournament(dashboard.Tournament()))
 }

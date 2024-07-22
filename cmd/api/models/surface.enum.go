@@ -1,0 +1,17 @@
+package models
+
+type TENNIS_SURFACE string
+
+const (
+	TENNIS_SURFACE_HARD  TENNIS_SURFACE = "HARD"
+	TENNIS_SURFACE_CLAY  TENNIS_SURFACE = "CLAY"
+	TENNIS_SURFACE_GRASS TENNIS_SURFACE = "GRASS"
+)
+
+func (g TENNIS_SURFACE) IsValid() bool {
+	switch g {
+	case TENNIS_SURFACE_HARD, TENNIS_SURFACE_CLAY, TENNIS_SURFACE_GRASS:
+		return true
+	}
+	return false
+}

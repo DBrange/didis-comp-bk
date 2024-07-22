@@ -1,7 +1,7 @@
 package dto
 
 type UpdateLocationDTOReq struct {
-	ID      string `json:"id"`
+	ID      string  `json:"id"`
 	State   *string `json:"state"`
 	Country *string `json:"country"`
 	City    *string `json:"city"`

@@ -1,9 +1,7 @@
 package dao
 
 type UserRelationsToDeleteDAO struct {
-	LocationID string `bson:"location_id"`
-	PaymentID  string `bson:"payments_id"`
-	ScheduleID string `bson:"schedule_id"`
+	LocationID     string `bson:"location_id,omitempty"`
 }
 
 // func (a *UserRelationsToDeleteDAO) LocationID() string {
@@ -14,6 +12,6 @@ type UserRelationsToDeleteDAO struct {
 // 	return a.paymentID
 // }
 
-// func (a *UserRelationsToDeleteDAO) ScheduleID() string {
-// 	return a.scheduleID
+// func (a *UserRelationsToDeleteDAO) AvailabilityID() string {
+// 	return a.availabilityID
 // }

@@ -1,0 +1,17 @@
+package models
+
+type RANGE_MOVEMENT string
+
+const (
+	RANGE_MOVEMENT_1W RANGE_MOVEMENT = "ONE_WEEK"
+	RANGE_MOVEMENT_2W RANGE_MOVEMENT = "TWO_WEEKS"
+	RANGE_MOVEMENT_M  RANGE_MOVEMENT = "ONE_MONTH"
+)
+
+func (g RANGE_MOVEMENT) IsValid() bool {
+	switch g {
+	case RANGE_MOVEMENT_1W, RANGE_MOVEMENT_2W, RANGE_MOVEMENT_M:
+		return true
+	}
+	return false
+}

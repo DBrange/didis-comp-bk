@@ -7,20 +7,15 @@ import (
 )
 
 type GetUserByIDDAO struct {
-	ID          string         `bson:"_id"`
-	FirstName   string         `bson:"first_name"`
-	LastName    string         `bson:"last_name"`
-	Username    *string        `bson:"username"`
-	Birthdate   *time.Time     `bson:"birthdate"`
-	Password    *string        `bson:"password"`
-	Email       string         `bson:"email"`
-	Phone       *string        `bson:"phone"`
-	Image       *string        `bson:"image"`
-	Active      bool           `bson:"active"`
-	AccessLevel *int16         `bson:"access_level"`
-	Genre       []models.GENRE `bson:"genre"`
-	Role        []models.ROLE  `bson:"role"`
-	LocationID  *string        `bson:"location_id"`
-	ScheduleID  *string        `bson:"schedule_id"`
-	PaymentID   *string        `bson:"payment_id"`
+	ID         string       `bson:"_id"`
+	FirstName  string       `bson:"first_name"`
+	LastName   string       `bson:"last_name"`
+	Username   *string      `bson:"username"`
+	Birthdate  *time.Time   `bson:"birthdate"`
+	Password   *string      `bson:"password"`
+	Email      string       `bson:"email"`
+	Phone      *string      `bson:"phone"`
+	Image      *string      `bson:"image"`
+	Genre      models.GENRE `bson:"genre"`
+	LocationID *string      `bson:"location_id"`
 }

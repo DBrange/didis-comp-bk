@@ -18,6 +18,7 @@ func (e AppError) Error() string {
 }
 
 func ErrorResponse(err error, c *gin.Context) {
+
 	var appErr AppError
 	if errors.As(err, &appErr) {
 		switch appErr.Code {
@@ -46,6 +47,12 @@ func ErrorResponse(err error, c *gin.Context) {
 		case ErrCodeDeleted:
 			c.JSON(http.StatusBadRequest, appErr)
 
+		case ErrCodeStartSessionFailed:
+			c.JSON(http.StatusServiceUnavailable, appErr)
+
+		case ErrCodeTransaction:
+			c.JSON(http.StatusServiceUnavailable, appErr)
+
 		}
 
 		return
@@ -67,14 +74,17 @@ func GenerateErrorHandler(code string, entityName string, msgTemplate string) Er
 
 func CreateErrorHandlers(entityName string) map[error]ErrorHandler {
 	return map[error]ErrorHandler{
-		ErrNotFound:         GenerateErrorHandler(ErrCodeNotFound, entityName, "error when searching for %s: %v"),
-		ErrInsertionFailed:  GenerateErrorHandler(ErrCodeInsertionFailed, entityName, "error inserting %s: %v"),
-		ErrInvalidID:        GenerateErrorHandler(ErrCodeInvalidID, entityName, "invalid %s id format: %v"),
-		ErrDuplicateKey:     GenerateErrorHandler(ErrCodeDuplicateKey, entityName, "error duplicate key for %s: %v"),
-		ErrSchemaViolation:  GenerateErrorHandler(ErrCodeSchemaViolation, entityName, "error %s scheme type: %v"),
-		ErrUpdated:          GenerateErrorHandler(ErrCodeUpdated, entityName, "error updating %s: %v"),
-		ErrDeleted:          GenerateErrorHandler(ErrCodeDeleted, entityName, "error deleting %s: %v"),
-		ErrValidationFailed: GenerateErrorHandler(ErrCodeValidationFailed, entityName, "error deleting %s: %v"),
+		ErrNotFound:           GenerateErrorHandler(ErrCodeNotFound, entityName, "error when searching for %s: %v"),
+		ErrInsertionFailed:    GenerateErrorHandler(ErrCodeInsertionFailed, entityName, "error inserting %s: %v"),
+		ErrInvalidID:          GenerateErrorHandler(ErrCodeInvalidID, entityName, "invalid %s id format: %v"),
+		ErrDuplicateKey:       GenerateErrorHandler(ErrCodeDuplicateKey, entityName, "error duplicate key for %s: %v"),
+		ErrSchemaViolation:    GenerateErrorHandler(ErrCodeSchemaViolation, entityName, "error %s scheme type: %v"),
+		ErrUpdated:            GenerateErrorHandler(ErrCodeUpdated, entityName, "error updating %s: %v"),
+		ErrDeleted:            GenerateErrorHandler(ErrCodeDeleted, entityName, "error deleting %s: %v"),
+		ErrValidationFailed:   GenerateErrorHandler(ErrCodeValidationFailed, entityName, "error deleting %s: %v"),
+		ErrGetJSON:            GenerateErrorHandler(ErrCodeGetJSON, entityName, "error deleting %s: %v"),
+		ErrStartSessionFailed: GenerateErrorHandler(ErrCodeStartSessionFailed, entityName, "error start session %s: %v"),
+		ErrTransaction:        GenerateErrorHandler(ErrCodeTransaction, entityName, "error transaction %s: %v"),
 	}
 }
 

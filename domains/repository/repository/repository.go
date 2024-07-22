@@ -11,14 +11,107 @@ import (
 )
 
 type Repository struct {
-	user_coll     *mongo.Collection
-	location_coll *mongo.Collection
+	client                *mongo.Client
+	userColl              *mongo.Collection
+	locationColl          *mongo.Collection
+	availabilityColl      *mongo.Collection
+	roleColl              *mongo.Collection
+	organizerColl         *mongo.Collection
+	ligueColl             *mongo.Collection
+	tournamentColl        *mongo.Collection
+	potColl               *mongo.Collection
+	tournamentGroupColl   *mongo.Collection
+	doubleEliminationColl *mongo.Collection
+	roundColl             *mongo.Collection
+	competitorColl        *mongo.Collection
+	competitorStatsColl   *mongo.Collection
+	singleColl            *mongo.Collection
+	doubleColl            *mongo.Collection
+	teamColl              *mongo.Collection
+	matchColl             *mongo.Collection
+	chatColl              *mongo.Collection
+	chatMessageColl       *mongo.Collection
+	ghestPlayerColl       *mongo.Collection
+	notificationColl      *mongo.Collection
+
+	competitorMatchColl        *mongo.Collection // Intermediate table
+	competitorUserColl         *mongo.Collection // Intermediate table
+	followerColl               *mongo.Collection // Intermediate table
+	guestCompetitorColl        *mongo.Collection // Intermediate table
+	leagueRegistrationColl     *mongo.Collection // Intermediate table
+	opinionColl                *mongo.Collection // Intermediate table
+	tournamentRegistrationColl *mongo.Collection // Intermediate table
+	userChatColl               *mongo.Collection // Intermediate table
 }
 
-func NewRepository( user_coll *mongo.Collection, location_coll *mongo.Collection) (*Repository, error) {
+func NewRepository(
+
+	client *mongo.Client,
+	userColl *mongo.Collection,
+	locationColl *mongo.Collection,
+	availabilityColl *mongo.Collection,
+	roleColl *mongo.Collection,
+	organizerColl *mongo.Collection,
+	ligueColl *mongo.Collection,
+	tournamentColl *mongo.Collection,
+	potColl *mongo.Collection,
+	tournamentGroupColl *mongo.Collection,
+	doubleEliminationColl *mongo.Collection,
+	roundColl *mongo.Collection,
+	competitorColl *mongo.Collection,
+	competitorStatsColl *mongo.Collection,
+	singleColl *mongo.Collection,
+	doubleColl *mongo.Collection,
+	teamColl *mongo.Collection,
+	matchColl *mongo.Collection,
+	chatColl *mongo.Collection,
+	chatMessageColl *mongo.Collection,
+	ghestPlayerColl *mongo.Collection,
+	notificationColl *mongo.Collection,
+
+	competitorMatchColl *mongo.Collection, // Intermediate table
+	competitorUserColl *mongo.Collection, // Intermediate table
+	followerColl *mongo.Collection, // Intermediate table
+	guestCompetitorColl *mongo.Collection, // Intermediate table
+	leagueRegistrationColl *mongo.Collection, // Intermediate table
+	opinionColl *mongo.Collection, // Intermediate table
+	tournamentRegistrationColl *mongo.Collection, // Intermediate table
+	userChatColl *mongo.Collection, // Intermediate table
+
+) (*Repository, error) {
+
 	repository := &Repository{
-		user_coll:     user_coll,
-		location_coll: location_coll,
+		client:                client,
+		userColl:              userColl,
+		locationColl:          locationColl,
+		availabilityColl:      availabilityColl,
+		roleColl:              roleColl,
+		organizerColl:         organizerColl,
+		ligueColl:             ligueColl,
+		tournamentColl:        tournamentColl,
+		potColl:               potColl,
+		tournamentGroupColl:   tournamentGroupColl,
+		doubleEliminationColl: doubleEliminationColl,
+		roundColl:             roundColl,
+		competitorColl:        competitorColl,
+		competitorStatsColl:   competitorStatsColl,
+		singleColl:            singleColl,
+		doubleColl:            doubleColl,
+		teamColl:              teamColl,
+		matchColl:             matchColl,
+		chatColl:              chatColl,
+		chatMessageColl:       chatMessageColl,
+		ghestPlayerColl:       ghestPlayerColl,
+		notificationColl:      notificationColl,
+
+		competitorMatchColl:        competitorMatchColl,        // Intermediate table
+		competitorUserColl:         competitorUserColl,         // Intermediate table
+		followerColl:               followerColl,               // Intermediate table
+		guestCompetitorColl:        guestCompetitorColl,        // Intermediate table
+		leagueRegistrationColl:     leagueRegistrationColl,     // Intermediate table
+		opinionColl:                opinionColl,                // Intermediate table
+		tournamentRegistrationColl: tournamentRegistrationColl, // Intermediate table
+		userChatColl:               userChatColl,               // Intermediate table
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -33,11 +126,11 @@ func NewRepository( user_coll *mongo.Collection, location_coll *mongo.Collection
 
 func (r *Repository) EnsureIndexes(ctx context.Context) error {
 	collections := map[*mongo.Collection][]mongo.IndexModel{
-		r.user_coll: {
+		r.userColl: {
 			{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetUnique(true)},
 			{Keys: bson.D{{Key: "username", Value: 1}}, Options: options.Index().SetUnique(true)},
 		},
-		// r.location_coll: {
+		// r.locationColl: {
 		//     {Keys: bson.D{{Key: "unique_field", Value: 1}}, Options: options.Index().SetUnique(true)},
 		// },
 	}

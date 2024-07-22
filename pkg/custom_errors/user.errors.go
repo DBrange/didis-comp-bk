@@ -12,8 +12,9 @@ var (
 	ErrUpdated          = errors.New("not updated")
 	ErrDeleted          = errors.New("not deleted")
 	ErrValidationFailed = errors.New("validation failed")
-	// ErrTransaction        = errors.New("transacion failed")
-	// ErrStartSessionFailed = errors.New("start of session failed")
+	ErrGetJSON          = errors.New("the json was not obtained")
+	ErrTransaction        = errors.New("transacion failed")
+	ErrStartSessionFailed = errors.New("start of session failed")
 	// ErrConnectionFailed   = errors.New("connection failed")
 )
 
@@ -27,7 +28,8 @@ const (
 	ErrCodeSchemaViolation  = "schema_violation"
 	ErrCodeUpdated          = "could_not_be_updated"
 	ErrCodeDeleted          = "could_not_be_deleted"
-	// ErrCodeTransaction        = "transacion_failed"
-	// ErrCodeStartSessionFailed = "start_of_session_failed"
+	ErrCodeGetJSON          = "could_not_get_the_json"
+	ErrCodeTransaction        = "transacion_failed"
+	ErrCodeStartSessionFailed = "start_of_session_failed"
 	// ErrCodeConnectionFailed   = "connection_failed"
 )

@@ -1,7 +1,7 @@
 package dto
 
 type UpdateLocationDTO struct {
-	ID      string  `json:"id,omitempty" validate:"omitempty,mongoid"`
+	ID      string  `json:"id,omitempty" validate:"omitempty"`
 	State   *string `json:"state,omitempty" validate:"omitempty,min=2"`
 	Country *string `json:"country,omitempty" validate:"omitempty,min=2"`
 	City    *string `json:"city,omitempty" validate:"omitempty,min=2"`
