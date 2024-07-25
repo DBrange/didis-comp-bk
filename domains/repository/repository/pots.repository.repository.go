@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/assets"
-	"github.com/DBrange/didis-comp-bk/domains/repository/models/pots/dao"
+	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
+	"github.com/DBrange/didis-comp-bk/domains/repository/models/pot/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"

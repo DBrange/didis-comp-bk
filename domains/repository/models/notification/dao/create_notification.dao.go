@@ -11,5 +11,5 @@ type CreateNotificationDAOReq struct {
 	Priority models.NOTIFICATION_PRIORITY `bson:"priority"`
 	Type     models.NOTIFICATION_TYPE     `bson:"type"`
 	State    models.NOTIFICATION_STATE    `bson:"state"`
-	common.CreateBaseDAO
+common.CreateBaseDAO `bson:",inline"`
 }

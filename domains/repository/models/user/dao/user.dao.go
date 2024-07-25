@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type CreateUserDAO struct {
+type CreateUserDAOReq struct {
 	FirstName  string               `bson:"first_name"`
 	LastName   string               `bson:"last_name"`
 	Username   *string              `bson:"username"`
@@ -26,7 +26,7 @@ type CreateUserDAO struct {
 	DeletedAt  *time.Time           `bson:"deleted_at,omitempty"`
 }
 
-func (u *CreateUserDAO) SetTimeStamp() {
+func (u *CreateUserDAOReq) SetTimeStamp() {
 	currentDate := time.Now().UTC()
 	if u.CreatedAt.IsZero() {
 		u.CreatedAt = currentDate

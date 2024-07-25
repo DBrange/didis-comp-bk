@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type RegisterUserDTOReq struct {
@@ -18,8 +17,7 @@ type RegisterUserDTOReq struct {
 	Image     *string               `json:"image"`
 	Active    bool                  `json:"active" `
 	Genre     models.GENRE          `json:"genre" validate:"genre"`
-	Roles     []primitive.ObjectID  `json:"role"`
-	Location  *CreateLocationDTOReq `json:"location"`
+	Location  *CreateLocationDTOReq `json:"location,omitempty"`
 	Organizer bool                  `json:"organizer"`
 }
 

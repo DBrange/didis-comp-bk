@@ -8,5 +8,5 @@ import (
 type GetUserChatByIDDAORes struct {
 	UserID primitive.ObjectID `bson:"user_id"`
 	ChatID primitive.ObjectID `bson:"chat_id"`
-	common.GetBaseDAO
+	common.GetBaseDAO `bson:",inline"`
 }

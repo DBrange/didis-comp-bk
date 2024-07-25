@@ -4,41 +4,41 @@ import (
 	"context"
 	"fmt"
 
-	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/assets"
-	"github.com/DBrange/didis-comp-bk/domains/repository/models/competitor_stats/dao"
+	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
+	competitor_stats_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/competitor_stats/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateCompetitorStats(ctx context.Context, competitorStatsInfoDAO *dao.CreateCompetitorStatsDAOReq) (string, error) {
-	competitorStatsInfoDAO.SetTimeStamp()
+func (r *Repository) CreateCompetitorStats(ctx context.Context, competitorOID *primitive.ObjectID) error {
+	competitorStatsDAO := &competitor_stats_dao.CreateCompetitorStatsDAOReq{}
 
-	result, err := r.competitorStatsColl.InsertOne(ctx, competitorStatsInfoDAO)
+	competitorStatsDAO.CompetitorID = *competitorOID
+	competitorStatsDAO.Matches = []primitive.ObjectID{}
+	competitorStatsDAO.TournamentsWon = []primitive.ObjectID{}
+
+	competitorStatsDAO.SetTimeStamp()
+
+	_, err := r.competitorStatsColl.InsertOne(ctx, competitorStatsDAO)
 	if err != nil {
-		if mongo.IsDuplicateKeyError(err) {
-			return "", fmt.Errorf("%w: error duplicate key for competitorStats: %s", customerrors.ErrDuplicateKey, err.Error())
-		}
-
 		if writeErr, ok := err.(mongo.WriteException); ok {
 			for _, we := range writeErr.WriteErrors {
 				if we.Code == 14 {
-					return "", fmt.Errorf("%w: error competitorStats scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
+					return fmt.Errorf("%w: error competitorStats scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
 				}
 			}
 		}
 
-		return "", fmt.Errorf("error when inserting competitorStats: %w", err)
+		return fmt.Errorf("error when inserting competitorStats: %w", err)
 	}
 
-	id := result.InsertedID.(primitive.ObjectID).Hex()
-
-	return id, nil
+	return nil
 }
 
-func (r *Repository) GetCompetitorStatsByID(ctx context.Context, competitorStatsID string) (*dao.GetCompetitorStatsByIDDAORes, error) {
-	var competitorStats dao.GetCompetitorStatsByIDDAORes
+func (r *Repository) GetCompetitorStatsByID(ctx context.Context, competitorStatsID string) (*competitor_stats_dao.GetCompetitorStatsByIDDAORes, error) {
+	var competitorStats competitor_stats_dao.GetCompetitorStatsByIDDAORes
 
 	competitorStatsOID, err := r.ConvertToObjectID(competitorStatsID)
 	if err != nil {
@@ -58,7 +58,7 @@ func (r *Repository) GetCompetitorStatsByID(ctx context.Context, competitorStats
 	return &competitorStats, nil
 }
 
-func (r *Repository) UpdateCompetitorStats(ctx context.Context, competitorStatsID string, competitorStatsInfoDAO *dao.UpdateCompetitorStatsDAOReq) error {
+func (r *Repository) UpdateCompetitorStats(ctx context.Context, competitorStatsID string, competitorStatsInfoDAO *competitor_stats_dao.UpdateCompetitorStatsDAOReq) error {
 	competitorStatsOID, err := r.ConvertToObjectID(competitorStatsID)
 	if err != nil {
 		return err

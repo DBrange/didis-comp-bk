@@ -3,8 +3,9 @@ package repository
 import (
 	"context"
 	"fmt"
+	"sync"
 
-	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/assets"
+	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
 	user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/user/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 
@@ -13,11 +14,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateUser(ctx context.Context, userInfoDAO *user_dao.CreateUserDAO) (string, error) {
-	userInfoDAO.SetTimeStamp()
+func (r *Repository) CreateUser(ctx context.Context, userDAO *user_dao.CreateUserDAOReq) (string, error) {
+	userDAO.SetTimeStamp()
 
-	result, err := r.userColl.InsertOne(ctx, userInfoDAO)
+	result, err := r.userColl.InsertOne(ctx, userDAO)
 	if err != nil {
+		fmt.Printf("Error inserting user: %v\n", err)
 		if mongo.IsDuplicateKeyError(err) {
 			return "", fmt.Errorf("%w: error duplicate key for user: %s", customerrors.ErrDuplicateKey, err.Error())
 		}
@@ -59,7 +61,7 @@ func (r *Repository) GetUserByID(ctx context.Context, userID string) (*user_dao.
 }
 
 func (r *Repository) UpdateUser(ctx context.Context, userID string, userInfoDAO *user_dao.UpdateUserDAOReq) error {
-	userOID, err := primitive.ObjectIDFromHex(userID)
+	userOID, err := r.ConvertToObjectID(userID)
 	if err != nil {
 		return fmt.Errorf("invalid id format: %w", err)
 	}
@@ -69,6 +71,7 @@ func (r *Repository) UpdateUser(ctx context.Context, userID string, userInfoDAO 
 	filter := bson.M{"_id": userOID}
 
 	update, err := api_assets.StructToBsonMap(userInfoDAO)
+	fmt.Printf("%+v", &update)
 	if err != nil {
 		return err
 	}
@@ -89,6 +92,13 @@ func (r *Repository) UpdateUser(ctx context.Context, userID string, userInfoDAO 
 	}
 
 	return nil
+}
+
+func (r *Repository) updateUserConcurrently(sessCtx mongo.SessionContext, userID string, userInfoDAO *user_dao.UpdateUserDAOReq, wg *sync.WaitGroup, errCh chan<- error) {
+	defer wg.Done()
+	if err := r.UpdateUser(sessCtx, userID, userInfoDAO); err != nil {
+		errCh <- err
+	}
 }
 
 func (r *Repository) DeleteUser(ctx context.Context, userID string) (*user_dao.UserRelationsToDeleteDAO, error) {

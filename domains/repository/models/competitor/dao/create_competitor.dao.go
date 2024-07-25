@@ -8,13 +8,13 @@ import (
 )
 
 type CreateCompetitorDAOReq struct {
-	SingleID  *primitive.ObjectID `bson:"single_id"`
-	DoubleID  *primitive.ObjectID `bson:"double_id"`
-	TeamID    *primitive.ObjectID `bson:"team_id"`
-	Sport     models.SPORT        `bson:"sport"`
-	CreatedAt time.Time           `bson:"created_at"`
-	UpdatedAt time.Time           `bson:"updated_at"`
-	DeletedAt *time.Time          `bson:"deleted_at,omitempty"`
+	SingleID       *primitive.ObjectID `bson:"single_id"`
+	DoubleID       *primitive.ObjectID `bson:"double_id"`
+	TeamID         *primitive.ObjectID `bson:"team_id"`
+	Sport          models.SPORT        `bson:"sport"`
+	CreatedAt      time.Time           `bson:"created_at"`
+	UpdatedAt      time.Time           `bson:"updated_at"`
+	DeletedAt      *time.Time          `bson:"deleted_at,omitempty"`
 }
 
 func (u *CreateCompetitorDAOReq) SetTimeStamp() {

@@ -18,7 +18,7 @@ import (
 func TestProfileService_GetProfileAvailability(t *testing.T) {
 
 	// Define los días de la semana
-	daysOfWeek := []string{"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}
+	daysOfWeek := []string{"SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"}
 
 	// Define las 24 horas del día en formato de 24 horas
 	timeSlots := make([]*dto.GetProfileDailyTimeSlotInfoByIDDTORes, 24)

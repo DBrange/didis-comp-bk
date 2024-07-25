@@ -8,5 +8,5 @@ type UpdateLeagueRegistrationDAOReq struct {
 	Points              *int   `bson:"points,omitempty"`
 	RegisteredPositions *[]int `bson:"registered_positions,omitempty"`
 	CurrentPosition     *int   `bson:"registered_positions,omitempty"`
-	common.UpdateBaseDAO
+	common.UpdateBaseDAO `bson:",inline"`
 }

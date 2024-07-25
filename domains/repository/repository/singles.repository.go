@@ -11,29 +11,29 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateSingle(ctx context.Context, singleInfoDAO *dao.CreateSingleDAOReq) (string, error) {
+func (r *Repository) CreateSingle(ctx context.Context, singleInfoDAO *dao.CreateSingleDAOReq) (*primitive.ObjectID, error) {
 	singleInfoDAO.SetTimeStamp()
 
 	result, err := r.singleColl.InsertOne(ctx, singleInfoDAO)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
-			return "", fmt.Errorf("%w: error duplicate key for single: %s", customerrors.ErrDuplicateKey, err.Error())
+			return nil, fmt.Errorf("%w: error duplicate key for single: %s", customerrors.ErrDuplicateKey, err.Error())
 		}
 
 		if writeErr, ok := err.(mongo.WriteException); ok {
 			for _, we := range writeErr.WriteErrors {
 				if we.Code == 14 {
-					return "", fmt.Errorf("%w: error single scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
+					return nil, fmt.Errorf("%w: error single scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
 				}
 			}
 		}
 
-		return "", fmt.Errorf("error when inserting single: %w", err)
+		return nil, fmt.Errorf("error when inserting single: %w", err)
 	}
 
-	id := result.InsertedID.(primitive.ObjectID).Hex()
+	id := result.InsertedID.(primitive.ObjectID)
 
-	return id, nil
+	return &id, nil
 }
 
 func (r *Repository) GetSingleByID(ctx context.Context, singleID string) (*dao.GetSingleByIDDAORes, error) {

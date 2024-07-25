@@ -14,23 +14,43 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (r *Repository) CreateAvailability(ctx context.Context, userID string) error {
+func (r *Repository) CreateAvailability(ctx context.Context, userID, competitorID *string) error {
 	defaultAvailability := r.generateDefaultAvailability()
 	currentDate := time.Now().UTC()
 
-	userOID, err := r.ConvertToObjectID(userID)
-	if err != nil {
-		return err
+	var OID *primitive.ObjectID
+
+	if userID != nil {
+		userOID, err := r.ConvertToObjectID(*userID)
+		if err != nil {
+			return err
+		}
+
+		OID = userOID
+	}
+
+	if competitorID != nil {
+		competitorOID, err := r.ConvertToObjectID(*competitorID)
+		if err != nil {
+			return err
+		}
+
+		OID = competitorOID
 	}
 
 	availability := &models.Availability{
-		UserID:              *userOID,
 		DailyAvailabilities: defaultAvailability,
 		CreatedAt:           currentDate,
 		UpdatedAt:           currentDate,
 	}
 
-	_, err = r.availabilityColl.InsertOne(ctx, &availability)
+	if userID != nil {
+		availability.UserID = OID
+	} else {
+		availability.CompetitorID = OID
+	}
+
+	_, err := r.availabilityColl.InsertOne(ctx, &availability)
 	if err != nil {
 		if writeErr, ok := err.(mongo.WriteException); ok {
 			for _, we := range writeErr.WriteErrors {

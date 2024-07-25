@@ -4,17 +4,33 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DBrange/didis-comp-bk/domains/repository/models/competitor/dao"
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
+	competitor_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/competitor/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateCompetitor(ctx context.Context, competitorInfoDAO *dao.CreateCompetitorDAOReq) (string, error) {
-	competitorInfoDAO.SetTimeStamp()
+func (r *Repository) CreateCompetitor(ctx context.Context,  sport models.SPORT,competitorType models.COMPETITOR_TYPE, OID *primitive.ObjectID) (string, error) {
+	competitorDAO := &competitor_dao.CreateCompetitorDAOReq{}
 
-	result, err := r.competitorColl.InsertOne(ctx, competitorInfoDAO)
+	switch competitorType {
+	case models.COMPETITOR_TYPE_SINGLE:
+		competitorDAO.SingleID = OID
+
+	case models.COMPETITOR_TYPE_DOUBLE:
+		competitorDAO.SingleID = OID
+
+	case models.COMPETITOR_TYPE_TEAM:
+		competitorDAO.SingleID = OID
+	}
+
+	competitorDAO.Sport = models.SPORT_TENNIS
+	
+	competitorDAO.SetTimeStamp()
+
+	result, err := r.competitorColl.InsertOne(ctx, competitorDAO)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
 			return "", fmt.Errorf("%w: error duplicate key for competitor: %s", customerrors.ErrDuplicateKey, err.Error())
@@ -36,8 +52,8 @@ func (r *Repository) CreateCompetitor(ctx context.Context, competitorInfoDAO *da
 	return id, nil
 }
 
-func (r *Repository) GetCompetitorByID(ctx context.Context, competitorID string) (*dao.GetCompetitorByIDDAORes, error) {
-	var competitor dao.GetCompetitorByIDDAORes
+func (r *Repository) GetCompetitorByID(ctx context.Context, competitorID string) (*competitor_dao.GetCompetitorByIDDAORes, error) {
+	var competitor competitor_dao.GetCompetitorByIDDAORes
 
 	competitorOID, err := r.ConvertToObjectID(competitorID)
 	if err != nil {
@@ -57,7 +73,7 @@ func (r *Repository) GetCompetitorByID(ctx context.Context, competitorID string)
 	return &competitor, nil
 }
 
-// func (r *Repository) UpdateCompetitor(ctx context.Context, competitorID string, competitorInfoDAO *dao.UpdateCompetitorDAOReq) error {
+// func (r *Repository) UpdateCompetitor(ctx context.Context, competitorID string, competitorInfoDAO *competitor_dao.UpdateCompetitorDAOReq) error {
 // 	competitorOID, err := r.ConvertToObjectID(competitorID)
 // 	if err != nil {
 // 		return err

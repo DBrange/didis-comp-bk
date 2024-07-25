@@ -3,6 +3,7 @@ package utils
 import (
 	"reflect"
 	"regexp"
+	"time"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/go-playground/validator/v10"
@@ -15,11 +16,15 @@ func init() {
 
 	Validate.RegisterValidation("genre", validateGenre)
 	Validate.RegisterValidation("sport", validateSport)
+	Validate.RegisterValidation("competitorType", validateCompetitorType)
 	Validate.RegisterValidation("bool", validateBool)
 	Validate.RegisterValidation("availStatus", validateAvailabilitySatatus)
 	Validate.RegisterValidation("day", validateDay)
 	Validate.RegisterValidation("timeSlot", validateTimeSlot)
 	Validate.RegisterValidation("password", validatePassword)
+	Validate.RegisterValidation("string", IsString)
+	Validate.RegisterValidation("number", IsNumber)
+	Validate.RegisterValidation("date", IsDate)
 }
 
 func validateGenre(fl validator.FieldLevel) bool {
@@ -29,6 +34,11 @@ func validateGenre(fl validator.FieldLevel) bool {
 
 func validateSport(fl validator.FieldLevel) bool {
 	genre := models.SPORT(fl.Field().String())
+	return genre.IsValid()
+}
+
+func validateCompetitorType(fl validator.FieldLevel) bool {
+	genre := models.COMPETITOR_TYPE(fl.Field().String())
 	return genre.IsValid()
 }
 
@@ -57,4 +67,33 @@ func validatePassword(fl validator.FieldLevel) bool {
 		regexp.MustCompile(`[A-Z]`).MatchString(password) &&
 		regexp.MustCompile(`[0-9]`).MatchString(password) &&
 		regexp.MustCompile(`[@\-_.,;+]`).MatchString(password)
+}
+
+// IsString verifica si el campo es un string
+func IsString(fl validator.FieldLevel) bool {
+	_, ok := fl.Field().Interface().(string)
+	return ok
+}
+
+// IsNumber verifica si el campo es un número (entero o flotante)
+func IsNumber(fl validator.FieldLevel) bool {
+	switch fl.Field().Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		return true
+	default:
+		return false
+	}
+}
+
+// IsDate verifica si el campo es una fecha válida en formato YYYY-MM-DD
+func IsDate(fl validator.FieldLevel) bool {
+	dateStr, ok := fl.Field().Interface().(string)
+	if !ok {
+		return false
+	}
+
+	_, err := time.Parse("2006-01-02", dateStr)
+	return err == nil
 }

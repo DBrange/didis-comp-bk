@@ -8,5 +8,5 @@ import (
 type CreateUserChatDAOReq struct {
 	UserID primitive.ObjectID `bson:"user_id"`
 	ChatID primitive.ObjectID `bson:"chat_id"`
-	common.CreateBaseDAO
+common.CreateBaseDAO `bson:",inline"`	
 }

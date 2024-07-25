@@ -12,7 +12,6 @@ import (
 	"github.com/DBrange/didis-comp-bk/domains/profile/services"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/mock/gomock"
 )
 
@@ -37,9 +36,7 @@ func TestService_RegisterUser(t *testing.T) {
 		Email:     "johndoe@example.com",
 		Phone:     &phone,
 		Image:     &image,
-		Active:    true,
 		Genre:     models.GENRE_MALE,
-		Roles:     []primitive.ObjectID{primitive.NewObjectID()},
 		Location: &profile_dto.CreateLocationDTOReq{
 			State:   &state,
 			Country: &country,

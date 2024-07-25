@@ -19,5 +19,5 @@ type UpdateTournamentDAOReq struct {
 	Matches             *[]primitive.ObjectID  `bson:"matches,omitempty"`
 	Pots                *[]primitive.ObjectID  `bson:"pots,omitempty"`
 	Groups              *[]primitive.ObjectID  `bson:"groups,omitempty"`
-	common.UpdateBaseDAO
+	common.UpdateBaseDAO `bson:",inline"`
 }

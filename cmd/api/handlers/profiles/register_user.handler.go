@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -33,44 +32,30 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 func registerUserBodyData(c *gin.Context) (*profile_dto.RegisterUserDTOReq, error) {
 	var profileInfoDTO profile_dto.RegisterUserDTOReq
 	if err := c.ShouldBindJSON(&profileInfoDTO); err != nil {
-		err = fmt.Errorf("%w: error getting the json: %v", customerrors.ErrGetJSON, err.Error())
-		if errors.Is(err, customerrors.ErrValidationFailed) {
-			appErr := customerrors.AppError{
-				Code: customerrors.ErrCodeGetJSON,
-				Msg:  fmt.Sprintf("error binding json: %v", err),
-			}
-			return nil, appErr
-		}
-		return nil, fmt.Errorf("error validation: %w", err)
+		err = fmt.Errorf("%w: error binding json: %v", customerrors.ErrGetJSON, err.Error())
+		profileErrorHandlers := customerrors.CreateErrorHandlers("profile")
+		errMsgTemplate := "error getting profile"
+		return nil, customerrors.HandleError(err, profileErrorHandlers, errMsgTemplate)
 	}
 
 	// Validar la estructura excepto el campo Location
 	err := utils.Validate.StructExcept(profileInfoDTO, "Location")
 	if err != nil {
+		fmt.Println("entre aca")
 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
-		if errors.Is(err, customerrors.ErrValidationFailed) {
-			appErr := customerrors.AppError{
-				Code: customerrors.ErrCodeValidationFailed,
-				Msg:  fmt.Sprintf("error validation: %v", err),
-			}
-			return nil, appErr
-		}
-		return nil, fmt.Errorf("error validation: %w", err)
+		profileErrorHandlers := customerrors.CreateErrorHandlers("profile")
+		errMsgTemplate := "error validation profile"
+		return nil, customerrors.HandleError(err, profileErrorHandlers, errMsgTemplate)
 	}
 
-	// Validar el campo Location si no es nil
+	// Validar el campo Location solo si no es nil
 	if profileInfoDTO.Location != nil {
 		err = utils.Validate.Struct(profileInfoDTO.Location)
 		if err != nil {
 			err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
-			if errors.Is(err, customerrors.ErrValidationFailed) {
-				appErr := customerrors.AppError{
-					Code: customerrors.ErrCodeValidationFailed,
-					Msg:  fmt.Sprintf("error validation: %v", err),
-				}
-				return nil, appErr
-			}
-			return nil, fmt.Errorf("error validation: %w", err)
+			profileErrorHandlers := customerrors.CreateErrorHandlers("profile")
+			errMsgTemplate := "error validation profile"
+			return nil, customerrors.HandleError(err, profileErrorHandlers, errMsgTemplate)
 		}
 	}
 

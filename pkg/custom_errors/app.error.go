@@ -47,6 +47,9 @@ func ErrorResponse(err error, c *gin.Context) {
 		case ErrCodeDeleted:
 			c.JSON(http.StatusBadRequest, appErr)
 
+		case ErrCodeGetJSON:
+			c.JSON(http.StatusConflict, appErr)
+
 		case ErrCodeStartSessionFailed:
 			c.JSON(http.StatusServiceUnavailable, appErr)
 
@@ -81,8 +84,8 @@ func CreateErrorHandlers(entityName string) map[error]ErrorHandler {
 		ErrSchemaViolation:    GenerateErrorHandler(ErrCodeSchemaViolation, entityName, "error %s scheme type: %v"),
 		ErrUpdated:            GenerateErrorHandler(ErrCodeUpdated, entityName, "error updating %s: %v"),
 		ErrDeleted:            GenerateErrorHandler(ErrCodeDeleted, entityName, "error deleting %s: %v"),
-		ErrValidationFailed:   GenerateErrorHandler(ErrCodeValidationFailed, entityName, "error deleting %s: %v"),
-		ErrGetJSON:            GenerateErrorHandler(ErrCodeGetJSON, entityName, "error deleting %s: %v"),
+		ErrValidationFailed:   GenerateErrorHandler(ErrCodeValidationFailed, entityName, "error validation %s: %v"),
+		ErrGetJSON:            GenerateErrorHandler(ErrCodeGetJSON, entityName, "error binding json %s: %v"),
 		ErrStartSessionFailed: GenerateErrorHandler(ErrCodeStartSessionFailed, entityName, "error start session %s: %v"),
 		ErrTransaction:        GenerateErrorHandler(ErrCodeTransaction, entityName, "error transaction %s: %v"),
 	}

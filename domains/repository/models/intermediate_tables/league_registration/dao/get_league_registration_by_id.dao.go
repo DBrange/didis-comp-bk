@@ -12,5 +12,5 @@ type GetLeagueRegistrationByIDDAORes struct {
 	Points              int                `bson:"points"`
 	RegisteredPositions []int              `bson:"registered_positions"`
 	CurrentPosition     *int               `bson:"registered_positions"`
-	common.GetBaseDAO
+	common.GetBaseDAO `bson:",inline"`
 }

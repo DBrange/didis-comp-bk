@@ -12,4 +12,5 @@ type ForProfile interface {
 	interfaces.GetProfileAvailabilityInfoByID
 	interfaces.CloseProfile
 	interfaces.ModifyPassword
+	interfaces.RegisterCompetitor
 }

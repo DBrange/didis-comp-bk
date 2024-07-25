@@ -8,5 +8,5 @@ import (
 type CreateGuestCompetitorDAOReq struct {
 	GuestPlayerID primitive.ObjectID `bson:"guest_competitor_id"`
 	CompetitorID  primitive.ObjectID `bson:"competitor_id"`
-	common.CreateBaseDAO
+common.CreateBaseDAO `bson:",inline"`
 }

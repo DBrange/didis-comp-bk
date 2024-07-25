@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/assets"
+	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/team/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -12,29 +12,29 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateTeam(ctx context.Context, teamInfoDAO *dao.CreateTeamDAOReq) (string, error) {
+func (r *Repository) CreateTeam(ctx context.Context, teamInfoDAO *dao.CreateTeamDAOReq) (*primitive.ObjectID, error) {
 	teamInfoDAO.SetTimeStamp()
 
 	result, err := r.teamColl.InsertOne(ctx, teamInfoDAO)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
-			return "", fmt.Errorf("%w: error duplicate key for team: %s", customerrors.ErrDuplicateKey, err.Error())
+			return nil, fmt.Errorf("%w: error duplicate key for team: %s", customerrors.ErrDuplicateKey, err.Error())
 		}
 
 		if writeErr, ok := err.(mongo.WriteException); ok {
 			for _, we := range writeErr.WriteErrors {
 				if we.Code == 14 {
-					return "", fmt.Errorf("%w: error team scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
+					return nil, fmt.Errorf("%w: error team scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
 				}
 			}
 		}
 
-		return "", fmt.Errorf("error when inserting team: %w", err)
+		return nil, fmt.Errorf("error when inserting team: %w", err)
 	}
 
-	id := result.InsertedID.(primitive.ObjectID).Hex()
+	id := result.InsertedID.(primitive.ObjectID)
 
-	return id, nil
+	return &id, nil
 }
 
 func (r *Repository) GetTeamByID(ctx context.Context, teamID string) (*dao.GetTeamByIDDAORes, error) {

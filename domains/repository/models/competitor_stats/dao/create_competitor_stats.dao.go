@@ -10,6 +10,7 @@ type CreateCompetitorStatsDAOReq struct {
 	TotalWins      int                  `bson:"total_wins"`
 	TotalLosses    int                  `bson:"total_losses"`
 	MoneyEarned    float64              `bson:"money_earned"`
+	CompetitorID   primitive.ObjectID   `bson:"competitor_id"`
 	Matches        []primitive.ObjectID `bson:"matches"`
 	TournamentsWon []primitive.ObjectID `bson:"tournaments_won"`
 	CreatedAt      time.Time            `bson:"created_at"`

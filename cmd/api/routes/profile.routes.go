@@ -22,5 +22,7 @@ func profileRoutes(router *gin.Engine, handler *handlers.Handler) {
 	profilesRouter.DELETE("/close-profile/:userID", handler.CloseProfile)
 
 	profilesRouter.PUT("/new-password/:userID", handler.ModifyPassword)
-	
+
+	profilesRouter.POST("/add-competitor/:userID", handler.RegisterCompetitor)
+
 }

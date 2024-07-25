@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) withTransaction(ctx context.Context, fn func(sessCtx mongo.SessionContext) error) error {
+func (r *Repository) WithTransaction(ctx context.Context, fn func(sessCtx mongo.SessionContext) error) error {
 	session, err := r.client.StartSession()
 	if err != nil {
 		return fmt.Errorf("%w: failed to start session: %s", customerrors.ErrStartSessionFailed, err.Error())

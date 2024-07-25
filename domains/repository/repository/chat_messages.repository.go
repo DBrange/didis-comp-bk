@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/assets"
+	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/chat_message/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"

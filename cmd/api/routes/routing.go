@@ -3,6 +3,7 @@ package routes
 import (
 	"time"
 
+	league_handlers "github.com/DBrange/didis-comp-bk/cmd/api/handlers/leagues"
 	profile_handlers "github.com/DBrange/didis-comp-bk/cmd/api/handlers/profiles"
 	tournament_handlers "github.com/DBrange/didis-comp-bk/cmd/api/handlers/tournaments"
 	"github.com/DBrange/didis-comp-bk/compose"
@@ -28,4 +29,5 @@ func NewRouter() *gin.Engine {
 func RoutesHandler(router *gin.Engine, dashboard dashboard.Dashboard) {
 	profileRoutes(router, profile_handlers.NewHandlerProfile(dashboard.Profile()))
 	tournamentRoutes(router, tournament_handlers.NewHandlerTournament(dashboard.Tournament()))
+	leagueRoutes(router, league_handlers.NewHandlerLeague(dashboard.League()))
 }

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	enum_models "github.com/DBrange/didis-comp-bk/cmd/api/models"
@@ -71,4 +72,10 @@ func (r *Repository) GetRoleByNameAndType(ctx context.Context, roleName, roleTyp
 	}
 
 	return &role, nil
+}
+
+func (r *Repository) getRoleByNameAndTypeConcurrently(sessCtx mongo.SessionContext, roleName string, roleType string, wg *sync.WaitGroup, roleCh chan<- *roleResult) {
+	defer wg.Done()
+	role, err := r.GetRoleByNameAndType(sessCtx, roleName, roleType)
+	roleCh <- &roleResult{Role: role, Err: err}
 }

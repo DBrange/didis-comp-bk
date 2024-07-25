@@ -3,6 +3,7 @@ package adapters
 import (
 	"context"
 
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	profile_dto "github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
 	"github.com/DBrange/didis-comp-bk/domains/profile/services"
 )
@@ -45,6 +46,10 @@ func (a *ProfileProxyAdapter) CloseProfile(ctx context.Context, userID string) e
 	return a.profileService.CloseProfile(ctx, userID)
 }
 
-func (a *ProfileProxyAdapter) ModifyPassword(ctx context.Context, userID, newPassword,oldPassword string) error {
+func (a *ProfileProxyAdapter) ModifyPassword(ctx context.Context, userID, newPassword, oldPassword string) error {
 	return a.profileService.ModifyPassword(ctx, userID, newPassword, oldPassword)
+}
+
+func (a *ProfileProxyAdapter) RegisterCompetitor(ctx context.Context, userID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error {
+	return a.profileService.RegisterCompetitor(ctx, userID, sport, competitorType)
 }

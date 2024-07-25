@@ -8,5 +8,5 @@ import (
 type GetGuestCompetitorByIDDAORes struct {
 	GuestPlayerID primitive.ObjectID `bson:"guest_competitor_id"`
 	CompetitorID  primitive.ObjectID `bson:"competitor_id"`
-	common.GetBaseDAO
+	common.GetBaseDAO `bson:",inline"`
 }

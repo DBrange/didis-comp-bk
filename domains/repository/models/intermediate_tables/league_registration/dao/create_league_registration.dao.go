@@ -11,5 +11,5 @@ type CreateLeagueRegistrationDAOReq struct {
 	Points              int                `bson:"points"`
 	RegisteredPositions []int              `bson:"registered_positions"`
 	CurrentPosition     *int               `bson:"registered_positions"`
-	common.CreateBaseDAO
+	common.CreateBaseDAO `bson:",inline"`
 }
