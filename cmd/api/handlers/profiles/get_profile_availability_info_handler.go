@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) GetProfileAvailabilityInfo(c *gin.Context) {
+func (h *Handler) GetProfileDailyAvailability(c *gin.Context) {
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
 
@@ -16,7 +16,7 @@ func (h *Handler) GetProfileAvailabilityInfo(c *gin.Context) {
 
 	day := c.Query("day")
 
-	availabilityInfo, err := h.profile.GetProfileAvailabilityInfoByID(ctx, availabilityID, day)
+	availabilityInfo, err := h.profile.GetProfileDailyAvailabilityByID(ctx, availabilityID, day)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return

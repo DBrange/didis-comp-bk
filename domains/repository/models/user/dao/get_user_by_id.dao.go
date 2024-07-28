@@ -6,7 +6,7 @@ import (
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 )
 
-type GetUserByIDDAO struct {
+type GetUserByIDDAORes struct {
 	ID         string       `bson:"_id"`
 	FirstName  string       `bson:"first_name"`
 	LastName   string       `bson:"last_name"`
@@ -17,5 +17,5 @@ type GetUserByIDDAO struct {
 	Phone      *string      `bson:"phone"`
 	Image      *string      `bson:"image"`
 	Genre      models.GENRE `bson:"genre"`
-	LocationID *string      `bson:"location_id"`
+	LocationID string      `bson:"location_id"`
 }

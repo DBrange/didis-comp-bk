@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	models "github.com/DBrange/didis-comp-bk/cmd/api/models"
 	dto "github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -124,6 +125,20 @@ func (m *MockForProfile) ModifyProfileAvailability(arg0 context.Context, arg1 st
 func (mr *MockForProfileMockRecorder) ModifyProfileAvailability(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ModifyProfileAvailability", reflect.TypeOf((*MockForProfile)(nil).ModifyProfileAvailability), arg0, arg1, arg2)
+}
+
+// RegisterCompetitor mocks base method.
+func (m *MockForProfile) RegisterCompetitor(arg0 context.Context, arg1 string, arg2 models.SPORT, arg3 models.COMPETITOR_TYPE) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegisterCompetitor", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RegisterCompetitor indicates an expected call of RegisterCompetitor.
+func (mr *MockForProfileMockRecorder) RegisterCompetitor(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterCompetitor", reflect.TypeOf((*MockForProfile)(nil).RegisterCompetitor), arg0, arg1, arg2, arg3)
 }
 
 // RegisterUser mocks base method.

@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (r *Repository) CreateLeague(ctx context.Context, organizerID string, leagueInfoDAO *dao.CreateLeagueDAOReq) error {
@@ -96,7 +97,7 @@ func (r *Repository) UpdateLeague(ctx context.Context, leagueID string, leagueIn
 }
 
 func (r *Repository) DeleteLeague(ctx context.Context, leagueID string) error {
-	err := r.setDeletedAt(ctx, r.leagueColl, leagueID, "league")
+	err := r.SetDeletedAt(ctx, r.leagueColl, leagueID, "league")
 	if err != nil {
 		return err
 	}
@@ -105,10 +106,15 @@ func (r *Repository) DeleteLeague(ctx context.Context, leagueID string) error {
 }
 
 func (r *Repository) OrganizeLeague(ctx context.Context, organizerID string, leagueInfoDAO *dao.CreateLeagueDAOReq) error {
-	if err := r.OrganizerExists(ctx, organizerID); err != nil {
+	if err := r.VerifyOrganizerExists(ctx, organizerID); err != nil {
 		return err
 	}
-	return r.CreateLeague(ctx, organizerID, leagueInfoDAO)
+
+	if err := r.CreateLeague(ctx, organizerID, leagueInfoDAO); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *Repository) AddTournamentInLeague(ctx context.Context, leagueID string, tournamentID string) error {
@@ -146,6 +152,32 @@ func (r *Repository) AddTournamentInLeague(ctx context.Context, leagueID string,
 		return fmt.Errorf("%w: no league found with id: %s", customerrors.ErrNotFound, leagueID)
 	}
 
-	return r.AddLeagueInTournament(ctx, tournamentOID, leagueOID)
+	return r.AddLeagueInTournament(ctx, tournamentID, leagueID)
 
+}
+
+func (r *Repository) VerifyLeagueExists(ctx context.Context, leagueID string) error {
+	var result struct{}
+
+	fmt.Println("a")
+	fmt.Printf("aaaaa %s", leagueID)
+
+	leagueOID, err := r.ConvertToObjectID(leagueID)
+	if err != nil {
+		return err
+	}
+filter := bson.M{"_id": leagueOID}
+
+	opts := options.FindOne().SetProjection(bson.M{"_id": 1})
+	
+	err = r.leagueColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("%w: error when searching for league: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return fmt.Errorf("error when searching for the league: %w", err)
+	}
+	
+	fmt.Println("b")
+	return nil
 }

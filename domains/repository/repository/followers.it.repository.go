@@ -88,7 +88,7 @@ func (r *Repository) GetFollowerByID(ctx context.Context, followerID string) (*d
 // }
 
 func (r *Repository) DeleteFollower(ctx context.Context, followerID string) error {
-	err := r.setDeletedAt(ctx, r.followerColl, followerID, "follower")
+	err := r.SetDeletedAt(ctx, r.followerColl, followerID, "follower")
 	if err != nil {
 		return err
 	}

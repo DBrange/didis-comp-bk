@@ -41,7 +41,6 @@ func registerUserBodyData(c *gin.Context) (*profile_dto.RegisterUserDTOReq, erro
 	// Validar la estructura excepto el campo Location
 	err := utils.Validate.StructExcept(profileInfoDTO, "Location")
 	if err != nil {
-		fmt.Println("entre aca")
 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
 		profileErrorHandlers := customerrors.CreateErrorHandlers("profile")
 		errMsgTemplate := "error validation profile"

@@ -18,9 +18,9 @@ type CreateUserDAOReq struct {
 	Image      *string              `bson:"image"`
 	Active     bool                 `bson:"active"`
 	Genre      models.GENRE         `bson:"genre"`
-	Roles      []primitive.ObjectID `bson:"role"`
-	LocationID *string              `bson:"location_id"`
-	PaymentID  *string              `bson:"payment_id"`
+	Roles      []primitive.ObjectID `bson:"roles"`
+	LocationID *primitive.ObjectID  `bson:"location_id"`
+	PaymentID  *primitive.ObjectID  `bson:"payment_id"`
 	CreatedAt  time.Time            `bson:"created_at"`
 	UpdatedAt  time.Time            `bson:"updated_at"`
 	DeletedAt  *time.Time           `bson:"deleted_at,omitempty"`
@@ -33,5 +33,3 @@ func (u *CreateUserDAOReq) SetTimeStamp() {
 	}
 	u.UpdatedAt = currentDate
 }
-
-

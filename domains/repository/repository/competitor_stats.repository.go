@@ -89,7 +89,7 @@ func (r *Repository) UpdateCompetitorStats(ctx context.Context, competitorStatsI
 }
 
 func (r *Repository) DeleteCompetitorStats(ctx context.Context, competitorStatsID string) error {
-	err := r.setDeletedAt(ctx, r.competitorStatsColl, competitorStatsID, "competitorStats")
+	err := r.SetDeletedAt(ctx, r.competitorStatsColl, competitorStatsID, "competitorStats")
 	if err != nil {
 		return err
 	}

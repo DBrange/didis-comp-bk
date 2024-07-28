@@ -12,7 +12,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateDoubleElimination(ctx context.Context, doubleEliminationInfoDAO *dao.CreateDoubleEliminationDAOReq) (string, error) {
+func (r *Repository) DoubleEliminationColl() *mongo.Collection {
+	return r.doubleEliminationColl
+}
+
+func (r *Repository) CreateDoubleElimination(ctx context.Context) (string, error) {
+	var doubleEliminationInfoDAO dao.CreateDoubleEliminationDAOReq
+
+	doubleEliminationInfoDAO.Matches = []primitive.ObjectID{}
+	doubleEliminationInfoDAO.Rounds = []primitive.ObjectID{}
+
 	doubleEliminationInfoDAO.SetTimeStamp()
 
 	result, err := r.doubleEliminationColl.InsertOne(ctx, doubleEliminationInfoDAO)
@@ -89,7 +98,7 @@ func (r *Repository) UpdateDoubleElimination(ctx context.Context, doubleEliminat
 }
 
 func (r *Repository) DeleteDoubleElimination(ctx context.Context, doubleEliminationID string) error {
-	err := r.setDeletedAt(ctx, r.doubleEliminationColl, doubleEliminationID, "doubleElimination")
+	err := r.SetDeletedAt(ctx, r.doubleEliminationColl, doubleEliminationID, "doubleElimination")
 	if err != nil {
 		return err
 	}

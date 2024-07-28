@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-type UpdateProfileDTOReq struct {
+type UpdateUserDTOReq struct {
 	FirstName *string `json:"first_name,omitempty" validate:"omitempty,min=2"`
 	LastName  *string `json:"last_name,omitempty" validate:"omitempty,min=2"`
 	Username  *string `json:"username,omitempty" validate:"omitempty,min=3"`
@@ -12,7 +12,7 @@ type UpdateProfileDTOReq struct {
 	Image     *string `json:"image,omitempty" validate:"omitempty,url"`
 }
 
-func (u *UpdateProfileDTOReq) AreAllFieldsNil() bool {
+func (u *UpdateUserDTOReq) AreAllFieldsNil() bool {
 	v := reflect.ValueOf(u).Elem()
 	for i := 0; i < v.NumField(); i++ {
 		fieldValue := v.Field(i)

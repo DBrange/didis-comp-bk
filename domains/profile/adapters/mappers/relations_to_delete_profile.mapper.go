@@ -5,7 +5,7 @@ import (
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/user/dao"
 )
 
-func ProfileRelationsToDeleteDAOtoDTO(profileRelationsToDeleteDAO *dao.UserRelationsToDeleteDAO) *profile_dto.ProfileRelationsToDeleteDTO {
+func ProfileRelationsToDeleteDAOtoDTO(profileRelationsToDeleteDAO *dao.UserRelationsToDeleteDAOReq) *profile_dto.ProfileRelationsToDeleteDTO {
 	profileRelationsToDeleteDTO := &profile_dto.ProfileRelationsToDeleteDTO{
 		LocationID:     profileRelationsToDeleteDAO.LocationID,
 	}

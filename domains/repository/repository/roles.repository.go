@@ -3,11 +3,9 @@ package repository
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	enum_models "github.com/DBrange/didis-comp-bk/cmd/api/models"
-	models "github.com/DBrange/didis-comp-bk/domains/repository/models/role"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/role/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,19 +18,19 @@ func (r *Repository) InitialiseRole(ctx context.Context) error {
 	currentDate := time.Now().UTC()
 
 	allRoles := []any{
-		dao.RoleDAOReq{
+		dao.CreateRoleDAOReq{
 			Name:      enum_models.ROLE_FREE,
 			RoleType:  enum_models.ROLE_TYPE_USER,
 			CreatedAt: currentDate,
 			UpdatedAt: currentDate,
 		},
-		dao.RoleDAOReq{
+		dao.CreateRoleDAOReq{
 			Name:      enum_models.ROLE_BASIC,
 			RoleType:  enum_models.ROLE_TYPE_USER,
 			CreatedAt: currentDate,
 			UpdatedAt: currentDate,
 		},
-		dao.RoleDAOReq{
+		dao.CreateRoleDAOReq{
 			Name:      enum_models.ROLE_ADMIN,
 			RoleType:  enum_models.ROLE_TYPE_USER,
 			CreatedAt: currentDate,
@@ -58,8 +56,8 @@ func (r *Repository) InitialiseRole(ctx context.Context) error {
 	return nil
 }
 
-func (r *Repository) GetRoleByNameAndType(ctx context.Context, roleName, roleType string) (*models.Role, error) {
-	var role models.Role
+func (r *Repository) GetRoleByNameAndType(ctx context.Context, roleName, roleType string) (*dao.GetRoleDAOByID, error) {
+	var role dao.GetRoleDAOByID
 
 	filter := bson.M{"name": roleName, "role_type": roleType}
 
@@ -74,8 +72,8 @@ func (r *Repository) GetRoleByNameAndType(ctx context.Context, roleName, roleTyp
 	return &role, nil
 }
 
-func (r *Repository) getRoleByNameAndTypeConcurrently(sessCtx mongo.SessionContext, roleName string, roleType string, wg *sync.WaitGroup, roleCh chan<- *roleResult) {
-	defer wg.Done()
-	role, err := r.GetRoleByNameAndType(sessCtx, roleName, roleType)
-	roleCh <- &roleResult{Role: role, Err: err}
-}
+// func (r *Repository) getRoleByNameAndTypeConcurrently(sessCtx mongo.SessionContext, roleName string, roleType string, wg *sync.WaitGroup, roleCh chan<- *roleResult) {
+// 	defer wg.Done()
+// 	role, err := r.GetRoleByNameAndType(sessCtx, roleName, roleType)
+// 	roleCh <- &roleResult{Role: role, Err: err}
+// }

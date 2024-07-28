@@ -12,7 +12,5 @@ func leagueRoutes(router *gin.Engine, handler *handlers.Handler) {
 
 	leaguesRouter.POST("/add-tournament/:leagueID/:tournamentID", handler.AddTournamentInLeague)
 
-
-
 	leaguesRouter.POST("/add-competitor/:leagueID/:competitorID", handler.AddCompetitorInLeague)
 }

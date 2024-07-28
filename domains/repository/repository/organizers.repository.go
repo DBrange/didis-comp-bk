@@ -58,12 +58,12 @@ func (r *Repository) CreateOrganizer(ctx context.Context, userID string) error {
 // 	return &organizer, nil
 // }
 
-func (r *Repository) OrganizerExists(ctx context.Context, organizerID string) ( error) {
+func (r *Repository) VerifyOrganizerExists(ctx context.Context, organizerID string) error {
 	var result struct{}
 
 	organizerOID, err := r.ConvertToObjectID(organizerID)
 	if err != nil {
-		return  err
+		return err
 	}
 
 	filter := bson.M{"_id": organizerOID}
@@ -73,10 +73,10 @@ func (r *Repository) OrganizerExists(ctx context.Context, organizerID string) ( 
 	err = r.organizerColl.FindOne(ctx, filter, opts).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return  fmt.Errorf("%w: error when searching for organizer: %s", customerrors.ErrNotFound, err.Error())
+			return fmt.Errorf("%w: error when searching for organizer: %s", customerrors.ErrNotFound, err.Error())
 		}
-		return  fmt.Errorf("error when searching for the organizer: %w", err)
+		return fmt.Errorf("error when searching for the organizer: %w", err)
 	}
 
-	return  nil
+	return nil
 }

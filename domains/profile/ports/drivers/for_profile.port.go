@@ -9,8 +9,9 @@ type ForProfile interface {
 	interfaces.ModifyProfileAvailability
 	interfaces.ModifyPersonalInfo
 	interfaces.GetPersonalInfoByID
-	interfaces.GetProfileAvailabilityInfoByID
+	interfaces.GetProfileDailyAvailabilityByID
 	interfaces.CloseProfile
 	interfaces.ModifyPassword
 	interfaces.RegisterCompetitor
+	interfaces.Login
 }

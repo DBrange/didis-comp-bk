@@ -6,7 +6,7 @@ import (
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 )
 
-type UpdateGuestPlayerDAOReq struct {
+type UpdateGuestUserDAOReq struct {
 	FirstName *string       `bson:"first_nameomitempty,"`
 	LastName  *string       `bson:"last_name,omitempty"`
 	Email     *string       `bson:"email,omitempty"`
@@ -15,6 +15,6 @@ type UpdateGuestPlayerDAOReq struct {
 	UpdatedAt time.Time     `bson:"updated_at,omitempty"`
 }
 
-func (u *UpdateGuestPlayerDAOReq) RenewUpdate() {
+func (u *UpdateGuestUserDAOReq) RenewUpdate() {
 	u.UpdatedAt = time.Now().UTC()
 }

@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type GetGuestPlayerByIDDAORes struct {
+type GetGuestUserByIDDAORes struct {
 	ID        primitive.ObjectID `bson:"_id"`
 	FirstName string             `bson:"first_name"`
 	LastName  string             `bson:"last_name"`

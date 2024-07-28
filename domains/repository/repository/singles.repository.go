@@ -88,7 +88,7 @@ func (r *Repository) GetSingleByID(ctx context.Context, singleID string) (*dao.G
 // }
 
 func (r *Repository) DeleteSingle(ctx context.Context, singleID string) error {
-	err := r.setDeletedAt(ctx, r.singleColl, singleID, "single")
+	err := r.SetDeletedAt(ctx, r.singleColl, singleID, "single")
 	if err != nil {
 		return err
 	}

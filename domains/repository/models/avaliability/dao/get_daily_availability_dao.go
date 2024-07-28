@@ -2,16 +2,16 @@ package dao
 
 import "github.com/DBrange/didis-comp-bk/cmd/api/models"
 
-type GetAvailabilityInfoByIDDAORes struct {
-	DailyAvailabilities []*GetDailyAvailabilityInfoByIDDAORes `bson:"daily_availabilities"`
+type GetAvailabilityByIDDAORes struct {
+	DailyAvailabilities []*GetDailyAvailabilityByIDDAORes `bson:"daily_availabilities"`
 }
 
-type GetDailyAvailabilityInfoByIDDAORes struct {
-	Day       string                            `bson:"day"`
-	TimeSlots []*GetDailyTimeSlotInfoByIDDAORes `bson:"time_slots"`
+type GetDailyAvailabilityByIDDAORes struct {
+	Day       string                        `bson:"day"`
+	TimeSlots []*GetDailyTimeSlotByIDDAORes `bson:"time_slots"`
 }
 
-type GetDailyTimeSlotInfoByIDDAORes struct {
+type GetDailyTimeSlotByIDDAORes struct {
 	TimeSlot string                     `bson:"time_slot"`
 	Status   models.AVAILABILITY_STATUS `bson:"status"`
 }

@@ -88,7 +88,7 @@ func (r *Repository) GetGuestCompetitorByID(ctx context.Context, guestCompetitor
 // }
 
 func (r *Repository) DeleteGuestCompetitor(ctx context.Context, guestCompetitorID string) error {
-	err := r.setDeletedAt(ctx, r.guestCompetitorColl, guestCompetitorID, "guestCompetitor")
+	err := r.SetDeletedAt(ctx, r.guestCompetitorColl, guestCompetitorID, "guestCompetitor")
 	if err != nil {
 		return err
 	}

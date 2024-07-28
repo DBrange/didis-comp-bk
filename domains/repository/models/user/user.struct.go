@@ -19,7 +19,7 @@ type User struct {
 	Image      string               `bson:"image"`
 	Active     bool                 `bson:"active"`
 	Genre      models.GENRE         `bson:"genre"`
-	Roles      []primitive.ObjectID `bson:"role"`
+	Roles      []primitive.ObjectID `bson:"roles"`
 	LocationID string               `bson:"location_id"`
 	PaymentID  string               `bson:"payment_id"`
 	CreatedAt  time.Time            `bson:"created_at"`

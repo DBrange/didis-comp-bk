@@ -5,7 +5,7 @@ import (
 	availability_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/avaliability/dao"
 )
 
-func GetProfileAvailabilityInfoByIDMapper(availabilityInfoDAO *availability_dao.GetDailyAvailabilityInfoByIDDAORes) *availability_dto.GetProfileDailyAvailabilityInfoByIDDTORes {
+func GetProfileAvailabilityInfoByIDMapper(availabilityInfoDAO *availability_dao.GetDailyAvailabilityByIDDAORes) *availability_dto.GetProfileDailyAvailabilityInfoByIDDTORes {
 	availabilityInfoDTO := &availability_dto.GetProfileDailyAvailabilityInfoByIDDTORes{
 		Day:       availabilityInfoDAO.Day,
 		TimeSlots: getTimeSlotDTOResMapper(availabilityInfoDAO.TimeSlots),
@@ -14,7 +14,7 @@ func GetProfileAvailabilityInfoByIDMapper(availabilityInfoDAO *availability_dao.
 	return availabilityInfoDTO
 }
 
-func getTimeSlotDTOResMapper(timeSlotInfoDTO []*availability_dao.GetDailyTimeSlotInfoByIDDAORes) []*availability_dto.GetProfileDailyTimeSlotInfoByIDDTORes {
+func getTimeSlotDTOResMapper(timeSlotInfoDTO []*availability_dao.GetDailyTimeSlotByIDDAORes) []*availability_dto.GetProfileDailyTimeSlotInfoByIDDTORes {
 	var timeSlotInfoDAO []*availability_dto.GetProfileDailyTimeSlotInfoByIDDTORes
 
 	for _, slot := range timeSlotInfoDTO {

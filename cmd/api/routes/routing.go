@@ -27,7 +27,7 @@ func NewRouter() *gin.Engine {
 }
 
 func RoutesHandler(router *gin.Engine, dashboard dashboard.Dashboard) {
-	profileRoutes(router, profile_handlers.NewHandlerProfile(dashboard.Profile()))
+	profileRoutes(router, dashboard.ControlPlane(), profile_handlers.NewHandlerProfile(dashboard.Profile()))
 	tournamentRoutes(router, tournament_handlers.NewHandlerTournament(dashboard.Tournament()))
 	leagueRoutes(router, league_handlers.NewHandlerLeague(dashboard.League()))
 }

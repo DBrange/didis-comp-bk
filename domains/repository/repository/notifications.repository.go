@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
+	"net/smtp"
+	"os"
 
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/notification/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
@@ -88,10 +90,42 @@ func (r *Repository) GetNotificationByID(ctx context.Context, notificationID str
 // }
 
 func (r *Repository) DeleteNotification(ctx context.Context, notificationID string) error {
-	err := r.setDeletedAt(ctx, r.notificationColl, notificationID, "notification")
+	err := r.SetDeletedAt(ctx, r.notificationColl, notificationID, "notification")
 	if err != nil {
 		return err
 	}
 
 	return nil
 }
+
+func (r *Repository) ActivateUserNotification(ctx context.Context) {
+	// Configuración del servidor SMTP
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	// Autenticación
+	auth := smtp.PlainAuth("", "asesincreedaltairr@gmail.com", "zxbzixtphahxqpco", smtpHost)
+
+	// Leer contenido HTML desde un archivo en el subdirectorio "templates"
+	body, err := os.ReadFile("assets/active_user.html")
+	if err != nil {
+		fmt.Println("Error al leer el archivo HTML:", err)
+		return
+	}
+
+	// Mensaje
+	from := "asesincreedaltairr@gmail.com"
+	to := []string{"asesincreedaltairr@hotmail.com"}
+	subject := "Subject: Confirmación de cuenta\n"
+	message := []byte(subject + "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n" + string(body))
+
+	// Envío del email
+	err = smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+	if err != nil {
+		fmt.Println("Error al enviar el email:", err)
+		return
+	}
+	fmt.Println("Email enviado exitosamente!")
+}
+
+

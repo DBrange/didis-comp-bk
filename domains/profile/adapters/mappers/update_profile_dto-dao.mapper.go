@@ -5,7 +5,7 @@ import (
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/user/dao"
 )
 
-func UpdateProfileDTOtoDAO(newProfileInfoDTO *dto.UpdateProfileDTOReq) *dao.UpdateUserDAOReq {
+func UpdateUserDTOtoDAO(newProfileInfoDTO *dto.UpdateUserDTOReq) *dao.UpdateUserDAOReq {
 	newProfileInfoDAO := &dao.UpdateUserDAOReq{
 		FirstName: newProfileInfoDTO.FirstName,
 		LastName:  newProfileInfoDTO.LastName,

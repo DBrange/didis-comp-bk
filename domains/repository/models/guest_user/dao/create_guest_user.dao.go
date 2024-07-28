@@ -6,7 +6,7 @@ import (
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 )
 
-type CreateGuestPlayerDAOReq struct {
+type CreateGuestUserDAOReq struct {
 	FirstName string       `bson:"first_name"`
 	LastName  string       `bson:"last_name"`
 	Email     string       `bson:"email"`
@@ -17,7 +17,7 @@ type CreateGuestPlayerDAOReq struct {
 	DeletedAt *time.Time   `bson:"deleted_at,omitempty"`
 }
 
-func (u *CreateGuestPlayerDAOReq) SetTimeStamp() {
+func (u *CreateGuestUserDAOReq) SetTimeStamp() {
 	currentDate := time.Now().UTC()
 	if u.CreatedAt.IsZero() {
 		u.CreatedAt = currentDate

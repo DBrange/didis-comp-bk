@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
 	location_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
@@ -12,6 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+func (r *Repository) LocationColl() *mongo.Collection {
+	return r.locationColl
+}
 
 func (r *Repository) CreateLocation(ctx context.Context, locationInfoDAO *location_dao.CreateLocationDAOReq) (string, error) {
 	locationInfoDAO.SetTimeStamp()
@@ -38,31 +41,31 @@ func (r *Repository) CreateLocation(ctx context.Context, locationInfoDAO *locati
 	return id, nil
 }
 
-func (r *Repository) createLocationConcurrently(sessCtx mongo.SessionContext, locationInfoDAO *location_dao.CreateLocationDAOReq, wg *sync.WaitGroup, locationCh chan<- *locationResult) {
-	defer wg.Done()
-	locationID, err := r.CreateLocation(sessCtx, locationInfoDAO)
-	locationCh <- &locationResult{ID: locationID, Err: err}
-}
+// func (r *Repository) createLocationConcurrently(sessCtx mongo.SessionContext, locationInfoDAO *location_dao.CreateLocationDAOReq, wg *sync.WaitGroup, locationCh chan<- *locationResult) {
+// 	defer wg.Done()
+// 	locationID, err := r.CreateLocation(sessCtx, locationInfoDAO)
+// 	locationCh <- &locationResult{ID: locationID, Err: err}
+// }
 
 func (r *Repository) GetLocationByID(ctx context.Context, locationID string) (*location_dao.GetLocationByIDDAORes, error) {
 	var location location_dao.GetLocationByIDDAORes
 
-	locationOID, err := r.ConvertToObjectID(locationID)
-	if err != nil {
-		return nil, err
+locationOID, err := r.ConvertToObjectID(locationID)
+if err != nil {
+	return nil, err
+}
+
+filter := bson.M{"_id": *locationOID}
+
+err = r.locationColl.FindOne(ctx, filter).Decode(&location)
+if err != nil {
+	if err == mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrNotFound, err.Error())
 	}
+	return nil, fmt.Errorf("error when searching for the location: %w", err)
+}
 
-	filter := bson.M{"_id": *locationOID}
-
-	err = r.locationColl.FindOne(ctx, filter).Decode(&location)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%w: error when searching for location: %s", customerrors.ErrNotFound, err.Error())
-		}
-		return nil, fmt.Errorf("error when searching for the location: %w", err)
-	}
-
-	return &location, nil
+return &location, nil
 }
 
 func (r *Repository) UpdateLocation(ctx context.Context, locationID string, locationInfoDAO *location_dao.UpdateLocationDAOReq) error {
@@ -95,15 +98,15 @@ func (r *Repository) UpdateLocation(ctx context.Context, locationID string, loca
 	return nil
 }
 
-func (r *Repository) updateLocationConcurrently(sessCtx mongo.SessionContext, locationID string, locationInfoDAO *location_dao.UpdateLocationDAOReq, wg *sync.WaitGroup, errCh chan<- error) {
-	defer wg.Done()
-	if err := r.UpdateLocation(sessCtx, locationID, locationInfoDAO); err != nil {
-		errCh <- err
-	}
-}
+// func (r *Repository) updateLocationConcurrently(sessCtx mongo.SessionContext, locationID string, locationInfoDAO *location_dao.UpdateLocationDAOReq, wg *sync.WaitGroup, errCh chan<- error) {
+// 	defer wg.Done()
+// 	if err := r.UpdateLocation(sessCtx, locationID, locationInfoDAO); err != nil {
+// 		errCh <- err
+// 	}
+// }
 
 func (r *Repository) DeleteLocation(ctx context.Context, locationID string) error {
-	err := r.setDeletedAt(ctx, r.locationColl, locationID, "location")
+	err := r.SetDeletedAt(ctx, r.locationColl, locationID, "location")
 	if err != nil {
 		return err
 	}

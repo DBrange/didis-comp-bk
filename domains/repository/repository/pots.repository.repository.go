@@ -12,7 +12,22 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreatePot(ctx context.Context, potInfoDAO *dao.CreatePotDAOReq) (string, error) {
+func (r *Repository) PotColl() *mongo.Collection {
+	return r.potColl
+}
+
+func (r *Repository) CreatePot(ctx context.Context, tournamentID string) (string, error) {
+	tournamentOID, err := r.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return "", err
+	}
+
+	var potInfoDAO dao.CreatePotDAOReq
+
+	potInfoDAO.TournamentID = *tournamentOID
+
+	potInfoDAO.Competitors = []primitive.ObjectID{}
+
 	potInfoDAO.SetTimeStamp()
 
 	result, err := r.potColl.InsertOne(ctx, potInfoDAO)
@@ -89,7 +104,7 @@ func (r *Repository) UpdatePot(ctx context.Context, potID string, potInfoDAO *da
 }
 
 func (r *Repository) DeletePot(ctx context.Context, potID string) error {
-	err := r.setDeletedAt(ctx, r.potColl, potID, "pot")
+	err := r.SetDeletedAt(ctx, r.potColl, potID, "pot")
 	if err != nil {
 		return err
 	}

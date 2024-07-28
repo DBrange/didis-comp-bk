@@ -89,7 +89,7 @@ func (r *Repository) UpdateLeagueRegistration(ctx context.Context, leagueRegistr
 }
 
 func (r *Repository) DeleteLeagueRegistration(ctx context.Context, leagueRegistrationID string) error {
-	err := r.setDeletedAt(ctx, r.leagueRegistrationColl, leagueRegistrationID, "leagueRegistration")
+	err := r.SetDeletedAt(ctx, r.leagueRegistrationColl, leagueRegistrationID, "leagueRegistration")
 	if err != nil {
 		return err
 	}

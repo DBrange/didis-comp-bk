@@ -6,7 +6,7 @@ import (
 
 	"github.com/DBrange/didis-comp-bk/domains/profile/adapters/mappers"
 	profile_dto "github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
-	role_models "github.com/DBrange/didis-comp-bk/domains/repository/models/role"
+	role_dto "github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -16,19 +16,27 @@ type locationResult struct {
 	Err error
 }
 type roleResult struct {
-	Role *role_models.Role
+	Role *role_dto.GetRoleDTOByID
 	Err  error
 }
 
 func (s *ProfileService) RegisterUser(ctx context.Context, profileInfoDTO *profile_dto.RegisterUserDTOReq) error {
 	err := s.profileQueryer.WithTransaction(ctx, func(sessCtx mongo.SessionContext) error {
-		userDTO, locationDTO := mappers.RegisterUserMapper(profileInfoDTO)
-
 		wg := &sync.WaitGroup{}
 
 		locationCh := make(chan *locationResult, 1)
 		roleCh := make(chan *roleResult, 1)
-		
+		var err error
+
+		userDTO, locationDTO := mappers.RegisterUserMapper(profileInfoDTO)
+
+		hashedPassword, err := s.HashPassword(*userDTO.Password)
+		if err != nil {
+			return err
+		}
+
+		userDTO.Password = &hashedPassword
+
 		wg.Add(2)
 		go s.createLocationConcurrently(sessCtx, locationDTO, wg, locationCh)
 		go s.getRoleByNameAndTypeConcurrently(sessCtx, "FREE", "USER", wg, roleCh)
@@ -38,8 +46,6 @@ func (s *ProfileService) RegisterUser(ctx context.Context, profileInfoDTO *profi
 			close(locationCh)
 			close(roleCh)
 		}()
-
-		var err error
 
 		for i := 0; i < 2; i++ {
 			select {
@@ -73,32 +79,42 @@ func (s *ProfileService) RegisterUser(ctx context.Context, profileInfoDTO *profi
 			}
 		}
 
-		// Crear usuario
+		// Create usuario
 		userID, err := s.profileQueryer.CreateUser(sessCtx, userDTO)
 		if err != nil {
 			return err
 		}
 
-		// Creat organizer
+		// Create organizer
 		if profileInfoDTO.Organizer {
-			return s.profileQueryer.CreateOrganizer(ctx, userID)
+			err := s.profileQueryer.CreateOrganizer(ctx, userID)
+			if err != nil {
+				return err
+			}
 		} else {
-			return s.profileQueryer.CreateAvailability(sessCtx, &userID, nil)
+			err := s.profileQueryer.CreateAvailability(sessCtx, &userID, nil)
+			if err != nil {
+				return err
+			}
+
 		}
+
+		//ACTIVAR LUEGO
+		// s.profileQueryer.ActivateUserNotification(sessCtx)
+
+		return nil
 	})
-	
+
 	if err != nil {
-		profileErrorHandlers := customerrors.CreateErrorHandlers("profile")
-		errMsgTemplate := "error when registering profile"
-		return customerrors.HandleError(err, profileErrorHandlers, errMsgTemplate)
+		return customerrors.HandleErrMsg(err, "profile", "error when registering profile")
 	}
 
 	return nil
 }
 
-func (s *ProfileService) createLocationConcurrently(sessCtx mongo.SessionContext, locationInfoDAO *profile_dto.CreateLocationDTOReq, wg *sync.WaitGroup, locationCh chan<- *locationResult) {
+func (s *ProfileService) createLocationConcurrently(sessCtx mongo.SessionContext, locationInfoDTO *profile_dto.CreateLocationDTOReq, wg *sync.WaitGroup, locationCh chan<- *locationResult) {
 	defer wg.Done()
-	locationID, err := s.profileQueryer.CreateLocation(sessCtx, locationInfoDAO)
+	locationID, err := s.profileQueryer.CreateLocation(sessCtx, locationInfoDTO)
 	locationCh <- &locationResult{ID: locationID, Err: err}
 }
 
@@ -106,4 +122,5 @@ func (s *ProfileService) getRoleByNameAndTypeConcurrently(sessCtx mongo.SessionC
 	defer wg.Done()
 	role, err := s.profileQueryer.GetRoleByNameAndType(sessCtx, roleName, roleType)
 	roleCh <- &roleResult{Role: role, Err: err}
+
 }

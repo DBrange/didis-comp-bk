@@ -4,14 +4,37 @@ import (
 	"context"
 
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (d *ProfileService) CloseProfile(ctx context.Context, userID string) error {
-	err := d.profileQueryer.CloseProfile(ctx, userID)
+func (s *ProfileService) CloseProfile(ctx context.Context, userID string) error {
+	err := s.profileQueryer.WithTransaction(ctx, func(sessCtx mongo.SessionContext) error {
+		userDeleted, err := s.profileQueryer.DeleteUser(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		locationID := userDeleted.LocationID
+
+		availabilityID, err := s.profileQueryer.GetAvailabilityIDByUserID(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		err = s.profileQueryer.SetDeletedAt(ctx, s.profileQueryer.LocationColl(), locationID, "location")
+		if err != nil {
+			return err
+		}
+
+		err = s.profileQueryer.SetDeletedAt(ctx, s.profileQueryer.AvailabilityColl(), availabilityID, "availability")
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
-		profileErrorHandlers := customerrors.CreateErrorHandlers("profile")
-		errMsgTemplate := "error updating profile deleted_at"
-		return customerrors.HandleError(err, profileErrorHandlers, errMsgTemplate)
+		return customerrors.HandleErrMsg(err, "profile", "error updating deleted_at")
 	}
 
 	return nil

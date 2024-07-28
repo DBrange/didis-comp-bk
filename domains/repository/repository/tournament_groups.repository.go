@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
+	api_utils "github.com/DBrange/didis-comp-bk/cmd/api/utils"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/tournament_group/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -12,10 +12,26 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateTournamentGroup(ctx context.Context, tournamentGroup *dao.CreateTournamentGroupDAOReq) (string, error) {
-	tournamentGroup.SetTimeStamp()
+func (r *Repository) TournamentGroupColl() *mongo.Collection {
+	return r.tournamentGroupColl
+}
 
-	result, err := r.tournamentGroupColl.InsertOne(ctx, tournamentGroup)
+func (r *Repository) CreateTournamentGroup(ctx context.Context, tournamentID string) (string, error) {
+	tournamenOID, err := r.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return "", err
+	}
+
+	var tournamentGroupDAO dao.CreateTournamentGroupDAOReq
+
+	tournamentGroupDAO.TournamentID = *tournamenOID
+
+	tournamentGroupDAO.Matches = []primitive.ObjectID{}
+	tournamentGroupDAO.Competitors = []primitive.ObjectID{}
+
+	tournamentGroupDAO.SetTimeStamp()
+
+	result, err := r.tournamentGroupColl.InsertOne(ctx, tournamentGroupDAO)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
 			return "", fmt.Errorf("%w: error duplicate key for tournamentGroup: %s", customerrors.ErrDuplicateKey, err.Error())
@@ -67,7 +83,7 @@ func (r *Repository) UpdateTournamentGroup(ctx context.Context, tournamentGroupI
 	tournamentGroupInfoDAO.RenewUpdate()
 
 	filter := bson.M{"_id": *tournamentGroupOID}
-	update, err := api_assets.StructToBsonMap(tournamentGroupInfoDAO)
+	update, err := api_utils.StructToBsonMap(tournamentGroupInfoDAO)
 	if err != nil {
 		return err
 	}
@@ -89,7 +105,7 @@ func (r *Repository) UpdateTournamentGroup(ctx context.Context, tournamentGroupI
 }
 
 func (r *Repository) DeleteTournamentGroup(ctx context.Context, tournamentGroupID string) error {
-	err := r.setDeletedAt(ctx, r.tournamentGroupColl, tournamentGroupID, "tournamentGroup")
+	err := r.SetDeletedAt(ctx, r.tournamentGroupColl, tournamentGroupID, "tournamentGroup")
 	if err != nil {
 		return err
 	}

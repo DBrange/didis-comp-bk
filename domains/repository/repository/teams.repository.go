@@ -14,6 +14,7 @@ import (
 
 func (r *Repository) CreateTeam(ctx context.Context, teamInfoDAO *dao.CreateTeamDAOReq) (*primitive.ObjectID, error) {
 	teamInfoDAO.SetTimeStamp()
+fmt.Printf("teamammm %+v", teamInfoDAO)
 
 	result, err := r.teamColl.InsertOne(ctx, teamInfoDAO)
 	if err != nil {
@@ -89,7 +90,7 @@ func (r *Repository) UpdateTeam(ctx context.Context, teamID string, teamInfoDAO 
 }
 
 func (r *Repository) DeleteTeam(ctx context.Context, teamID string) error {
-	err := r.setDeletedAt(ctx, r.teamColl, teamID, "team")
+	err := r.SetDeletedAt(ctx, r.teamColl, teamID, "team")
 	if err != nil {
 		return err
 	}

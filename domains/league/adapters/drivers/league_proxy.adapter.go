@@ -17,7 +17,7 @@ func NewLeagueProxyAdapter(leagueService *services.LeagueService) *LeagueProxyAd
 	}
 }
 
-func (a *LeagueProxyAdapter) OrganizeLeague(ctx context.Context, organizerID string, leagueInfoDTO *dto.OrganizeLeagueDTOReq) error {
+func (a *LeagueProxyAdapter) OrganizeLeague(ctx context.Context, organizerID string, leagueInfoDTO *dto.CreateLeagueDTOReq) error {
 	return a.leagueService.OrganizeLeague(ctx, organizerID, leagueInfoDTO)
 }
 

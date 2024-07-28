@@ -29,11 +29,11 @@ func (r *Repository) WithTransaction(ctx context.Context, fn func(sessCtx mongo.
 
 func (r *Repository) ConvertToObjectID(ID string) (*primitive.ObjectID, error) {
 	if ID == "" {
-		return nil, fmt.Errorf("invalid availability id format: %w", customerrors.ErrInvalidID)
+		return nil, fmt.Errorf("invalid id format for convert: %w", customerrors.ErrInvalidID)
 	}
 	OID, err := primitive.ObjectIDFromHex(ID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: invalid availability id format: %s", customerrors.ErrInvalidID, err.Error())
+		return nil, fmt.Errorf("%w: invalid id format for convert: %s", customerrors.ErrInvalidID, err.Error())
 	}
 
 	return &OID, nil

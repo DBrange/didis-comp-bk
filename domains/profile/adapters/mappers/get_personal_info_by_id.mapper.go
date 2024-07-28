@@ -2,11 +2,9 @@ package mappers
 
 import (
 	profile_dto "github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
-	location_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
-	user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/user/dao"
 )
 
-func GetPersonalInfoByIDMapper(userInfo *user_dao.GetUserByIDDAO, locationInfo *location_dao.GetLocationByIDDAORes) *profile_dto.GetPersonalInfoByIDDTORes {
+func GetPersonalInfoByIDMapper(userInfo *profile_dto.GetUserByIDDTORes, locationInfo *profile_dto.GetLocationByIDDTORes) *profile_dto.GetPersonalInfoByIDDTORes {
 	profileInfo := &profile_dto.GetPersonalInfoByIDDTORes{
 		ID:        userInfo.ID,
 		FirstName: userInfo.FirstName,

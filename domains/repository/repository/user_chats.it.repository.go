@@ -88,7 +88,7 @@ func (r *Repository) GetUserChatByID(ctx context.Context, userChatID string) (*d
 // }
 
 func (r *Repository) DeleteUserChat(ctx context.Context, userChatID string) error {
-	err := r.setDeletedAt(ctx, r.userChatColl, userChatID, "userChat")
+	err := r.SetDeletedAt(ctx, r.userChatColl, userChatID, "userChat")
 	if err != nil {
 		return err
 	}

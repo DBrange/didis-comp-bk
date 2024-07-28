@@ -6,7 +6,7 @@ import (
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 )
 
-type RoleDAOReq struct {
+type CreateRoleDAOReq struct {
 	Name      models.ROLE        `bson:"name"`
 	RoleType  models.ROLE_TYPE   `bson:"role_type"`
 	CreatedAt time.Time          `bson:"created_at"`

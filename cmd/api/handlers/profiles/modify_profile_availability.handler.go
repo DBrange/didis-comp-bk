@@ -33,8 +33,8 @@ func (h *Handler) ModifyProfileAvailability(c *gin.Context) {
 
 }
 
-func modifyProfileAvailabilityBody(c *gin.Context) (*profile_dto.ModifyProfileDailyAvailabilityDTOReq, error) {
-	var availabilityInfo profile_dto.ModifyProfileDailyAvailabilityDTOReq
+func modifyProfileAvailabilityBody(c *gin.Context) (*profile_dto.UpdateDailyAvailabilityDTOReq, error) {
+	var availabilityInfo profile_dto.UpdateDailyAvailabilityDTOReq
 	if err := c.ShouldBindJSON(&availabilityInfo); err != nil {
 		err = fmt.Errorf("%w: error getting the json: %v", customerrors.ErrGetJSON, err.Error())
 		if errors.Is(err, customerrors.ErrValidationFailed) {

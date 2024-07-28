@@ -31,7 +31,7 @@ type Repository struct {
 	matchColl             *mongo.Collection
 	chatColl              *mongo.Collection
 	chatMessageColl       *mongo.Collection
-	guestPlayerColl       *mongo.Collection
+	guestUserColl         *mongo.Collection
 	notificationColl      *mongo.Collection
 
 	competitorMatchColl        *mongo.Collection // Intermediate table
@@ -66,7 +66,7 @@ func NewRepository(
 	matchColl *mongo.Collection,
 	chatColl *mongo.Collection,
 	chatMessageColl *mongo.Collection,
-	guestPlayerColl *mongo.Collection,
+	guestUserColl *mongo.Collection,
 	notificationColl *mongo.Collection,
 
 	competitorMatchColl *mongo.Collection, // Intermediate table
@@ -101,7 +101,7 @@ func NewRepository(
 		matchColl:             matchColl,
 		chatColl:              chatColl,
 		chatMessageColl:       chatMessageColl,
-		guestPlayerColl:       guestPlayerColl,
+		guestUserColl:         guestUserColl,
 		notificationColl:      notificationColl,
 
 		competitorMatchColl:        competitorMatchColl,        // Intermediate table

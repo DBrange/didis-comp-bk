@@ -7,5 +7,5 @@ import (
 )
 
 type ModifyProfileAvailability interface {
-	ModifyProfileAvailability(ctx context.Context, availabilityID string, availabilityInfoDTO *dto.ModifyProfileDailyAvailabilityDTOReq) error
+	ModifyProfileAvailability(ctx context.Context, availabilityID string, availabilityInfoDTO *dto.UpdateDailyAvailabilityDTOReq) error
 }

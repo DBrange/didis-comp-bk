@@ -7,5 +7,5 @@ import (
 )
 
 type OrganizeLeague interface {
-	OrganizeLeague(ctx context.Context, organizerID string, leagueDTO *dto.OrganizeLeagueDTOReq) error
+	OrganizeLeague(ctx context.Context, organizerID string, leagueDTO *dto.CreateLeagueDTOReq) error
 }

@@ -19,7 +19,7 @@ type Profile struct {
 	Image      *string              `json:"image" bson:"image"`
 	Active     bool                 `json:"active" bson:"active"`
 	Genre      models.GENRE         `json:"genre" bson:"genre"`
-	Roles      []primitive.ObjectID `json:"role" bson:"role"`
+	Roles      []primitive.ObjectID `json:"roles" bson:"roles"`
 	LocationID *string              `json:"location_id" bson:"location_id"`
 	PaymentID  *string              `json:"payment_id" bson:"payment_id"`
 	CreatedAt  time.Time            `json:"created_at" bson:"created_at"`

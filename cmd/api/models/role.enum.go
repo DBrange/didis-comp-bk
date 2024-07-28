@@ -5,7 +5,7 @@ type ROLE string
 const (
 	ROLE_ADMIN ROLE = "ADMIN"
 	ROLE_BASIC ROLE = "BASIC"
-	ROLE_FREE  ROLE = "FREE"
+	ROLE_FREE  ROLE = "669c8c47522c04dab212a219"
 )
 
 

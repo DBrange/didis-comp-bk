@@ -2,16 +2,15 @@ package services
 
 import (
 	"context"
-"github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
+
+	"github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
 
-func (d *ProfileService) GetProfileAvailabilityInfoByID(ctx context.Context, userID string, day string) (*dto.GetProfileDailyAvailabilityInfoByIDDTORes, error) {
-	availabilityInfo, err := d.profileQueryer.GetProfileAvailabilityInfoByID(ctx, userID, day)
+func (d *ProfileService) GetProfileDailyAvailabilityByID(ctx context.Context, userID string, day string) (*dto.GetDailyAvailabilityByIDDTORes, error) {
+	availabilityInfo, err := d.profileQueryer.GetDailyAvailabilityByUserID(ctx, userID, day)
 	if err != nil {
-		profileErrorHandlers := customerrors.CreateErrorHandlers("profile")
-		errMsgTemplate := "error getting profile 'availability' info"
-		return nil, customerrors.HandleError(err, profileErrorHandlers, errMsgTemplate)
+		return nil, customerrors.HandleErrMsg(err, "profile", "error getting profile 'availability' info")
 	}
 
 	return availabilityInfo, nil

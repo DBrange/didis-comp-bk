@@ -90,7 +90,7 @@ func (r *Repository) GetCompetitorUserByID(ctx context.Context, competitorUserID
 // }
 
 func (r *Repository) DeleteCompetitorUser(ctx context.Context, competitorUserID string) error {
-	err := r.setDeletedAt(ctx, r.competitorUserColl, competitorUserID, "competitorUser")
+	err := r.SetDeletedAt(ctx, r.competitorUserColl, competitorUserID, "competitorUser")
 	if err != nil {
 		return err
 	}

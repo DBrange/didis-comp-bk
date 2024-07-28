@@ -7,11 +7,9 @@ import (
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
 
-func (d *ProfileService) ModifyProfileAvailability(ctx context.Context, availabilityID string, availabilityInfoDTO *dto.ModifyProfileDailyAvailabilityDTOReq) error {
-	if err := d.profileQueryer.ModifyProfileAvailability(ctx, availabilityID, availabilityInfoDTO); err != nil {
-		profileErrorHandlers := customerrors.CreateErrorHandlers("profile")
-		errMsgTemplate := "error updating profile 'availability'"
-		return customerrors.HandleError(err, profileErrorHandlers, errMsgTemplate)
+func (d *ProfileService) ModifyProfileAvailability(ctx context.Context, availabilityID string, availabilityInfoDTO *dto.UpdateDailyAvailabilityDTOReq) error {
+	if err := d.profileQueryer.UpdateAvailability(ctx, availabilityID, availabilityInfoDTO); err != nil {
+		return customerrors.HandleErrMsg(err, "profile", "error updating profile daily availability")
 	}
 
 	return nil

@@ -7,6 +7,8 @@ import (
 )
 
 type CreateTournamentGroupDAOReq struct {
+	Classify     int                  `bson:"classify"`
+	BestThird    int                  `bson:"best_third"`
 	TournamentID primitive.ObjectID   `bson:"tournament_id"`
 	Competitors  []primitive.ObjectID `bson:"competitors"`
 	Matches      []primitive.ObjectID `bson:"matches"`

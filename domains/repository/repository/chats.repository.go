@@ -89,7 +89,7 @@ func (r *Repository) UpdateChat(ctx context.Context, chatID string, chatInfoDAO 
 }
 
 func (r *Repository) DeleteChat(ctx context.Context, chatID string) error {
-	err := r.setDeletedAt(ctx, r.chatColl, chatID, "chat")
+	err := r.SetDeletedAt(ctx, r.chatColl, chatID, "chat")
 	if err != nil {
 		return err
 	}

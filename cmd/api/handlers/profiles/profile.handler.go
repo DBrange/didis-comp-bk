@@ -5,11 +5,11 @@ import (
 )
 
 type Handler struct {
-	profile     profile_ports.ForProfile
+	profile profile_ports.ForProfile
 }
 
 func NewHandlerProfile(profile profile_ports.ForProfile) *Handler {
 	return &Handler{
-		profile:     profile,
+		profile: profile,
 	}
 }

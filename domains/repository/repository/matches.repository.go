@@ -85,7 +85,7 @@ func (r *Repository) UpdateMatch(ctx context.Context, matchID string, matchInfoD
 }
 
 func (r *Repository) DeleteMatch(ctx context.Context, matchID string) error {
-	err := r.setDeletedAt(ctx, r.matchColl, matchID, "match")
+	err := r.SetDeletedAt(ctx, r.matchColl, matchID, "match")
 	if err != nil {
 		return err
 	}

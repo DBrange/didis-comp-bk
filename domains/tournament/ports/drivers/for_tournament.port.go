@@ -4,4 +4,6 @@ import "github.com/DBrange/didis-comp-bk/domains/tournament/ports/drivers/interf
 
 type ForTournament interface {
 	interfaces.OrganizeTournament
+	interfaces.AddCompetitorInTournament
+	interfaces.AddGuestUserInTournament
 }

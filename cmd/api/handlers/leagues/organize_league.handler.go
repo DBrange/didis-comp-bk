@@ -31,16 +31,16 @@ func (h *Handler) OrganizeLeague(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "New league created successfully!"})
 }
 
-func organizeLeagueBodyData(c *gin.Context) (*dto.OrganizeLeagueDTOReq, error) {
-	var leagueInfoDTO dto.OrganizeLeagueDTOReq
-	if err := c.ShouldBindJSON(&leagueInfoDTO); err != nil {
+func organizeLeagueBodyData(c *gin.Context) (*dto.CreateLeagueDTOReq, error) {
+	var leagueDTO dto.CreateLeagueDTOReq
+	if err := c.ShouldBindJSON(&leagueDTO); err != nil {
 		err = fmt.Errorf("%w: error binding json: %v", customerrors.ErrGetJSON, err.Error())
 		leagueErrorHandlers := customerrors.CreateErrorHandlers("league")
 		errMsgTemplate := "error getting league"
 		return nil, customerrors.HandleError(err, leagueErrorHandlers, errMsgTemplate)
 	}
 
-	err := utils.Validate.Struct(leagueInfoDTO)
+	err := utils.Validate.Struct(leagueDTO)
 	if err != nil {
 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
 		leagueErrorHandlers := customerrors.CreateErrorHandlers("league")
@@ -48,5 +48,5 @@ func organizeLeagueBodyData(c *gin.Context) (*dto.OrganizeLeagueDTOReq, error) {
 		return nil, customerrors.HandleError(err, leagueErrorHandlers, errMsgTemplate)
 	}
 
-	return &leagueInfoDTO, nil
+	return &leagueDTO, nil
 }

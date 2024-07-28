@@ -19,23 +19,17 @@ func (h *Handler) RegisterCompetitor(c *gin.Context) {
 	sport := c.Query("sport")
 	competitorType := c.Query("competitor_type")
 
-	if err := registerCompetitorValidateQueries( sport, competitorType); err != nil {
+	if err := registerCompetitorValidateQueries(sport, competitorType); err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
-	fmt.Println("toyy")
-	sportParsed, err := models.ParseSport(sport)
-	if err != nil {
+	
+	sportParsed, competitorTypeParsed, err := registerCompetitorQueriesParser(sport,competitorType)
+	if err != nil{
 		customerrors.ErrorResponse(err, c)
 		return
 	}
-	fmt.Println("toyy")
-	competitorTypeParsed, err := models.ParseCompetitorType(competitorType)
-	if err != nil {
-		customerrors.ErrorResponse(err, c)
-		return
-	}
-	fmt.Println("toyy")
+
 	if err := h.profile.RegisterCompetitor(ctx, userID, sportParsed, competitorTypeParsed); err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
@@ -45,10 +39,9 @@ func (h *Handler) RegisterCompetitor(c *gin.Context) {
 }
 
 func registerCompetitorValidateQueries(sport, competitorType string) error {
-
 	type validateRegisterCompetitorQueries struct {
-		Sport          string `json:"sport" validate:"sport"`
-		CompetitorType string `json:"competitor_type" validate:"competitorType"`
+		Sport          string `json:"sport" validate:"sport,required"`
+		CompetitorType string `json:"competitor_type" validate:"competitorType,required"`
 	}
 
 	validateQueries := &validateRegisterCompetitorQueries{Sport: sport, CompetitorType: competitorType}
@@ -62,4 +55,18 @@ func registerCompetitorValidateQueries(sport, competitorType string) error {
 	}
 
 	return err
+}
+
+func registerCompetitorQueriesParser(sport, competitorType string) (models.SPORT, models.COMPETITOR_TYPE, error) {
+	sportParsed, err := models.ParseSport(sport)
+	if err != nil {
+		return "", "", err
+	}
+
+	competitorTypeParsed, err := models.ParseCompetitorType(competitorType)
+	if err != nil {
+		return "", "", err
+	}
+
+	return sportParsed, competitorTypeParsed, nil
 }

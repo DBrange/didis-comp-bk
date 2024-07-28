@@ -3,19 +3,22 @@ package repository
 import (
 	"context"
 	"fmt"
-	"sync"
 
-	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
+	"github.com/DBrange/didis-comp-bk/domains/repository/models"
 	user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/user/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (r *Repository) CreateUser(ctx context.Context, userDAO *user_dao.CreateUserDAOReq) (string, error) {
 	userDAO.SetTimeStamp()
+
+	// SACAR ESTO LUEGO
+	userDAO.Active = true
 
 	result, err := r.userColl.InsertOne(ctx, userDAO)
 	if err != nil {
@@ -39,15 +42,22 @@ func (r *Repository) CreateUser(ctx context.Context, userDAO *user_dao.CreateUse
 	return id, nil
 }
 
-func (r *Repository) GetUserByID(ctx context.Context, userID string) (*user_dao.GetUserByIDDAO, error) {
-	var user user_dao.GetUserByIDDAO
+func (r *Repository) GetUserByID(ctx context.Context, userID string) (*user_dao.GetUserByIDDAORes, error) {
+	var user user_dao.GetUserByIDDAORes
 
 	userOID, err := r.ConvertToObjectID(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	filter := bson.M{"_id": *userOID}
+	filter := bson.M{
+		"_id": *userOID,
+		"$or": []bson.M{
+			{"deleted_at": bson.M{"$exists": false}},
+			{"deleted_at": nil},
+		},
+		"active": true,
+	}
 
 	err = r.userColl.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
@@ -70,18 +80,17 @@ func (r *Repository) UpdateUser(ctx context.Context, userID string, userInfoDAO 
 
 	filter := bson.M{"_id": userOID}
 
-	update, err := api_assets.StructToBsonMap(userInfoDAO)
-	fmt.Printf("%+v", &update)
-	if err != nil {
-		return err
-	}
+	// update, err := api_assets.StructToBsonMap(userInfoDAO)
+	// if err != nil {
+	// 	return err
+	// }
 	// currentDate := time.Now().UTC()
 	// update["updated_at"] = currentDate
 
 	result, err := r.userColl.UpdateOne(
 		ctx,
 		filter,
-		bson.M{"$set": update},
+		bson.M{"$set": userInfoDAO},
 	)
 	if err != nil {
 		return fmt.Errorf("%w: error updating user: %s", customerrors.ErrUpdated, err.Error())
@@ -94,20 +103,20 @@ func (r *Repository) UpdateUser(ctx context.Context, userID string, userInfoDAO 
 	return nil
 }
 
-func (r *Repository) updateUserConcurrently(sessCtx mongo.SessionContext, userID string, userInfoDAO *user_dao.UpdateUserDAOReq, wg *sync.WaitGroup, errCh chan<- error) {
-	defer wg.Done()
-	if err := r.UpdateUser(sessCtx, userID, userInfoDAO); err != nil {
-		errCh <- err
-	}
-}
+// func (r *Repository) updateUserConcurrently(sessCtx mongo.SessionContext, userID string, userInfoDAO *user_dao.UpdateUserDAOReq, wg *sync.WaitGroup, errCh chan<- error) {
+// 	defer wg.Done()
+// 	if err := r.UpdateUser(sessCtx, userID, userInfoDAO); err != nil {
+// 		errCh <- err
+// 	}
+// }
 
-func (r *Repository) DeleteUser(ctx context.Context, userID string) (*user_dao.UserRelationsToDeleteDAO, error) {
+func (r *Repository) DeleteUser(ctx context.Context, userID string) (*user_dao.UserRelationsToDeleteDAOReq, error) {
 
 	projections := bson.M{
 		"location_id": 1,
 	}
 
-	userRelationsToDelete, err := setDeletedAtAndReturnIDs(ctx, r.userColl, userID, "user", projections, &user_dao.UserRelationsToDeleteDAO{})
+	userRelationsToDelete, err := SetDeletedAtAndReturnIDs(ctx, r.userColl, userID, "user", projections, &user_dao.UserRelationsToDeleteDAOReq{})
 	if err != nil {
 		return nil, err
 	}
@@ -115,30 +124,13 @@ func (r *Repository) DeleteUser(ctx context.Context, userID string) (*user_dao.U
 	return userRelationsToDelete, nil
 }
 
-func (r *Repository) UpdateUserPassword(ctx context.Context, userID, newPassword, oldPassword string) error {
+func (r *Repository) UpdateUserPassword(ctx context.Context, userID, newPassword string) error {
 	userOID, err := r.ConvertToObjectID(userID)
 	if err != nil {
 		return err
 	}
 
 	filter := bson.M{"_id": userOID}
-
-	var user struct {
-		Password string `bson:"password"`
-	}
-
-	err = r.userColl.FindOne(ctx, filter).Decode(&user)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return fmt.Errorf("%w: no user found with id: %s", customerrors.ErrNotFound, userID)
-		}
-		return fmt.Errorf("%w: error finding user: %s", customerrors.ErrUpdated, err.Error())
-	}
-
-	// Paso 2: Comparar la contraseña antigua con la almacenada
-	if user.Password != oldPassword {
-		return fmt.Errorf("%w: old password does not match", customerrors.ErrInsertionFailed)
-	}
 
 	update := bson.M{"password": newPassword}
 
@@ -156,42 +148,123 @@ func (r *Repository) UpdateUserPassword(ctx context.Context, userID, newPassword
 	}
 
 	return nil
-
 }
 
-// Ejemplo de como utilizar session
-// func (r *Repository) RegisterUser(ctx context.Context, userInfoDAO *user_dao.CreateUserDAO, locationInfoDAO *location_dao.CreateLocationDAOReq) error {
-// 	if r.client == nil {
-// 		return fmt.Errorf("%w: MongoDB client is not initialized", customerrors.ErrStartSessionFailed)
-// 	}
-// 	session, err := r.client.StartSession()
-// 	if err != nil {
-// 		return fmt.Errorf("%w: error starting session: %s", customerrors.ErrStartSessionFailed, err.Error())
-// 	}
-// 	defer session.EndSession(ctx)
+func (r *Repository) GetUserPasswordByID(ctx context.Context, userID string) (string, error) {
+	userOID, err := r.ConvertToObjectID(userID)
+	if err != nil {
+		return "", err
+	}
+	filter := bson.M{
+		"_id":    userOID,
+		"$and":   []bson.M{models.OmitDeleted()},
+		"active": true,
+	}
 
-// 	callback := func(sessCtx mongo.SessionContext) (interface{}, error) {
+	type password struct {
+		ID       string `bson:"_id"`
+		Password string `bson:"password"`
+	}
 
-// 		locationID, err := r.CreateLocation2(sessCtx, locationInfoDAO)
-// 		if err != nil {
-// 			return nil, err
-// 		}
+	var getPassword password
 
-// 		userInfoDAO.LocationID = &locationID
+	projection := bson.M{"password": 1, "_id": 1}
 
-// 		err = r.CreateUser2(sessCtx, userInfoDAO)
-// 		if err != nil {
-// 			return nil, err
-// 		}
+	opts := options.FindOne().SetProjection(projection)
 
-// 		return nil, nil
-// 	}
+	err = r.userColl.FindOne(ctx, filter, opts).Decode(&getPassword)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return "", fmt.Errorf("%w: error when searching for the user: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return "", fmt.Errorf("error when searching for the user: %w", err)
 
-// 	_, err = session.WithTransaction(ctx, callback)
-// 	if err != nil {
-// 		fmt.Printf("%v", err)
-// 		return fmt.Errorf("%w: transaction error: %s", customerrors.ErrTransaction, err.Error())
-// 	}
+	}
 
-// 	return nil
-// }
+	return getPassword.Password, nil
+}
+
+func (r *Repository) GetUserPasswordForLogin(ctx context.Context, username string) (string, string, error) {
+	// Filter options username
+	filterUsername := bson.M{
+		"$or": []bson.M{
+			{"email": username},
+			{"username": username},
+		},
+	}
+
+	filter := bson.M{
+		"$and": []bson.M{
+			filterUsername,
+			models.OmitDeleted(),
+		},
+		"active": true,
+	}
+
+	type password struct {
+		ID       string `bson:"_id"`
+		Password string `bson:"password"`
+	}
+
+	var getPassword password
+
+	projection := bson.M{"password": 1, "_id": 1}
+
+	opts := options.FindOne().SetProjection(projection)
+
+	err := r.userColl.FindOne(ctx, filter, opts).Decode(&getPassword)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return "", "", fmt.Errorf("%w: error when searching for the user: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return "", "", fmt.Errorf("error when searching for the user: %w", err)
+
+	}
+
+	return getPassword.Password, getPassword.ID, nil
+}
+
+func (r *Repository) GetUserRoles(ctx context.Context, userID string) ([]string, error) {
+	type Roles struct {
+		Roles []primitive.ObjectID `bson:"roles"`
+	}
+
+	var roles Roles
+
+	userOID, err := r.ConvertToObjectID(userID)
+	if err != nil {
+		return []string{}, nil
+	}
+
+	filter := bson.M{
+		"_id":    userOID,
+		"$and":   models.OmitDeleted(),
+		"active": true,
+	}
+
+	projection := bson.M{"roles": 1}
+
+	opts := options.FindOne().SetProjection(projection)
+
+	err = r.userColl.FindOne(ctx, filter, opts).Decode(&roles)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return []string{}, fmt.Errorf("%w: error when searching for the user: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return []string{}, fmt.Errorf("error when searching for the user: %w", err)
+	}
+
+	rolesStr := make([]string, len(roles.Roles))
+
+	for i, role := range roles.Roles {
+		rolesStr[i] = role.Hex()
+	}
+
+	return rolesStr, nil
+}
+
+func (r *Repository) GetUserForListOfTournament(ctx context.Context, userOID *primitive.ObjectID)(any, error){
+return nil,nil
+}
+
+

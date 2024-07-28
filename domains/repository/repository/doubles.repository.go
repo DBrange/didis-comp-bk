@@ -88,7 +88,7 @@ func (r *Repository) GetDoubleByID(ctx context.Context, doubleID string) (*dao.G
 // }
 
 func (r *Repository) DeleteDouble(ctx context.Context, doubleID string) error {
-	err := r.setDeletedAt(ctx, r.doubleColl, doubleID, "double")
+	err := r.SetDeletedAt(ctx, r.doubleColl, doubleID, "double")
 	if err != nil {
 		return err
 	}

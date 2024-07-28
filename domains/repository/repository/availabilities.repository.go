@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	models "github.com/DBrange/didis-comp-bk/domains/repository/models/avaliability"
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	availability_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/avaliability/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,6 +13,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+
+func (r *Repository)AvailabilityColl() *mongo.Collection {
+	return r.availabilityColl
+}
 
 func (r *Repository) CreateAvailability(ctx context.Context, userID, competitorID *string) error {
 	defaultAvailability := r.generateDefaultAvailability()
@@ -38,7 +43,7 @@ func (r *Repository) CreateAvailability(ctx context.Context, userID, competitorI
 		OID = competitorOID
 	}
 
-	availability := &models.Availability{
+	availability := &availability_dao.CreateAvailability{
 		DailyAvailabilities: defaultAvailability,
 		CreatedAt:           currentDate,
 		UpdatedAt:           currentDate,
@@ -66,20 +71,20 @@ func (r *Repository) CreateAvailability(ctx context.Context, userID, competitorI
 	return nil
 }
 
-func (r *Repository) generateDefaultAvailability() []*models.DailyAvailability {
+func (r *Repository) generateDefaultAvailability() []availability_dao.CreateDailyAvailability {
 	daysOfWeek := []string{"SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"}
 
 	// Crear franjas horarias de cada hora (00:00 a 23:00) solo una vez
-	timeSlots := make([]*models.TimeSlot, 24)
+	timeSlots := make([]availability_dao.CreateTimeSlot, 24)
 	for hour := 0; hour < 24; hour++ {
 		time := fmt.Sprintf("%02d:00", hour)
-		timeSlots[hour] = &models.TimeSlot{TimeSlot: time, Status: "not available"}
+		timeSlots[hour] = availability_dao.CreateTimeSlot{TimeSlot: time, Status: models.AVAILABILITY_STATUS_NOT_AVAILABLE}
 	}
 
 	// Crear disponibilidad para cada día de la semana utilizando la misma referencia de timeSlots
-	dailyAvailability := make([]*models.DailyAvailability, len(daysOfWeek))
+	dailyAvailability := make([]availability_dao.CreateDailyAvailability, len(daysOfWeek))
 	for i, day := range daysOfWeek {
-		dailyAvailability[i] = &models.DailyAvailability{Day: day, TimeSlots: timeSlots}
+		dailyAvailability[i] = availability_dao.CreateDailyAvailability{Day: day, TimeSlots: timeSlots}
 	}
 
 	return dailyAvailability
@@ -112,13 +117,13 @@ func (r *Repository) UpdateAvailability(ctx context.Context, availabilityID stri
 	return nil
 }
 
-func (r *Repository) GetAvailabilityInfoByID(ctx context.Context, availabilityID string, day string) (*availability_dao.GetDailyAvailabilityInfoByIDDAORes, error) {
+func (r *Repository) GetDailyAvailabilityByID(ctx context.Context, availabilityID string, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
 	availabilityOID, err := r.ConvertToObjectID(availabilityID)
 	if err != nil {
 		return nil, err
 	}
 
-	var availability availability_dao.GetAvailabilityInfoByIDDAORes
+	var availability availability_dao.GetAvailabilityByIDDAORes
 
 	projection := bson.M{
 		"daily_availabilities.$": 1,
@@ -138,8 +143,33 @@ func (r *Repository) GetAvailabilityInfoByID(ctx context.Context, availabilityID
 
 	return availability.DailyAvailabilities[0], nil
 }
+func (r *Repository) GetDailyAvailabilityByUserID(ctx context.Context, userID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
+	userOID, err := r.ConvertToObjectID(userID)
+	if err != nil {
+		return nil, err
+	}
 
-func (r *Repository) GetAvailabilityByUserID(ctx context.Context, userID string) (string, error) {
+	var availability availability_dao.GetAvailabilityByIDDAORes
+
+	projection := bson.M{
+		"daily_availabilities.$": 1,
+	}
+
+	filter := bson.M{"user_id": *userOID, "daily_availabilities.day": day}
+
+	opts := options.FindOne().SetProjection(projection)
+
+	if err := r.availabilityColl.FindOne(ctx, filter, opts).Decode(&availability); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for the 'availability': %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for the 'availability': %w", err)
+	}
+
+	return availability.DailyAvailabilities[0], nil
+}
+
+func (r *Repository) GetAvailabilityIDByUserID(ctx context.Context, userID string) (string, error) {
 	userOID, err := r.ConvertToObjectID(userID)
 	if err != nil {
 		return "", err

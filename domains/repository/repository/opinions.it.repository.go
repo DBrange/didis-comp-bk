@@ -89,7 +89,7 @@ func (r *Repository) UpdateOpinion(ctx context.Context, opinionID string, opinio
 }
 
 func (r *Repository) DeleteOpinion(ctx context.Context, opinionID string) error {
-	err := r.setDeletedAt(ctx, r.opinionColl, opinionID, "opinion")
+	err := r.SetDeletedAt(ctx, r.opinionColl, opinionID, "opinion")
 	if err != nil {
 		return err
 	}

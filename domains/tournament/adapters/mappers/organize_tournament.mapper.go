@@ -1,38 +1,29 @@
 package mappers
 
 import (
-	location_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
-	"github.com/DBrange/didis-comp-bk/domains/repository/models/tournament"
-	tournament_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/tournament/dao"
-	"github.com/DBrange/didis-comp-bk/domains/tournament/models/dto"
+	tournament_dto "github.com/DBrange/didis-comp-bk/domains/tournament/models/dto"
 )
 
-func OrganizeTournamentMapper(tournamentInfoDTO *dto.OrganizeTournamentDTOReq) (*tournament_dao.CreateTournamentDAOReq, *location_dao.CreateLocationDAOReq, *tournament.OrganizeTournamentOptions, *string, string) {
+func OrganizeTournamentMapper(organizerTournamentDTO *tournament_dto.OrganizeTournamentDTOReq) (*tournament_dto.CreateTournamentDTOReq, *tournament_dto.CreateLocationDTOReq, *string, string) {
 
-	tournamentInfoDAO := &tournament_dao.CreateTournamentDAOReq{
-		Name:             tournamentInfoDTO.Name,
-		Points:           tournamentInfoDTO.Points,
-		TotalPrize:       tournamentInfoDTO.TotalPrize,
-		TotalCompetitors: tournamentInfoDTO.TotalCompetitors,
-		MaxCapacity:      tournamentInfoDTO.MaxCapacity,
-		Genre:            tournamentInfoDTO.Genre,
-		Sport:            tournamentInfoDTO.Sport,
-		Surface:          *tournamentInfoDTO.Surface,
+	tournamentInfoDTO := &tournament_dto.CreateTournamentDTOReq{
+		Name:             organizerTournamentDTO.Name,
+		Points:           organizerTournamentDTO.Points,
+		TotalPrize:       organizerTournamentDTO.TotalPrize,
+		TotalCompetitors: organizerTournamentDTO.TotalCompetitors,
+		MaxCapacity:      organizerTournamentDTO.MaxCapacity,
+		Genre:            organizerTournamentDTO.Genre,
+		Sport:            organizerTournamentDTO.Sport,
+		Surface:          *organizerTournamentDTO.Surface,
 	}
 
-	locationInfoDAO := &location_dao.CreateLocationDAOReq{
-		State:   tournamentInfoDTO.Location.State,
-		Country: tournamentInfoDTO.Location.Country,
-		City:    tournamentInfoDTO.Location.City,
-		Lat:     tournamentInfoDTO.Location.Lat,
-		Long:    tournamentInfoDTO.Location.Long,
+	locationInfoDTO := &tournament_dto.CreateLocationDTOReq{
+		State:   organizerTournamentDTO.Location.State,
+		Country: organizerTournamentDTO.Location.Country,
+		City:    organizerTournamentDTO.Location.City,
+		Lat:     organizerTournamentDTO.Location.Lat,
+		Long:    organizerTournamentDTO.Location.Long,
 	}
 
-	organizeTournamentOptions := &tournament.OrganizeTournamentOptions{
-		DoubleEliminationID: tournamentInfoDTO.DoubleElimination,
-		Groups:              tournamentInfoDTO.Groups,
-		Pots:                tournamentInfoDTO.Pots,
-	}
-
-	return tournamentInfoDAO, locationInfoDAO, organizeTournamentOptions, tournamentInfoDTO.LeagueID, tournamentInfoDTO.OrganizerID
+	return tournamentInfoDTO, locationInfoDTO, organizerTournamentDTO.LeagueID, organizerTournamentDTO.OrganizerID
 }

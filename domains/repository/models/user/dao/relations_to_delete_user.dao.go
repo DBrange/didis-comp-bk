@@ -1,6 +1,6 @@
 package dao
 
-type UserRelationsToDeleteDAO struct {
+type UserRelationsToDeleteDAOReq struct {
 	LocationID     string `bson:"location_id,omitempty"`
 }
 
