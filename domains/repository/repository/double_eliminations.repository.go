@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/double_elimination/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,15 +15,39 @@ func (r *Repository) DoubleEliminationColl() *mongo.Collection {
 	return r.doubleEliminationColl
 }
 
-func (r *Repository) CreateDoubleElimination(ctx context.Context) (string, error) {
-	var doubleEliminationInfoDAO dao.CreateDoubleEliminationDAOReq
+func (r *Repository) CreateDoubleElimination(ctx context.Context, doubleEliminationDAO *dao.CreateDoubleEliminationDAOReq) (string, error) {
+	doubleEliminationDAO.SetTimeStamp()
 
-	doubleEliminationInfoDAO.Matches = []primitive.ObjectID{}
-	doubleEliminationInfoDAO.Rounds = []primitive.ObjectID{}
+	result, err := r.doubleEliminationColl.InsertOne(ctx, doubleEliminationDAO)
+	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return "", fmt.Errorf("%w: error duplicate key for doubleElimination: %s", customerrors.ErrDuplicateKey, err.Error())
+		}
 
-	doubleEliminationInfoDAO.SetTimeStamp()
+		if writeErr, ok := err.(mongo.WriteException); ok {
+			for _, we := range writeErr.WriteErrors {
+				if we.Code == 14 {
+					return "", fmt.Errorf("%w: error doubleElimination scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
+				}
+			}
+		}
 
-	result, err := r.doubleEliminationColl.InsertOne(ctx, doubleEliminationInfoDAO)
+		return "", fmt.Errorf("error when inserting doubleElimination: %w", err)
+	}
+
+	id := result.InsertedID.(primitive.ObjectID).Hex()
+
+	return id, nil
+}
+func (r *Repository) CreateDoubleEliminationEmpty(ctx context.Context) (string, error) {
+	var doubleEliminationEmptyDAO dao.CreateDoubleEliminationDAOReq
+
+	doubleEliminationEmptyDAO.Matches = []primitive.ObjectID{}
+	doubleEliminationEmptyDAO.Rounds = []primitive.ObjectID{}
+
+	doubleEliminationEmptyDAO.SetTimeStamp()
+
+	result, err := r.doubleEliminationColl.InsertOne(ctx, doubleEliminationEmptyDAO)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
 			return "", fmt.Errorf("%w: error duplicate key for doubleElimination: %s", customerrors.ErrDuplicateKey, err.Error())
@@ -67,31 +90,56 @@ func (r *Repository) GetDoubleEliminationByID(ctx context.Context, doubleElimina
 	return &doubleElimination, nil
 }
 
-func (r *Repository) UpdateDoubleElimination(ctx context.Context, doubleEliminationID string, doubleEliminationInfoDAO *dao.UpdateDoubleEliminationDAOReq) error {
-	doubleEliminationOID, err := r.ConvertToObjectID(doubleEliminationID)
-	if err != nil {
-		return err
+func (r *Repository) UpdateDoubleEliminationBsonStruct(ctx context.Context, doubleEliminationDAO *dao.UpdateDoubleEliminationDAOReq, update *bson.M, add bool) *bson.M {
+	operation := "$pull"
+	arrayModifier := "$in"
+
+	if add {
+		operation = "$push"
+		arrayModifier = "$each"
 	}
 
+	setUpdates := bson.M{}
+
+	if doubleEliminationDAO.Matches != nil {
+		setUpdates["matches"] = bson.M{arrayModifier: doubleEliminationDAO.Matches}
+	}
+
+	if doubleEliminationDAO.Rounds != nil {
+		setUpdates["rounds"] = bson.M{arrayModifier: doubleEliminationDAO.Rounds}
+	}
+
+	if len(setUpdates) > 0 {
+		(*update)[operation] = setUpdates
+	}
+
+	return update
+
+}
+
+func (r *Repository) UpdateDoubleElimination(ctx context.Context, doubleEliminationOID *primitive.ObjectID, doubleEliminationInfoDAO *dao.UpdateDoubleEliminationDAOReq, add bool) error {
 	doubleEliminationInfoDAO.RenewUpdate()
 
-	filter := bson.M{"_id": *doubleEliminationOID}
-	update, err := api_assets.StructToBsonMap(doubleEliminationInfoDAO)
-	if err != nil {
-		return err
+	filter := bson.M{"_id": doubleEliminationOID}
+
+	update := bson.M{}
+
+	update = *r.UpdateDoubleEliminationBsonStruct(ctx, doubleEliminationInfoDAO, &update, add)
+	if update == nil {
+		return fmt.Errorf("error updating doubleElimination, nothing to update: %w", nil)
 	}
 
 	result, err := r.doubleEliminationColl.UpdateOne(
 		ctx,
 		filter,
-		bson.M{"$set": update},
+		update,
 	)
 	if err != nil {
 		return fmt.Errorf("error updating doubleElimination: %w", err)
 	}
 
 	if result.MatchedCount == 0 {
-		return fmt.Errorf("%w: no doubleElimination found with id: %s", customerrors.ErrNotFound, doubleEliminationID)
+		return fmt.Errorf("%w: no doubleElimination found with id: %s", customerrors.ErrNotFound, doubleEliminationOID.Hex())
 	}
 
 	return nil

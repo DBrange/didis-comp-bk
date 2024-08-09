@@ -10,6 +10,7 @@ import (
 )
 
 func (r *Repository) WithTransaction(ctx context.Context, fn func(sessCtx mongo.SessionContext) error) error {
+	// opts := options.Session().SetDefaultReadConcern(readconcern.Majority())
 	session, err := r.client.StartSession()
 	if err != nil {
 		return fmt.Errorf("%w: failed to start session: %s", customerrors.ErrStartSessionFailed, err.Error())

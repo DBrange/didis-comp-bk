@@ -37,20 +37,20 @@ func (a *TournamentQueryerAdapter) CreateTournament(
 	tournamentDTO *tournament_dto.CreateTournamentDTOReq,
 	locationID string,
 	options *option_models.OrganizeTournamentOptions,
-	leagueID *string,
+	categoryID *string,
 	organizerID string,
 ) (string, error) {
 	tournamentDAO := mappers.CreateTournamentDTOtoDAO(tournamentDTO)
 
-	return a.adapter.CreateTournament(ctx, tournamentDAO, locationID, options, leagueID, organizerID)
+	return a.adapter.CreateTournament(ctx, tournamentDAO, locationID, options, categoryID, organizerID)
 }
 
-func (a *TournamentQueryerAdapter) VerifyLeagueExists(ctx context.Context, leagueID string) error {
-	return a.adapter.VerifyLeagueExists(ctx, leagueID)
+func (a *TournamentQueryerAdapter) VerifyCategoryExists(ctx context.Context, categoryID string) error {
+	return a.adapter.VerifyCategoryExists(ctx, categoryID)
 }
 
-func (a *TournamentQueryerAdapter) AddTournamentInLeague(ctx context.Context, leagueID string, tournamentID string) error {
-	return a.adapter.AddTournamentInLeague(ctx, leagueID, tournamentID)
+func (a *TournamentQueryerAdapter) AddTournamentInCategory(ctx context.Context, categoryID string, tournamentID string) error {
+	return a.adapter.AddTournamentInCategory(ctx, categoryID, tournamentID)
 }
 
 func (a *TournamentQueryerAdapter) WithTransaction(ctx context.Context, fn func(sessCtx mongo.SessionContext) error) error {
@@ -65,8 +65,8 @@ func (a *TournamentQueryerAdapter) CreatePot(ctx context.Context, TournamentID s
 	return a.adapter.CreatePot(ctx, TournamentID)
 }
 
-func (a *TournamentQueryerAdapter) CreateDoubleElimination(ctx context.Context) (string, error) {
-	return a.adapter.CreateDoubleElimination(ctx)
+func (a *TournamentQueryerAdapter) CreateDoubleEliminationEmpty(ctx context.Context) (string, error) {
+	return a.adapter.CreateDoubleEliminationEmpty(ctx)
 }
 
 func (a *TournamentQueryerAdapter) TournamentGroupColl() *mongo.Collection {
@@ -85,7 +85,7 @@ func (a *TournamentQueryerAdapter) DeleteByID(ctx context.Context, mc *mongo.Col
 	return a.adapter.DeleteByID(ctx, mc, ID, name)
 }
 
-func (a *TournamentQueryerAdapter) UpdateTournamentOptions(
+func (a *TournamentQueryerAdapter) UpdateTournamentRelations(
 	ctx context.Context,
 	tournamentID string,
 	tournamentDTO *tournament_dto.UpdateTournamentOptionsDTOReq,
@@ -96,7 +96,12 @@ func (a *TournamentQueryerAdapter) UpdateTournamentOptions(
 		return err
 	}
 
-	return a.adapter.UpdateTournamentOptions(ctx, tournamentID, tournamentDAO, add)
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return err
+	}
+
+	return a.adapter.UpdateTournamentRelations(ctx, tournamentOID, tournamentDAO, add)
 }
 
 func (a *TournamentQueryerAdapter) ConvertToObjectID(ID string) (*primitive.ObjectID, error) {
@@ -126,14 +131,6 @@ func (a *TournamentQueryerAdapter) CreateCompetitor(ctx context.Context, sport m
 	return a.adapter.CreateCompetitor(ctx, sport, competitorType, OID)
 }
 
-func (a *TournamentQueryerAdapter) CreateCompetitorType(ctx context.Context, competitorType models.COMPETITOR_TYPE) (string, error) {
-	competitorTypeOID, err := a.adapter.CreateCompetitorType(ctx, competitorType)
-	if err != nil {
-		return "", err
-	}
-	return competitorTypeOID.Hex(), nil
-}
-
 func (a *TournamentQueryerAdapter) CreateGuestCompetitor(ctx context.Context, guestCompetitorDTO *tournament_dto.CreateGuestCompetitorDTOReq) (string, error) {
 	guestCompetitorDAO, err := mappers.CreateGuestCompetitorDTOtoDAO(guestCompetitorDTO, a.ConvertToObjectID)
 	if err != nil {
@@ -141,4 +138,92 @@ func (a *TournamentQueryerAdapter) CreateGuestCompetitor(ctx context.Context, gu
 	}
 
 	return a.adapter.CreateGuestCompetitor(ctx, guestCompetitorDAO)
+}
+
+func (a *TournamentQueryerAdapter) CreateMatch(ctx context.Context, matchDTO *tournament_dto.CreateMatchDTOReq) (string, error) {
+	matchDAO, err := mappers.CreateMatchDTOtoDAO(matchDTO, a.ConvertToObjectID)
+	if err != nil {
+		return "", err
+	}
+
+	return a.adapter.CreateMatch(ctx, matchDAO)
+}
+
+func (a *TournamentQueryerAdapter) CreateRound(ctx context.Context, roundDTO *tournament_dto.CreateRoundDTOReq) (string, error) {
+	roundDAO, err := mappers.CreateRoundDTOtoDAO(roundDTO, a.ConvertToObjectID)
+	if err != nil {
+		return "", err
+	}
+
+	return a.adapter.CreateRound(ctx, roundDAO)
+}
+
+func (a *TournamentQueryerAdapter) CreateDoubleElimination(ctx context.Context, doubleEliminationDTO *tournament_dto.CreateDoubleEliminationDTOReq) (string, error) {
+	doubleEliminationDAO, err := mappers.CreateDoubleEliminationDTOtoDAO(doubleEliminationDTO, a.ConvertToObjectID)
+	if err != nil {
+		return "", err
+	}
+
+	return a.adapter.CreateDoubleElimination(ctx, doubleEliminationDAO)
+}
+
+func (a *TournamentQueryerAdapter) CreateSingle(ctx context.Context, singleDTO *tournament_dto.CreateSingleDTOReq) (string, error) {
+	singleDAO := mappers.CreateSingleDTOtoDAO(singleDTO)
+
+	return a.adapter.CreateSingle(ctx, singleDAO)
+}
+
+func (a *TournamentQueryerAdapter) CreateDouble(ctx context.Context, doubleDTO *tournament_dto.CreateDoubleDTOReq) (string, error) {
+	doubleDAO := mappers.CreateDoubleDTOtoDAO(doubleDTO)
+
+	return a.adapter.CreateDouble(ctx, doubleDAO)
+}
+
+func (a *TournamentQueryerAdapter) CreateTeam(ctx context.Context, teamDTO *tournament_dto.CreateTeamDTOReq) (string, error) {
+	teamDAO, err := mappers.CreateTeamDTOtoDAO(teamDTO, a.ConvertToObjectID)
+	if err != nil {
+		return "", nil
+	}
+
+	return a.adapter.CreateTeam(ctx, teamDAO)
+}
+
+func (a *TournamentQueryerAdapter) GetCompetitorsInTournament(
+	ctx context.Context,
+	tournamentID, categoryID,
+	lastID string, limit int,
+) ([]*tournament_dto.GetCompetitorsInTournamentDTORes, error) {
+	competitorsDAO, err := a.adapter.ListCompetitorsInTournament(ctx, tournamentID, categoryID, lastID, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	competitorsDTO := mappers.GetCompetitorsInTournamentDAOtoDTO(competitorsDAO)
+
+	return competitorsDTO, nil
+}
+
+func (a *TournamentQueryerAdapter) VerifyCompetitorExists(ctx context.Context, competitorID string) error {
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return err
+	}
+	return a.adapter.VerifyCompetitorExists(ctx, competitorOID)
+}
+
+func (a *TournamentQueryerAdapter) VerifyTournamentsExists(ctx context.Context, tournamentID string) error {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return err
+	}
+
+	return a.adapter.VerifyTournamentsExists(ctx, tournamentOID)
+}
+
+func (a *TournamentQueryerAdapter) CreateCompetitorStats(ctx context.Context, competitorID string) error {
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return err
+	}
+	return a.adapter.CreateCompetitorStats(ctx, competitorOID)
 }

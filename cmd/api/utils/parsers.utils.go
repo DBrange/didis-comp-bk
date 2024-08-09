@@ -14,9 +14,9 @@ func ParseToBool(c *gin.Context, query string) (bool, error) {
 	queryBol, err := strconv.ParseBool(queryStr)
 	if err != nil {
 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
-		tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")
-		errMsgTemplate := "error validation tournament"
-		return false, customerrors.HandleError(err, tournamentErrorHandlers, errMsgTemplate)
+		ErrorHandlers := customerrors.CreateErrorHandlers("")
+		errMsgTemplate := "error validation "
+		return false, customerrors.HandleError(err, ErrorHandlers, errMsgTemplate)
 	}
 	return queryBol, nil
 }
@@ -27,9 +27,9 @@ func ParseToInt(c *gin.Context, query string) (int, error) {
 	queryInt, err := strconv.Atoi(queryStr)
 	if err != nil {
 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
-		tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")
-		errMsgTemplate := "error validation tournament"
-		return 0, customerrors.HandleError(err, tournamentErrorHandlers, errMsgTemplate)
+		ErrorHandlers := customerrors.CreateErrorHandlers("")
+		errMsgTemplate := "error validation "
+		return 0, customerrors.HandleError(err, ErrorHandlers, errMsgTemplate)
 	}
 	return queryInt, nil
 }

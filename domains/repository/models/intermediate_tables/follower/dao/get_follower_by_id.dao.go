@@ -7,10 +7,11 @@ import (
 )
 
 type GetFollowerByIDDAORes struct {
-	ID        primitive.ObjectID `bson:"_id"`
-	Of        primitive.ObjectID `bson:"of"`
-	To        primitive.ObjectID `bson:"to"`
-	CreatedAt time.Time          `bson:"created_at"`
-	UpdatedAt time.Time          `bson:"updated_at"`
-	DeletedAt *time.Time         `bson:"deleted_at,omitempty"`
+	ID           primitive.ObjectID  `bson:"_id"`
+	From         primitive.ObjectID  `bson:"from"`
+	ToUser       *primitive.ObjectID `bson:"to_user"`
+	ToCompetitor *primitive.ObjectID `bson:"to_competitor"`
+	CreatedAt    time.Time           `bson:"created_at"`
+	UpdatedAt    time.Time           `bson:"updated_at"`
+	DeletedAt    *time.Time          `bson:"deleted_at,omitempty"`
 }

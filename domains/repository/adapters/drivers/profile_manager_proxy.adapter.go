@@ -5,8 +5,14 @@ import (
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	availability_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/avaliability/dao"
+	category_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/category/dao"
+	double_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/double/dao"
+	category_registration_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/category_registration/dao"
+	follower_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/follower/dao"
 	location_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
 	role_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/role/dao"
+	single_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/single/dao"
+	team_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/team/dao"
 	user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/user/dao"
 	"github.com/DBrange/didis-comp-bk/domains/repository/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,6 +27,10 @@ func NewProfileManagerProxyAdapter(repository *repository.Repository) *ProfileMa
 	return &ProfileManagerProxyAdapter{
 		repository: repository,
 	}
+}
+
+func (a *ProfileManagerProxyAdapter) InitialiseRole(ctx context.Context) error {
+	return a.repository.InitialiseRole(ctx)
 }
 
 func (a *ProfileManagerProxyAdapter) WithTransaction(ctx context.Context, fn func(sessCtx mongo.SessionContext) error) error {
@@ -51,10 +61,6 @@ func (a *ProfileManagerProxyAdapter) ConvertToObjectID(ID string) (*primitive.Ob
 	return a.repository.ConvertToObjectID(ID)
 }
 
-func (a *ProfileManagerProxyAdapter) CreateCompetitorType(ctx context.Context, competitorType models.COMPETITOR_TYPE) (*primitive.ObjectID, error) {
-	return a.repository.CreateCompetitorType(ctx, competitorType)
-}
-
 func (a *ProfileManagerProxyAdapter) CreateCompetitorUser(ctx context.Context, userOID *primitive.ObjectID, competitorOID *primitive.ObjectID) error {
 	return a.repository.CreateCompetitorUser(ctx, userOID, competitorOID)
 }
@@ -72,7 +78,7 @@ func (a *ProfileManagerProxyAdapter) UpdateUserPassword(ctx context.Context, use
 }
 
 func (a *ProfileManagerProxyAdapter) GetUserPasswordByID(ctx context.Context, userID string) (string, error) {
-	return a.repository.GetUserPasswordByID(ctx , userID ) 
+	return a.repository.GetUserPasswordByID(ctx, userID)
 }
 
 func (a *ProfileManagerProxyAdapter) UpdateAvailability(ctx context.Context, availabilityID string, availabilityInfoDAO *availability_dao.UpdateDailyAvailabilityDAOReq) error {
@@ -103,8 +109,8 @@ func (a *ProfileManagerProxyAdapter) DeleteUser(ctx context.Context, userID stri
 	return a.repository.DeleteUser(ctx, userID)
 }
 
-func (a *ProfileManagerProxyAdapter) GetDailyAvailabilityByUserID(ctx context.Context, userID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
-	return a.repository.GetDailyAvailabilityByUserID(ctx, userID, day)
+func (a *ProfileManagerProxyAdapter) GetDailyAvailabilityUserID(ctx context.Context, userID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
+	return a.repository.GetDailyAvailabilityUserID(ctx, userID, day)
 }
 
 func (a *ProfileManagerProxyAdapter) SetDeletedAt(ctx context.Context, mc *mongo.Collection, ID string, name string) error {
@@ -134,3 +140,107 @@ func (a *ProfileManagerProxyAdapter) ActivateUserNotification(ctx context.Contex
 func (a *ProfileManagerProxyAdapter) GetAvailabilityIDByUserID(ctx context.Context, userID string) (string, error) {
 	return a.repository.GetAvailabilityIDByUserID(ctx, userID)
 }
+
+func (a *ProfileManagerProxyAdapter) CreateSingle(ctx context.Context, singleInfoDAO *single_dao.CreateSingleDAOReq) (string, error) {
+	return a.repository.CreateSingle(ctx, singleInfoDAO)
+}
+
+func (a *ProfileManagerProxyAdapter) CreateDouble(ctx context.Context, doubleInfoDAO *double_dao.CreateDoubleDAOReq) (string, error) {
+	return a.repository.CreateDouble(ctx, doubleInfoDAO)
+}
+
+func (a *ProfileManagerProxyAdapter) CreateTeam(ctx context.Context, teamInfoDAO *team_dao.CreateTeamDAOReq) (string, error) {
+	return a.repository.CreateTeam(ctx, teamInfoDAO)
+}
+
+func (a *ProfileManagerProxyAdapter) CreateFollower(ctx context.Context, followerDAO *follower_dao.CreateFollowerDAOReq) error {
+	return a.repository.CreateFollower(ctx, followerDAO)
+}
+
+func (a *ProfileManagerProxyAdapter) GetProfileInfoInCategory(ctx context.Context, categoryID, competitorID string) (*category_registration_dao.GetProfileInfoInCategoryDAORes, error) {
+	categoryOID, err := a.ConvertToObjectID(categoryID)
+	if err != nil {
+		return nil, err
+	}
+	
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return nil, err
+	}
+	
+	return a.repository.GetProfileInfoInCategory(ctx, categoryOID, competitorOID)
+	
+}
+
+func (a *ProfileManagerProxyAdapter) GetAvailabilityDailySlice(ctx context.Context, userID, competitorID string) ([]*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
+	var userOID, competitorOID *primitive.ObjectID
+	// var err error
+	
+	if userID != "" {
+		userOIDConv, err := a.ConvertToObjectID(userID)
+		if err != nil {
+			return nil, err
+		}
+		userOID = userOIDConv
+	}
+
+	if competitorID != "" {
+		competitorOIDConv, err := a.ConvertToObjectID(competitorID)
+		if err != nil {
+			return nil, err
+		}
+		competitorOID = competitorOIDConv
+	}
+	
+	return a.repository.GetAvailabilityDailySlice(ctx, userOID, competitorOID)
+	
+}
+
+func (a *ProfileManagerProxyAdapter) CreateAvailabilityForCompetitor(ctx context.Context, competitorID string, dailyAvailability []*availability_dao.CreateDailyAvailability) error {
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return err
+	}
+	
+	return a.repository.CreateAvailabilityForCompetitor(ctx, competitorOID, dailyAvailability)
+}
+
+func (a *ProfileManagerProxyAdapter) GetDailyAvailabilityCompetitorID(ctx context.Context, competitorID string, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return nil, err
+	}
+	
+	return a.repository.GetDailyAvailabilityCompetitorID(ctx, competitorOID, day)
+	
+}
+
+func (a *ProfileManagerProxyAdapter) GetCompetitorTournamentsInCategory(ctx context.Context, categoryID, competitorID, lastID string, limit int) ([]*category_dao.GetTournamentsFromCategoryDAORes, error) {
+	categoryOID, err := a.ConvertToObjectID(categoryID)
+	if err != nil {
+		return nil, err
+	}
+	
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	var lastOID *primitive.ObjectID
+	if lastID != "" {
+		lastOID, err = a.ConvertToObjectID(lastID)
+		if err != nil {
+			return nil, err
+		}
+		} else {
+			lastOID = nil
+		}
+		
+		return a.repository.GetCompetitorTournamentsInCategory(ctx, categoryOID, competitorOID, lastOID, limit)
+		
+	}
+	
+	func (a *ProfileManagerProxyAdapter) 	VerifyFollowerExistsRelation(ctx context.Context, followerDAO *follower_dao.CreateFollowerDAOReq) error {
+		return a.repository.VerifyFollowerExistsRelation(ctx , followerDAO )
+
+	}

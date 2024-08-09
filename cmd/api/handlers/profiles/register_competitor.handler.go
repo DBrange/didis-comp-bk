@@ -15,7 +15,6 @@ func (h *Handler) RegisterCompetitor(c *gin.Context) {
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
 
-	userID := c.Param("userID")
 	sport := c.Query("sport")
 	competitorType := c.Query("competitor_type")
 
@@ -23,19 +22,49 @@ func (h *Handler) RegisterCompetitor(c *gin.Context) {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
-	
-	sportParsed, competitorTypeParsed, err := registerCompetitorQueriesParser(sport,competitorType)
-	if err != nil{
+
+	sportParsed, competitorTypeParsed, err := registerCompetitorQueriesParser(sport, competitorType)
+	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	if err := h.profile.RegisterCompetitor(ctx, userID, sportParsed, competitorTypeParsed); err != nil {
+	usersIDs, err := registerCompetitorBodyData(c)
+	if err != nil {
+		customerrors.ErrorResponse(err, c)
+		return
+	}
+
+	if err := h.profile.RegisterCompetitor(ctx, usersIDs, sportParsed, competitorTypeParsed); err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "New competitor created successfully!"})
+}
+
+func registerCompetitorBodyData(c *gin.Context) ([]string, error) {
+	var Users struct {
+		Users []string `json:"users"`
+	}
+
+	if err := c.ShouldBindJSON(&Users); err != nil {
+		err = fmt.Errorf("%w: error binding json: %v", customerrors.ErrGetJSON, err.Error())
+		profileErrorHandlers := customerrors.CreateErrorHandlers("profile")
+		errMsgTemplate := "error getting profile"
+		return nil, customerrors.HandleError(err, profileErrorHandlers, errMsgTemplate)
+	}
+
+	// Validar la estructura excepto el campo Location
+	err := utils.Validate.Struct(Users)
+	if err != nil {
+		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
+		profileErrorHandlers := customerrors.CreateErrorHandlers("profile")
+		errMsgTemplate := "error validation profile"
+		return nil, customerrors.HandleError(err, profileErrorHandlers, errMsgTemplate)
+	}
+
+	return Users.Users, nil
 }
 
 func registerCompetitorValidateQueries(sport, competitorType string) error {

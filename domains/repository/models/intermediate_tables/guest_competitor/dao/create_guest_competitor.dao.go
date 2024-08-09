@@ -6,7 +6,7 @@ import (
 )
 
 type CreateGuestCompetitorDAOReq struct {
-	GuestUserID          primitive.ObjectID `bson:"guest_competitor_id"`
+	GuestUserID          primitive.ObjectID `bson:"guest_user_id"`
 	CompetitorID         primitive.ObjectID `bson:"competitor_id"`
 	common.CreateBaseDAO `bson:",inline"`
 }

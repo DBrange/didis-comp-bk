@@ -263,8 +263,48 @@ func (r *Repository) GetUserRoles(ctx context.Context, userID string) ([]string,
 	return rolesStr, nil
 }
 
-func (r *Repository) GetUserForListOfTournament(ctx context.Context, userOID *primitive.ObjectID)(any, error){
-return nil,nil
+func (r *Repository) GetUserForListOfTournament(ctx context.Context, userOID *primitive.ObjectID) (any, error) {
+	return nil, nil
 }
 
+// func (r *Repository) GetUserByName(ctx context.Context, name string, limit, page int) ([]*user_dao.GetUserByNameDAORes, error) {
+// 	filterRegex := "^" + name
+// 	categoryOID := "dsas"
+// 	pipeline := mongo.Pipeline{
+// 		bson.D{{"$match", bson.M{"category_id": categoryOID}}},
+// 	}
 
+// 	projection := bson.M{
+// 		"_id":        1,
+// 		"first_name": 1,
+// 		"last_name":  1,
+// 	}
+// 	skip := (page - 1) * limit
+
+// 	opts := options.Find().
+// 		SetProjection(projection).
+// 		SetLimit(int64(limit)).
+// 		SetSkip(int64(skip))
+
+// 	cursor, err := r.userColl.Find(ctx, filter, opts)
+// 	if err != nil {
+// 		if err == mongo.ErrNoDocuments {
+// 			return nil, fmt.Errorf("%w: error when searching for user: %s", customerrors.ErrNotFound, err.Error())
+// 		}
+// 		return nil, fmt.Errorf("error when searching for the user: %w", err)
+// 	}
+
+// 	defer cursor.Close(ctx)
+
+// 	var users []*user_dao.GetUserByNameDAORes
+
+// 	if err = cursor.All(ctx, &users); err != nil {
+// 		return nil, fmt.Errorf("error when decoding users: %w", err)
+// 	}
+
+// 	if len(users) == 0 {
+// 		return nil, fmt.Errorf("%w: no user registrations found for name: %s on page %d", customerrors.ErrNotFound, name, page)
+// 	}
+
+// 	return users, nil
+// }

@@ -11,7 +11,7 @@ const (
 	ROUND_5R    ROUND = "5R"
 	ROUND_OF    ROUND = "OF"
 	ROUND_CF    ROUND = "CF"
-	ROUND_SM    ROUND = "SM"
+	ROUND_SF    ROUND = "SM"
 	ROUND_F     ROUND = "F"
 )
 
@@ -25,7 +25,7 @@ func (g ROUND) IsValid() bool {
 		ROUND_5R,
 		ROUND_OF,
 		ROUND_CF,
-		ROUND_SM,
+		ROUND_SF,
 		ROUND_F:
 		return true
 	}

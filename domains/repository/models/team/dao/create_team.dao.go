@@ -9,8 +9,8 @@ import (
 type CreateTeamDAOReq struct {
 	Name         string               `bson:"name"`
 	TotalMembers int                  `bson:"total_members"`
-	Image        string               `bson:"image"`
-	AverageScore float32              `bson:"average_score"`
+	Image        *string               `bson:"image"`
+	AverageScore *float32              `bson:"average_score"`
 	Admins       []primitive.ObjectID `bson:"admins"`
 	CreatedAt    time.Time            `bson:"created_at"`
 	UpdatedAt    time.Time            `bson:"updated_at"`

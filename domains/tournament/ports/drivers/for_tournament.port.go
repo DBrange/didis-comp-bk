@@ -6,4 +6,5 @@ type ForTournament interface {
 	interfaces.OrganizeTournament
 	interfaces.AddCompetitorInTournament
 	interfaces.AddGuestUserInTournament
+	interfaces.ListCompetitorsInTournament
 }

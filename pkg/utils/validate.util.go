@@ -16,7 +16,10 @@ func init() {
 
 	Validate.RegisterValidation("genre", validateGenre)
 	Validate.RegisterValidation("sport", validateSport)
+	Validate.RegisterValidation("surface", validateSurface)
+	Validate.RegisterValidation("tournamentCapacity", validateTournamentCapacity)
 	Validate.RegisterValidation("competitorType", validateCompetitorType)
+	Validate.RegisterValidation("rangeMovement", validateRangeMovement)
 	Validate.RegisterValidation("bool", validateBool)
 	Validate.RegisterValidation("availStatus", validateAvailabilitySatatus)
 	Validate.RegisterValidation("day", validateDay)
@@ -37,8 +40,36 @@ func validateSport(fl validator.FieldLevel) bool {
 	return genre.IsValid()
 }
 
+func validateSurface(fl validator.FieldLevel) bool {
+	surface, ok := fl.Field().Interface().(models.TENNIS_SURFACE)
+	// Si la superficie es una cadena vacía, no validar y considerar válida
+	if surface == "" {
+		return true
+	}
+
+	if !ok {
+		return false
+	}
+
+	return surface.IsValid()
+}
+
+func validateTournamentCapacity(fl validator.FieldLevel) bool {
+	if fl.Field().Kind() != reflect.Int {
+		return false
+	}
+
+	capacity := models.TOURNAMENT_CAPACITY(fl.Field().Int())
+	return capacity.IsValid()
+}
+
 func validateCompetitorType(fl validator.FieldLevel) bool {
 	genre := models.COMPETITOR_TYPE(fl.Field().String())
+	return genre.IsValid()
+}
+
+func validateRangeMovement(fl validator.FieldLevel) bool {
+	genre := models.RANGE_MOVEMENT(fl.Field().String())
 	return genre.IsValid()
 }
 

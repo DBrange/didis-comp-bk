@@ -11,29 +11,29 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateDouble(ctx context.Context, doubleInfoDAO *dao.CreateDoubleDAOReq) (*primitive.ObjectID, error) {
+func (r *Repository) CreateDouble(ctx context.Context, doubleInfoDAO *dao.CreateDoubleDAOReq) (string, error) {
 	doubleInfoDAO.SetTimeStamp()
 
 	result, err := r.doubleColl.InsertOne(ctx, doubleInfoDAO)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
-			return nil, fmt.Errorf("%w: error duplicate key for double: %s", customerrors.ErrDuplicateKey, err.Error())
+			return "", fmt.Errorf("%w: error duplicate key for double: %s", customerrors.ErrDuplicateKey, err.Error())
 		}
 
 		if writeErr, ok := err.(mongo.WriteException); ok {
 			for _, we := range writeErr.WriteErrors {
 				if we.Code == 14 {
-					return nil, fmt.Errorf("%w: error double scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
+					return "", fmt.Errorf("%w: error double scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
 				}
 			}
 		}
 
-		return nil, fmt.Errorf("error when inserting double: %w", err)
+		return "", fmt.Errorf("error when inserting double: %w", err)
 	}
 
-	id := result.InsertedID.(primitive.ObjectID)
+	id := result.InsertedID.(primitive.ObjectID).Hex()
 
-	return &id, nil
+	return id, nil
 }
 
 func (r *Repository) GetDoubleByID(ctx context.Context, doubleID string) (*dao.GetDoubleByIDDAORes, error) {

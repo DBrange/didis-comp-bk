@@ -7,5 +7,5 @@ import (
 )
 
 type RegisterCompetitor interface {
-	RegisterCompetitor(ctx context.Context, userID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error
+	RegisterCompetitor(ctx context.Context, userIDs []string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error
 }

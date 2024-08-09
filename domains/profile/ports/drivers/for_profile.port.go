@@ -14,4 +14,8 @@ type ForProfile interface {
 	interfaces.ModifyPassword
 	interfaces.RegisterCompetitor
 	interfaces.Login
+	interfaces.FollowProfile
+	interfaces.GetProfileInfoInCategory
+	interfaces.GetProfileAvailabilityInCategory
+	interfaces.GetProfileTournamentsInCategory
 }

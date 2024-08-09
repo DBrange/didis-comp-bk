@@ -38,8 +38,6 @@ func (r *Repository) InitialiseRole(ctx context.Context) error {
 		},
 	}
 
-	fmt.Printf("%v", allRoles)
-
 	opts := options.InsertMany().SetOrdered(true)
 	_, err := r.roleColl.InsertMany(ctx, allRoles, opts)
 	if err != nil {

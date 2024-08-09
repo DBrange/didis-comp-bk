@@ -5,10 +5,16 @@ import (
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	option_models "github.com/DBrange/didis-comp-bk/cmd/api/models/options/tournament"
+	double_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/double/dao"
+	double_elimination_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/double_elimination/dao"
 	guest_user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/guest_user/dao"
 	guest_competitor_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/guest_competitor/dao"
 	tournament_registration_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/tournament_registration/dao"
 	location_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
+	match_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/match/dao"
+	round_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/round/dao"
+	single_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/single/dao"
+	team_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/team/dao"
 	tournament_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/tournament/dao"
 	"github.com/DBrange/didis-comp-bk/domains/repository/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -38,18 +44,18 @@ func (a *TournamentManagerProxyAdapter) CreateTournament(
 	tournamentInfoDAO *tournament_dao.CreateTournamentDAOReq,
 	locationID string,
 	options *option_models.OrganizeTournamentOptions,
-	leagueID *string,
+	categoryID *string,
 	organizerID string,
 ) (string, error) {
-	return a.repository.CreateTournament(ctx, tournamentInfoDAO, locationID, options, leagueID, organizerID)
+	return a.repository.CreateTournament(ctx, tournamentInfoDAO, locationID, options, categoryID, organizerID)
 }
 
-func (a *TournamentManagerProxyAdapter) VerifyLeagueExists(ctx context.Context, leagueID string) error {
-	return a.repository.VerifyLeagueExists(ctx, leagueID)
+func (a *TournamentManagerProxyAdapter) VerifyCategoryExists(ctx context.Context, categoryID string) error {
+	return a.repository.VerifyCategoryExists(ctx, categoryID)
 }
 
-func (a *TournamentManagerProxyAdapter) AddTournamentInLeague(ctx context.Context, leagueID string, tournamentID string) error {
-	return a.repository.AddTournamentInLeague(ctx, leagueID, tournamentID)
+func (a *TournamentManagerProxyAdapter) AddTournamentInCategory(ctx context.Context, categoryID string, tournamentID string) error {
+	return a.repository.AddTournamentInCategory(ctx, categoryID, tournamentID)
 }
 
 func (a *TournamentManagerProxyAdapter) WithTransaction(ctx context.Context, fn func(sessCtx mongo.SessionContext) error) error {
@@ -64,8 +70,8 @@ func (a *TournamentManagerProxyAdapter) CreatePot(ctx context.Context, tournamen
 	return a.repository.CreatePot(ctx, tournamentID)
 }
 
-func (a *TournamentManagerProxyAdapter) CreateDoubleElimination(ctx context.Context) (string, error) {
-	return a.repository.CreateDoubleElimination(ctx)
+func (a *TournamentManagerProxyAdapter) CreateDoubleEliminationEmpty(ctx context.Context) (string, error) {
+	return a.repository.CreateDoubleEliminationEmpty(ctx)
 }
 
 func (a *TournamentManagerProxyAdapter) TournamentGroupColl() *mongo.Collection {
@@ -84,8 +90,8 @@ func (a *TournamentManagerProxyAdapter) DeleteByID(ctx context.Context, mc *mong
 	return a.repository.DeleteByID(ctx, mc, ID, name)
 }
 
-func (a *TournamentManagerProxyAdapter) UpdateTournamentOptions(ctx context.Context, tournamentID string, tournamentDAO *tournament_dao.UpdateTournamentOptionsDAOReq, add bool) error {
-	return a.repository.UpdateTournamentOptions(ctx, tournamentID, tournamentDAO, add)
+func (a *TournamentManagerProxyAdapter) UpdateTournamentRelations(ctx context.Context, tournamentOID *primitive.ObjectID, tournamentDAO *tournament_dao.UpdateTournamentOptionsDAOReq, add bool) error {
+	return a.repository.UpdateTournamentRelations(ctx, tournamentOID, tournamentDAO, add)
 }
 
 func (a *TournamentManagerProxyAdapter) ConvertToObjectID(ID string) (*primitive.ObjectID, error) {
@@ -104,10 +110,78 @@ func (a *TournamentManagerProxyAdapter) CreateCompetitor(ctx context.Context, sp
 	return a.repository.CreateCompetitor(ctx, sport, competitorType, OID)
 }
 
-func (a *TournamentManagerProxyAdapter) CreateCompetitorType(ctx context.Context, competitorType models.COMPETITOR_TYPE) (*primitive.ObjectID, error) {
-	return a.repository.CreateCompetitorType(ctx, competitorType)
-}
-
 func (a *TournamentManagerProxyAdapter) CreateGuestCompetitor(ctx context.Context, guestCompetitorInfoDAO *guest_competitor_dao.CreateGuestCompetitorDAOReq) (string, error) {
 	return a.repository.CreateGuestCompetitor(ctx, guestCompetitorInfoDAO)
+}
+
+func (a *TournamentManagerProxyAdapter) CreateMatch(ctx context.Context, match *match_dao.CreateMatchDAOReq) (string, error) {
+	return a.repository.CreateMatch(ctx, match)
+
+}
+
+func (a *TournamentManagerProxyAdapter) CreateRound(ctx context.Context, round *round_dao.CreateRoundDAOReq) (string, error) {
+	return a.repository.CreateRound(ctx, round)
+
+}
+
+func (a *TournamentManagerProxyAdapter) CreateDoubleElimination(ctx context.Context, doubleEliminationDAO *double_elimination_dao.CreateDoubleEliminationDAOReq) (string, error) {
+	return a.repository.CreateDoubleElimination(ctx, doubleEliminationDAO)
+}
+
+func (a *TournamentManagerProxyAdapter) CreateSingle(ctx context.Context, singleInfoDAO *single_dao.CreateSingleDAOReq) (string, error) {
+	return a.repository.CreateSingle(ctx, singleInfoDAO)
+}
+
+func (a *TournamentManagerProxyAdapter) CreateDouble(ctx context.Context, doubleInfoDAO *double_dao.CreateDoubleDAOReq) (string, error) {
+	return a.repository.CreateDouble(ctx, doubleInfoDAO)
+}
+
+func (a *TournamentManagerProxyAdapter) CreateTeam(ctx context.Context, teamInfoDAO *team_dao.CreateTeamDAOReq) (string, error) {
+	return a.repository.CreateTeam(ctx, teamInfoDAO)
+}
+
+func (a *TournamentManagerProxyAdapter) ListCompetitorsInTournament(
+	ctx context.Context,
+	tournamentID, categoryID,
+	lastID string, limit int,
+) ([]*tournament_registration_dao.GetCompetitorsInTournamentDAORes, error) {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return nil, err
+	}
+
+	var categoryOID *primitive.ObjectID
+	if categoryID != "" {
+		categoryOID, err = a.ConvertToObjectID(categoryID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		categoryOID = nil
+	}
+
+	var lastOID *primitive.ObjectID
+	if lastID != "" {
+		lastOID, err = a.ConvertToObjectID(lastID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		lastOID = nil
+	}
+
+	return a.repository.GetCompetitorsInTournament(ctx, tournamentOID, categoryOID, lastOID, limit)
+}
+
+func (a *TournamentManagerProxyAdapter) VerifyCompetitorExists(ctx context.Context, competitorOID *primitive.ObjectID) error {
+	return a.repository.VerifyCompetitorExists(ctx, competitorOID)
+}
+
+func (a *TournamentManagerProxyAdapter) VerifyTournamentsExists(ctx context.Context, tournamentOID *primitive.ObjectID) error {
+	return a.repository.VerifyTournamentsExists(ctx, tournamentOID)
+}
+
+func (a *TournamentManagerProxyAdapter) CreateCompetitorStats(ctx context.Context, competitorOID *primitive.ObjectID) error {
+	return a.repository.CreateCompetitorStats(ctx, competitorOID)
+
 }

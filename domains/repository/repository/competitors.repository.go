@@ -6,13 +6,11 @@ import (
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	competitor_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/competitor/dao"
-	double_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/double/dao"
-	single_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/single/dao"
-	team_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/team/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (r *Repository) CreateCompetitor(ctx context.Context, sport models.SPORT, competitorType models.COMPETITOR_TYPE, OID *primitive.ObjectID) (string, error) {
@@ -115,28 +113,48 @@ func (r *Repository) DeleteCompetitor(ctx context.Context, competitorID string) 
 	return nil
 }
 
-func (r *Repository) CreateCompetitorType(ctx context.Context, competitorType models.COMPETITOR_TYPE) (*primitive.ObjectID, error) {
-	type createTypeCompetitor func(ctx context.Context) (*primitive.ObjectID, error)
+func (r *Repository) VerifyCompetitorExists(ctx context.Context, competitorOID *primitive.ObjectID) error {
+	var result struct{}
 
-	createMap := map[models.COMPETITOR_TYPE]createTypeCompetitor{
-		models.COMPETITOR_TYPE_SINGLE: func(ctx context.Context) (*primitive.ObjectID, error) {
-			singleDAO := &single_dao.CreateSingleDAOReq{}
-			return r.CreateSingle(ctx, singleDAO)
-		},
-		models.COMPETITOR_TYPE_DOUBLE: func(ctx context.Context) (*primitive.ObjectID, error) {
-			doubleDAO := &double_dao.CreateDoubleDAOReq{}
-			return r.CreateDouble(ctx, doubleDAO)
-		},
-		models.COMPETITOR_TYPE_TEAM: func(ctx context.Context) (*primitive.ObjectID, error) {
-			teamDAO := &team_dao.CreateTeamDAOReq{}
-			return r.CreateTeam(ctx, teamDAO)
-		},
+	filter := bson.M{"_id": competitorOID}
+
+	opts := options.FindOne().SetProjection(bson.M{"_id": 1})
+
+	err := r.competitorColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		fmt.Printf("por aca %v", err)
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("%w: error when searching for competitor: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return fmt.Errorf("error when searching for the competitor: %w", err)
 	}
 
-	create, ok := createMap[competitorType]
-	if !ok {
-		return nil, fmt.Errorf("error competitor type no exists: %w", customerrors.ErrNotFound)
-	}
-
-	return create(ctx)
+	return nil
 }
+
+// func (r *Repository) CreateCompetitorType(ctx context.Context, competitorType models.COMPETITOR_TYPE, userID string) (string, error) {
+// 	type createTypeCompetitor func(ctx context.Context) (string, error)
+
+// 	createMap := map[models.COMPETITOR_TYPE]createTypeCompetitor{
+// 		models.COMPETITOR_TYPE_SINGLE: func(ctx context.Context) (string, error) {
+// 			singleDAO := &single_dao.CreateSingleDAOReq{}
+// 			return r.CreateSingle(ctx, singleDAO)
+// 		},
+// 		models.COMPETITOR_TYPE_DOUBLE: func(ctx context.Context) (string, error) {
+// 			doubleDAO := &double_dao.CreateDoubleDAOReq{}
+// 			return r.CreateDouble(ctx, doubleDAO)
+// 		},
+// 		models.COMPETITOR_TYPE_TEAM: func(ctx context.Context) (string, error) {
+// 			teamDAO := &team_dao.CreateTeamDAOReq{}
+// 			// teamDAO.Admins = []
+// 			return r.CreateTeam(ctx, teamDAO)
+// 		},
+// 	}
+
+// 	create, ok := createMap[competitorType]
+// 	if !ok {
+// 		return "", fmt.Errorf("error competitor type no exists: %w", customerrors.ErrNotFound)
+// 	}
+
+// 	return create(ctx)
+// }

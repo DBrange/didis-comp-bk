@@ -7,7 +7,7 @@ type UpdateAvailabilityDAOReq struct {
 }
 
 type UpdateDailyAvailabilityDAOReq struct {
-	Day       string                  `bson:"day" validate:"day"`
+	Day       models.DAY              `bson:"day" validate:"day"`
 	TimeSlots []*UpdateTimeSlotDAOReq `bson:"time_slots" validate:"dive"`
 }
 

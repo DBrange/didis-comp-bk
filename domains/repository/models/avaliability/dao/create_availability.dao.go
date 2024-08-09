@@ -9,7 +9,7 @@ import (
 
 type CreateAvailability struct {
 	ID                  primitive.ObjectID        `bson:"_id,omitempty"`
-	DailyAvailabilities []CreateDailyAvailability `bson:"daily_availabilities"`
+	DailyAvailabilities []*CreateDailyAvailability `bson:"daily_availabilities"`
 	UserID              *primitive.ObjectID       `bson:"user_id"`
 	CompetitorID        *primitive.ObjectID       `bson:"competitor_id"`
 	CreatedAt           time.Time                 `bson:"created_at"`
@@ -18,8 +18,8 @@ type CreateAvailability struct {
 }
 
 type CreateDailyAvailability struct {
-	Day       string           `bson:"day"`
-	TimeSlots []CreateTimeSlot `bson:"time_slots"`
+	Day       models.DAY            `bson:"day"`
+	TimeSlots []*CreateTimeSlot `bson:"time_slots"`
 }
 
 type CreateTimeSlot struct {

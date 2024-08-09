@@ -19,7 +19,7 @@ func (r *Repository) CreateTournament(
 	tournamentInfoDAO *tournament_dao.CreateTournamentDAOReq,
 	locationID string,
 	options *models.OrganizeTournamentOptions,
-	leagueID *string,
+	categoryID *string,
 	organizerID string,
 ) (string, error) {
 	locationOID, err := r.ConvertToObjectID(locationID)
@@ -36,13 +36,13 @@ func (r *Repository) CreateTournament(
 
 	tournamentInfoDAO.OrganizerID = *organizerOID
 
-	if leagueID != nil {
-		leagueOID, err := r.ConvertToObjectID(*leagueID)
+	if categoryID != nil {
+		categoryOID, err := r.ConvertToObjectID(*categoryID)
 		if err != nil {
 			return "", err
 		}
 
-		tournamentInfoDAO.LeagueID = leagueOID
+		tournamentInfoDAO.CategoryID = categoryOID
 	}
 
 	tournamentInfoDAO.Rounds = []primitive.ObjectID{}
@@ -51,8 +51,6 @@ func (r *Repository) CreateTournament(
 	tournamentInfoDAO.Groups = []primitive.ObjectID{}
 
 	tournamentInfoDAO.SetTimeStamp()
-
-	fmt.Printf("este es torneo: %v", tournamentInfoDAO)
 
 	result, err := r.tournamentColl.InsertOne(ctx, tournamentInfoDAO)
 	if err != nil {
@@ -101,73 +99,95 @@ func (r *Repository) UpdateTournamentInfo(ctx context.Context, tournamentID stri
 	return updatedDocument.LocationID, nil
 }
 
-func (r *Repository) RemoveTournamentOptionsBsonStruct(ctx context.Context, tournamentDAO *tournament_dao.UpdateTournamentOptionsDAOReq, update *bson.M) *bson.M {
-	setUpdates := bson.M{}
+// func (r *Repository) RemoveTournamentOptionsBsonStruct(ctx context.Context, tournamentDAO *tournament_dao.UpdateTournamentOptionsDAOReq, update *bson.M) *bson.M {
+// 	setUpdates := bson.M{}
 
+// 	if tournamentDAO.Pots != nil {
+// 		setUpdates["pots"] = bson.M{"$in": tournamentDAO.Pots}
+// 	}
+
+// 	if tournamentDAO.Groups != nil {
+// 		setUpdates["groups"] = bson.M{"$in": tournamentDAO.Groups}
+// 	}
+
+// 	if len(setUpdates) > 0 {
+// 		(*update)["$pull"] = setUpdates
+// 	}
+
+// 	return update
+// }
+
+// func (r *Repository) AddTournamentOptionsBsonStruct(ctx context.Context, tournamentDAO *tournament_dao.UpdateTournamentOptionsDAOReq, update *bson.M) *bson.M {
+// 	setUpdates := bson.M{}
+
+// 	if tournamentDAO.Pots != nil {
+// 		setUpdates["pots"] = bson.M{"$each": tournamentDAO.Pots}
+// 	}
+
+// 	if tournamentDAO.Groups != nil {
+// 		setUpdates["groups"] = bson.M{"$each": tournamentDAO.Groups}
+// 	}
+
+// 	if len(setUpdates) > 0 {
+// 		(*update)["$push"] = setUpdates
+// 	}
+
+// 	if tournamentDAO.DoubleEliminationID != nil {
+// 		(*update)["$set"] = bson.M{"double_elimination_id": tournamentDAO.DoubleEliminationID}
+// 	}
+
+// 	return update
+
+// }
+
+func (r *Repository) UpdateTournamentRelationsBsonStruct(ctx context.Context, tournamentDAO *tournament_dao.UpdateTournamentOptionsDAOReq, update *bson.M, add bool) *bson.M {
+	operation := "$pull"
+	arrayModifier := "$in"
+	if add {
+		operation = "$push"
+		arrayModifier = "$each"
+	}
+
+	setUpdates := bson.M{}
 	if tournamentDAO.Pots != nil {
-		setUpdates["pots"] = bson.M{"$in": tournamentDAO.Pots}
+		setUpdates["pots"] = bson.M{arrayModifier: tournamentDAO.Pots}
 	}
 
 	if tournamentDAO.Groups != nil {
-		setUpdates["groups"] = bson.M{"$in": tournamentDAO.Groups}
-	}
-	if tournamentDAO.Rounds != nil {
-		setUpdates["rounds"] = bson.M{"$in": tournamentDAO.Rounds}
+		setUpdates["groups"] = bson.M{arrayModifier: tournamentDAO.Groups}
 	}
 
-	if len(setUpdates) > 0 {
-		(*update)["$pull"] = setUpdates
-	}
-
-	return update
-}
-
-func (r *Repository) AddTournamentOptionsBsonStruct(ctx context.Context, tournamentDAO *tournament_dao.UpdateTournamentOptionsDAOReq, update *bson.M) *bson.M {
-	setUpdates := bson.M{}
-
-	if tournamentDAO.Pots != nil {
-		setUpdates["pots"] = bson.M{"$each": tournamentDAO.Pots}
-	}
-
-	if tournamentDAO.Groups != nil {
-		setUpdates["groups"] = bson.M{"$each": tournamentDAO.Groups}
+	if tournamentDAO.Matches != nil {
+		setUpdates["matches"] = bson.M{arrayModifier: tournamentDAO.Matches}
 	}
 
 	if tournamentDAO.Rounds != nil {
-		setUpdates["rounds"] = bson.M{"$each": tournamentDAO.Rounds}
+		setUpdates["rounds"] = bson.M{arrayModifier: tournamentDAO.Rounds}
 	}
 
 	if len(setUpdates) > 0 {
-		(*update)["$push"] = setUpdates
+		(*update)[operation] = setUpdates
 	}
 
-	if tournamentDAO.DoubleEliminationID != nil {
+	// Manejar DoubleEliminationID si es necesario
+	if add && tournamentDAO.DoubleEliminationID != nil {
 		(*update)["$set"] = bson.M{"double_elimination_id": tournamentDAO.DoubleEliminationID}
 	}
 
 	return update
-
 }
 
-func (r *Repository) UpdateTournamentOptions(ctx context.Context, tournamentID string, tournamentDAO *tournament_dao.UpdateTournamentOptionsDAOReq, add bool) error {
-	tournamentOID, err := r.ConvertToObjectID(tournamentID)
-	if err != nil {
-		return err
-	}
+func (r *Repository) UpdateTournamentRelations(ctx context.Context, tournamentOID *primitive.ObjectID, tournamentDAO *tournament_dao.UpdateTournamentOptionsDAOReq, add bool) error {
 	tournamentDAO.RenewUpdate()
 
 	filter := bson.M{"_id": tournamentOID}
 
 	update := bson.M{}
 
-	if add {
-		update = *r.AddTournamentOptionsBsonStruct(ctx, tournamentDAO, &update)
-	} else {
-		// Remove
-		update = *r.RemoveTournamentOptionsBsonStruct(ctx, tournamentDAO, &update)
-	}
+	update = *r.UpdateTournamentRelationsBsonStruct(ctx, tournamentDAO, &update, add)
+
 	if update == nil {
-		return fmt.Errorf("error updating tournament, nothing to update: %w", err)
+		return fmt.Errorf("error updating tournament, nothing to update: %w", nil)
 	}
 
 	result, err := r.tournamentColl.UpdateOne(
@@ -180,26 +200,26 @@ func (r *Repository) UpdateTournamentOptions(ctx context.Context, tournamentID s
 	}
 
 	if result.MatchedCount == 0 {
-		return fmt.Errorf("%w: no tournament found with id: %s", customerrors.ErrNotFound, tournamentID)
+		return fmt.Errorf("%w: no tournament found with id: %s", customerrors.ErrNotFound, tournamentOID.Hex())
 	}
 
 	return nil
 }
 
-func (r *Repository) AddLeagueInTournament(ctx context.Context, tournamentID string, leagueID string) error {
+func (r *Repository) AddCategoryInTournament(ctx context.Context, tournamentID string, categoryID string) error {
 	tournamentOID, err := r.ConvertToObjectID(tournamentID)
 	if err != nil {
 		return err
 	}
 
-	leagueOID, err := r.ConvertToObjectID(leagueID)
+	categoryOID, err := r.ConvertToObjectID(categoryID)
 	if err != nil {
 		return err
 	}
 
 	filter := bson.M{"_id": *tournamentOID}
 
-	update := bson.M{"league_id": *leagueOID}
+	update := bson.M{"category_id": *categoryOID}
 
 	currentDate := time.Now().UTC()
 	update["updated_at"] = currentDate
@@ -214,7 +234,25 @@ func (r *Repository) AddLeagueInTournament(ctx context.Context, tournamentID str
 	}
 
 	if result.MatchedCount == 0 {
-		return fmt.Errorf("%w: no tournament found with id: %s", customerrors.ErrNotFound, leagueID)
+		return fmt.Errorf("%w: no tournament found with id: %s", customerrors.ErrNotFound, categoryID)
+	}
+
+	return nil
+}
+
+func (r *Repository) VerifyTournamentsExists(ctx context.Context, tournamentOID *primitive.ObjectID) error {
+	var result struct{}
+fmt.Printf("asd %v",tournamentOID)
+	filter := bson.M{"_id": tournamentOID}
+
+	opts := options.FindOne().SetProjection(bson.M{"_id": 1})
+
+	err := r.tournamentColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("%w: error when searching for tournament: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return fmt.Errorf("error when searching for the tournament: %w", err)
 	}
 
 	return nil

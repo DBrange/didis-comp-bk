@@ -8,7 +8,7 @@ import (
 )
 
 func (d *ProfileService) GetProfileDailyAvailabilityByID(ctx context.Context, userID string, day string) (*dto.GetDailyAvailabilityByIDDTORes, error) {
-	availabilityInfo, err := d.profileQueryer.GetDailyAvailabilityByUserID(ctx, userID, day)
+	availabilityInfo, err := d.profileQueryer.GetDailyAvailabilityUserID(ctx, userID, day)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "profile", "error getting profile 'availability' info")
 	}

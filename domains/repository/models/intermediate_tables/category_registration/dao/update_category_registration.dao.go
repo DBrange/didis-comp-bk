@@ -1,0 +1,12 @@
+package dao
+
+import (
+	"github.com/DBrange/didis-comp-bk/domains/repository/models/common"
+)
+
+type UpdateCategoryRegistrationDAOReq struct {
+	Points               *int   `bson:"points,omitempty"`
+	RegisteredPositions  *[]int `bson:"registered_positions,omitempty"`
+	CurrentPosition      *int   `bson:"current_position,omitempty"`
+	common.UpdateBaseDAO `bson:",inline"`
+}

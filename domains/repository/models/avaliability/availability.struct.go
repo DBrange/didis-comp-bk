@@ -18,7 +18,7 @@ type Availability struct {
 }
 
 type DailyAvailability struct {
-	Day       string      `bson:"day"`
+	Day       models.DAY       `bson:"day"`
 	TimeSlots []*TimeSlot `bson:"time_slots"`
 }
 

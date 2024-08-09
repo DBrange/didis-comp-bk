@@ -5,7 +5,6 @@ import (
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/DBrange/didis-comp-bk/domains/profile/adapters/mappers"
-	"github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
 	profile_dto "github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
 	user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/user/dao"
 	ports "github.com/DBrange/didis-comp-bk/domains/repository/ports/drivers"
@@ -23,18 +22,19 @@ func NewProfileQueryerAdapter(adapter ports.ForManagingProfile) *ProfileQueryerA
 	}
 }
 
+func (a *ProfileQueryerAdapter) InitialiseRole(ctx context.Context) error {
+	return a.adapter.InitialiseRole(ctx)
+}
+
 func (a *ProfileQueryerAdapter) WithTransaction(ctx context.Context, fn func(sessCtx mongo.SessionContext) error) error {
 	return a.adapter.WithTransaction(ctx, fn)
 }
 
 func (a *ProfileQueryerAdapter) CreateUser(ctx context.Context, userDTO *profile_dto.CreateUserDTOReq) (string, error) {
-	userDAO := mappers.CreateUserDTOtoDAO(userDTO)
-	locationIOD, err := a.ConvertToObjectID(*userDTO.LocationID)
+	userDAO, err := mappers.CreateUserDTOtoDAO(userDTO, a.ConvertToObjectID)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
-
-	userDAO.LocationID = locationIOD
 
 	return a.adapter.CreateUser(ctx, userDAO)
 }
@@ -45,7 +45,7 @@ func (a *ProfileQueryerAdapter) CreateLocation(ctx context.Context, locationDTO 
 	return a.adapter.CreateLocation(ctx, locationDAO)
 }
 
-func (a *ProfileQueryerAdapter) GetRoleByNameAndType(ctx context.Context, roleName, roleType string) (*dto.GetRoleDTOByID, error) {
+func (a *ProfileQueryerAdapter) GetRoleByNameAndType(ctx context.Context, roleName, roleType string) (*profile_dto.GetRoleDTOByID, error) {
 	roleDAO, err := a.adapter.GetRoleByNameAndType(ctx, roleName, roleType)
 	if err != nil {
 		return nil, err
@@ -119,19 +119,34 @@ func (a *ProfileQueryerAdapter) ConvertToObjectID(ID string) (*primitive.ObjectI
 	return a.adapter.ConvertToObjectID(ID)
 }
 
-func (a *ProfileQueryerAdapter) CreateCompetitorType(ctx context.Context, competitorType models.COMPETITOR_TYPE) (*primitive.ObjectID, error) {
-	return a.adapter.CreateCompetitorType(ctx, competitorType)
-}
+func (a *ProfileQueryerAdapter) CreateCompetitor(ctx context.Context, sport models.SPORT, competitorType models.COMPETITOR_TYPE, ID string) (string, error) {
+	OID, err := a.ConvertToObjectID(ID)
+	if err != nil {
+		return "", nil
+	}
 
-func (a *ProfileQueryerAdapter) CreateCompetitor(ctx context.Context, sport models.SPORT, competitorType models.COMPETITOR_TYPE, OID *primitive.ObjectID) (string, error) {
 	return a.adapter.CreateCompetitor(ctx, sport, competitorType, OID)
 }
 
-func (a *ProfileQueryerAdapter) CreateCompetitorStats(ctx context.Context, competitorOID *primitive.ObjectID) error {
+func (a *ProfileQueryerAdapter) CreateCompetitorStats(ctx context.Context, competitorID string) error {
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return err
+	}
+
 	return a.adapter.CreateCompetitorStats(ctx, competitorOID)
 }
 
-func (a *ProfileQueryerAdapter) CreateCompetitorUser(ctx context.Context, userOID *primitive.ObjectID, competitorOID *primitive.ObjectID) error {
+func (a *ProfileQueryerAdapter) CreateCompetitorUser(ctx context.Context, userID, competitorID string) error {
+	userOID, err := a.ConvertToObjectID(userID)
+	if err != nil {
+		return err
+	}
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return err
+	}
+
 	return a.adapter.CreateCompetitorUser(ctx, userOID, competitorOID)
 }
 
@@ -139,8 +154,8 @@ func (a *ProfileQueryerAdapter) DeleteUser(ctx context.Context, userID string) (
 	return a.adapter.DeleteUser(ctx, userID)
 }
 
-func (a *ProfileQueryerAdapter) GetDailyAvailabilityByUserID(ctx context.Context, userID, day string) (*profile_dto.GetDailyAvailabilityByIDDTORes, error) {
-	availabilityDAO, err := a.adapter.GetDailyAvailabilityByUserID(ctx, userID, day)
+func (a *ProfileQueryerAdapter) GetDailyAvailabilityUserID(ctx context.Context, userID, day string) (*profile_dto.GetDailyAvailabilityByIDDTORes, error) {
+	availabilityDAO, err := a.adapter.GetDailyAvailabilityUserID(ctx, userID, day)
 	if err != nil {
 		return nil, err
 	}
@@ -162,12 +177,12 @@ func (a *ProfileQueryerAdapter) LocationColl() *mongo.Collection {
 	return a.adapter.LocationColl()
 }
 
-func (a *ProfileQueryerAdapter) UpdateUserPassword(ctx context.Context, userID, newPassword string) error  {
-	return a.adapter.UpdateUserPassword(ctx , userID, newPassword )  
+func (a *ProfileQueryerAdapter) UpdateUserPassword(ctx context.Context, userID, newPassword string) error {
+	return a.adapter.UpdateUserPassword(ctx, userID, newPassword)
 }
 
-func (a *ProfileQueryerAdapter) GetUserPasswordByID(ctx context.Context, userID string) (string, error)  {
-	return a.adapter.GetUserPasswordByID(ctx, userID ) 
+func (a *ProfileQueryerAdapter) GetUserPasswordByID(ctx context.Context, userID string) (string, error) {
+	return a.adapter.GetUserPasswordByID(ctx, userID)
 }
 
 func (a *ProfileQueryerAdapter) GetUserPasswordForLogin(ctx context.Context, username string) (string, string, error) {
@@ -186,4 +201,91 @@ func (a *ProfileQueryerAdapter) GetAvailabilityIDByUserID(ctx context.Context, u
 	return a.adapter.GetAvailabilityIDByUserID(ctx, userID)
 }
 
+func (a *ProfileQueryerAdapter) CreateSingle(ctx context.Context, singleDTO *profile_dto.CreateSingleDTOReq) (string, error) {
+	singleDAO := mappers.CreateSingleDTOtoDAO(singleDTO)
 
+	return a.adapter.CreateSingle(ctx, singleDAO)
+}
+
+func (a *ProfileQueryerAdapter) CreateDouble(ctx context.Context, doubleDTO *profile_dto.CreateDoubleDTOReq) (string, error) {
+	doubleDAO := mappers.CreateDoubleDTOtoDAO(doubleDTO)
+
+	return a.adapter.CreateDouble(ctx, doubleDAO)
+}
+
+func (a *ProfileQueryerAdapter) CreateTeam(ctx context.Context, teamDTO *profile_dto.CreateTeamDTOReq) (string, error) {
+	teamDAO, err := mappers.CreateTeamDTOtoDAO(teamDTO, a.ConvertToObjectID)
+	if err != nil {
+		return "", nil
+	}
+
+	return a.adapter.CreateTeam(ctx, teamDAO)
+}
+
+func (a *ProfileQueryerAdapter) CreateFollower(ctx context.Context, followerDTO *profile_dto.CreateFollowerDTOReq) error {
+	teamDAO, err := mappers.CreateFollowerDTOtoDAO(followerDTO, a.ConvertToObjectID)
+	if err != nil {
+		return nil
+	}
+
+	return a.adapter.CreateFollower(ctx, teamDAO)
+}
+
+func (a *ProfileQueryerAdapter) GetProfileInfoInCategory(ctx context.Context, categoryID, competitorID string) (*profile_dto.GetProfileInfoInCategoryDTORes, error) {
+	profileDAO, err := a.adapter.GetProfileInfoInCategory(ctx, categoryID, competitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	profileDTO := mappers.GetProfileInfoInCategoryDAOtoDTO(profileDAO)
+
+	return profileDTO, nil
+}
+
+func (a *ProfileQueryerAdapter) GetAvailabilityDailySlice(ctx context.Context, userID, competitorID string) ([]*profile_dto.GetDailyAvailabilityByIDDTORes, error) {
+	dailyAvailabilityDAO, err := a.adapter.GetAvailabilityDailySlice(ctx, userID, competitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	dailyAvailabilitiesDTO := mappers.GetAvailabilityDailySliceDTOtoDAO(dailyAvailabilityDAO)
+
+	return dailyAvailabilitiesDTO, nil
+}
+
+func (a *ProfileQueryerAdapter) CreateAvailabilityForCompetitor(ctx context.Context, competitorID string, dailyAvailabilityDTO []*profile_dto.GetDailyAvailabilityByIDDTORes) error {
+	dailyAvailabilityDAO := mappers.CreateAvailabilityDailySliceDTOtoDAO(dailyAvailabilityDTO)
+
+	return a.adapter.CreateAvailabilityForCompetitor(ctx, competitorID, dailyAvailabilityDAO)
+}
+
+func (a *ProfileQueryerAdapter) GetDailyAvailabilityCompetitorID(ctx context.Context, competitorID string, day string) (*profile_dto.GetDailyAvailabilityByIDDTORes, error) {
+	availabilityDAO, err := a.adapter.GetDailyAvailabilityCompetitorID(ctx, competitorID, day)
+	if err != nil {
+		return nil, err
+	}
+
+	availabilityDTO := mappers.GetDailyAvailabilityCompetitorIDDAOtoDTO(availabilityDAO)
+
+	return availabilityDTO, nil
+}
+
+func (a *ProfileQueryerAdapter) GetCompetitorTournamentsInCategory(ctx context.Context, categoryID, competitorID, lastID string, limit int) ([]*profile_dto.GetTournamentsFromCategoryDTORes, error) {
+	tournamentsDAO, err := a.adapter.GetCompetitorTournamentsInCategory(ctx, categoryID, competitorID, lastID, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	tournamentsDTO := mappers.GetCompetitorTournamentsInCategoryDAOtoDTO(tournamentsDAO)
+
+	return tournamentsDTO, nil
+}
+
+func (a *ProfileQueryerAdapter) VerifyFollowerExistsRelation(ctx context.Context, followerDTO *profile_dto.CreateFollowerDTOReq) error {
+	followerDAO, err := mappers.CreateFollowerDTOtoDAO(followerDTO, a.ConvertToObjectID)
+	if err != nil {
+		return nil
+	}
+
+	return a.adapter.VerifyFollowerExistsRelation(ctx, followerDAO)
+}

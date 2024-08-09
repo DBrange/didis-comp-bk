@@ -46,7 +46,6 @@ func organizeTournamentBodyData(c *gin.Context) (*dto.OrganizeTournamentDTOReq, 
 		errMsgTemplate := "error getting tournament"
 		return nil, customerrors.HandleError(err, tournamentErrorHandlers, errMsgTemplate)
 	}
-	fmt.Printf("asi quedaria %+v", tournamentDTO)
 
 	// Validar la estructura excepto el campo Location
 	err := validate_util.Validate.StructExcept(tournamentDTO, "Location")

@@ -8,5 +8,5 @@ import (
 )
 
 type AddGuestUserInTournament interface {
-	AddGuestUserInTournament(ctx context.Context, tournamentID string, guestUserDTO *dto.CreateGuestUserDTOReq, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error
+	AddGuestUserInTournament(ctx context.Context, tournamentID string, guestUsersDTO []*dto.CreateGuestUserDTOReq, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error
 }

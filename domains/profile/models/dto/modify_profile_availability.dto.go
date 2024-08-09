@@ -7,7 +7,7 @@ type ModifyProfileAvailabilityDTOReq struct {
 }
 
 type ModifyProfileDailyAvailabilityDTOReq struct {
-	Day       string                         `json:"day" validate:"day"`
+	Day       models.DAY                          `json:"day" validate:"day"`
 	TimeSlots []*ModifyProfileTimeSlotDTOReq `json:"time_slots" validate:"dive"`
 }
 

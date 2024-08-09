@@ -21,6 +21,7 @@ var (
 	ErrSingedMethod        = errors.New("unexpected signing method")
 	ErrComparedHash        = errors.New("camparison failed")
 	ErrAuthorization       = errors.New("authorization failed")
+	ErrAlreadyExits        = errors.New("already exits")
 	// ErrConnectionFailed   = errors.New("connection failed")
 )
 
@@ -43,5 +44,6 @@ const (
 	ErrCodeSingedMethod        = "unexpected_signing_method"
 	ErrCodeComparedHash        = "camparison_failed"
 	ErrCodeAuthorization       = "authorized_failed"
+	ErrCodeAlreadyExits       = "already_exits"
 	// ErrCodeConnectionFailed   = "connection_failed"
 )

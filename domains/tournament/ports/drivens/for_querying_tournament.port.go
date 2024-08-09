@@ -18,24 +18,39 @@ type ForQueryingTournament interface {
 		tournamentInfoDTO *tournament_dto.CreateTournamentDTOReq,
 		locationID string,
 		options *option_models.OrganizeTournamentOptions,
-		leagueID *string,
+		categoryID *string,
 		organizerID string,
 	) (string, error)
-	VerifyLeagueExists(ctx context.Context, leagueID string) error
-	AddTournamentInLeague(ctx context.Context, leagueID string, tournamentID string) error
+	VerifyCategoryExists(ctx context.Context, categoryID string) error
+	AddTournamentInCategory(ctx context.Context, categoryID string, tournamentID string) error
 	WithTransaction(ctx context.Context, fn func(sessCtx mongo.SessionContext) error) error
 	CreateTournamentGroup(ctx context.Context, TournamentID string) (string, error)
 	CreatePot(ctx context.Context, TournamentID string) (string, error)
-	CreateDoubleElimination(ctx context.Context) (string, error)
+	CreateDoubleEliminationEmpty(ctx context.Context) (string, error)
 	TournamentGroupColl() *mongo.Collection
 	PotColl() *mongo.Collection
 	DoubleEliminationColl() *mongo.Collection
 	DeleteByID(ctx context.Context, mc *mongo.Collection, ID string, name string) error
-	UpdateTournamentOptions(ctx context.Context, tournamentID string, tournamentDTO *tournament_dto.UpdateTournamentOptionsDTOReq, add bool) error
+	UpdateTournamentRelations(ctx context.Context, tournamentOID string, tournamentDTO *tournament_dto.UpdateTournamentOptionsDTOReq, add bool) error
 	ConvertToObjectID(ID string) (*primitive.ObjectID, error)
 	CreateTournamentRegistration(ctx context.Context, tournamentRegistrationDTO *tournament_dto.CreateTournamentRegistrationDTOReq) error
 	CreateGuestUser(ctx context.Context, guestUserInfoDTO *tournament_dto.CreateGuestUserDTOReq) (string, error)
 	CreateCompetitor(ctx context.Context, sport models.SPORT, competitorType models.COMPETITOR_TYPE, ID string) (string, error)
-	CreateCompetitorType(ctx context.Context, competitorType models.COMPETITOR_TYPE) (string, error)
 	CreateGuestCompetitor(ctx context.Context, guestCompetitorInfoDTO *tournament_dto.CreateGuestCompetitorDTOReq) (string, error)
+	CreateMatch(ctx context.Context, match *tournament_dto.CreateMatchDTOReq) (string, error)
+	CreateRound(ctx context.Context, round *tournament_dto.CreateRoundDTOReq) (string, error)
+	CreateDoubleElimination(ctx context.Context, doubleEliminationDTO *tournament_dto.CreateDoubleEliminationDTOReq) (string, error)
+	CreateSingle(ctx context.Context, singleInfoDTO *tournament_dto.CreateSingleDTOReq) (string, error)
+	CreateDouble(ctx context.Context, doubleInfoDTO *tournament_dto.CreateDoubleDTOReq) (string, error)
+	CreateTeam(ctx context.Context, teamInfoDTO *tournament_dto.CreateTeamDTOReq) (string, error)
+	GetCompetitorsInTournament(
+		ctx context.Context,
+		tournamentID,
+		categoryID,
+		lastID string,
+		limit int,
+	) ([]*tournament_dto.GetCompetitorsInTournamentDTORes, error)
+	VerifyCompetitorExists(ctx context.Context, competitorID string) error
+	VerifyTournamentsExists(ctx context.Context, tournamentOID string) error
+	CreateCompetitorStats(ctx context.Context, competitorID string) error
 }

@@ -7,7 +7,7 @@ type UpdateAvailabilityDTOReq struct {
 }
 
 type UpdateDailyAvailabilityDTOReq struct {
-	Day       string                  `json:"day" validate:"day"`
+	Day       models.DAY                   `json:"day" validate:"day"`
 	TimeSlots []*UpdateTimeSlotDTOReq `json:"time_slots" validate:"dive"`
 }
 

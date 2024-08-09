@@ -73,6 +73,9 @@ func ErrorResponse(err error, c *gin.Context) {
 		case ErrCodeAuthorization:
 			c.JSON(http.StatusUnauthorized, appErr)
 
+		case ErrCodeAlreadyExits:
+			c.JSON(http.StatusBadRequest, appErr)
+
 		}
 
 		return
@@ -112,6 +115,7 @@ func CreateErrorHandlers(entityName string) map[error]ErrorHandler {
 		ErrSingedMethod:        GenerateErrorHandler(ErrCodeSingedMethod, entityName, "error signing %s: %v"),
 		ErrComparedHash:        GenerateErrorHandler(ErrCodeComparedHash, entityName, "error camparison %s: %v"),
 		ErrAuthorization:       GenerateErrorHandler(ErrCodeAuthorization, entityName, "error authorization %s: %v"),
+		ErrAlreadyExits:       GenerateErrorHandler(ErrCodeAlreadyExits, entityName, "already exits %s: %v"),
 	}
 }
 

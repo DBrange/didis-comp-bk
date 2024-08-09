@@ -27,7 +27,16 @@ func (a *TournamentProxyAdapter) AddCompetitorInTournament(ctx context.Context, 
 	return a.tournamentService.AddCompetitorInTournament(ctx, tournamentResgistrationDTO)
 }
 
-func (a *TournamentProxyAdapter) AddGuestUserInTournament(ctx context.Context, tournamentID string, guestUserDTO *dto.CreateGuestUserDTOReq, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error {
-	return a.tournamentService.AddGuestUserInTournament(ctx, tournamentID, guestUserDTO, sport, competitorType)
+func (a *TournamentProxyAdapter) AddGuestUserInTournament(ctx context.Context, tournamentID string, guestUsersDTO []*dto.CreateGuestUserDTOReq, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error {
+	return a.tournamentService.AddGuestUserInTournament(ctx, tournamentID, guestUsersDTO, sport, competitorType)
+}
 
+func (a *TournamentProxyAdapter) ListCompetitorsInTournament(
+	ctx context.Context,
+	tournamentID,
+	categoryID,
+	lastID string,
+	limit int,
+) ([]*dto.GetCompetitorsInTournamentDTORes, error) {
+	return a.tournamentService.ListCompetitorsInTournament(ctx, tournamentID, categoryID, lastID, limit)
 }

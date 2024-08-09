@@ -15,11 +15,19 @@ func profileRoutes(router *gin.Engine, controlPlane ports.ForControlPlane, handl
 
 	profilesRouter.POST("/login", controlPlane.AuthenticationMiddleware(), controlPlane.AuthorizationMiddleware(models.ROLE_FREE), handler.Login)
 
-	profilesRouter.POST("/register-competitor/:userID", handler.RegisterCompetitor)
+	profilesRouter.POST("/register-competitor", handler.RegisterCompetitor)
+
+	profilesRouter.POST("/follow-profile/:fromUserID/:toUserID", handler.FollowProfile)
 
 	profilesRouter.GET("/personal-info/:userID", handler.GetPersonalInfo)
-
+	
 	profilesRouter.GET("/daily-availability-info/:availabilityID", handler.GetProfileDailyAvailability)
+	
+	profilesRouter.GET("/info-category/:categoryID/:competitorID", handler.GetProfileInfoInCategory)
+
+	profilesRouter.GET("/availability-category/:competitorID", handler.GetProfileAvailabilityInCategory)
+
+	profilesRouter.GET("/tournaments-category/:categoryID/:competitorID", handler.GetProfileTournamentsInCategory)
 
 	profilesRouter.PUT("/availability/:availabilityID", handler.ModifyProfileAvailability)
 

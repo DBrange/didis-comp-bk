@@ -19,7 +19,7 @@ func (h *Handler) AddGuestUserInTournament(c *gin.Context) {
 	sport := c.Query("sport")
 	competitorType := c.Query("competitor_type")
 
-	guestUserDTO, err := addGuestUserInTournamentBodyData(c)
+	guestUsersDTO, err := addGuestUserInTournamentBodyData(c)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
@@ -36,18 +36,21 @@ func (h *Handler) AddGuestUserInTournament(c *gin.Context) {
 		return
 	}
 
-	if err := h.tournament.AddGuestUserInTournament(ctx, tournamentID, guestUserDTO, sportParsed, competitorTypeParsed); err != nil {
+	if err := h.tournament.AddGuestUserInTournament(ctx, tournamentID, guestUsersDTO, sportParsed, competitorTypeParsed); err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Competitor successfully added!"})
+	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Guest competitor successfully added!"})
 
 }
 
-func addGuestUserInTournamentBodyData(c *gin.Context) (*dto.CreateGuestUserDTOReq, error) {
-	var guestUserDTO dto.CreateGuestUserDTOReq
-	if err := c.ShouldBindJSON(&guestUserDTO); err != nil {
+func addGuestUserInTournamentBodyData(c *gin.Context) ([]*dto.CreateGuestUserDTOReq, error) {
+	var guestUsersDTO struct {
+		GuestUsers []*dto.CreateGuestUserDTOReq `json:"guest_users"`
+	}
+
+	if err := c.ShouldBindJSON(&guestUsersDTO); err != nil {
 		err = fmt.Errorf("%w: error binding json: %v", customerrors.ErrGetJSON, err.Error())
 		tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")
 		errMsgTemplate := "error getting body"
@@ -55,7 +58,7 @@ func addGuestUserInTournamentBodyData(c *gin.Context) (*dto.CreateGuestUserDTORe
 	}
 
 	// Validar la estructura excepto el campo Location
-	err := utils.Validate.Struct(guestUserDTO)
+	err := utils.Validate.Struct(guestUsersDTO)
 	if err != nil {
 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
 		tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")
@@ -63,7 +66,7 @@ func addGuestUserInTournamentBodyData(c *gin.Context) (*dto.CreateGuestUserDTORe
 		return nil, customerrors.HandleError(err, tournamentErrorHandlers, errMsgTemplate)
 	}
 
-	return &guestUserDTO, nil
+	return guestUsersDTO.GuestUsers, nil
 }
 
 func addGuestUserInTournamentValidateQueries(sport, competitorType string) error {

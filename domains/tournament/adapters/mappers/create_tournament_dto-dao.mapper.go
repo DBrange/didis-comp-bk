@@ -15,6 +15,7 @@ func CreateTournamentDTOtoDAO(tournamentDTO *dto.CreateTournamentDTOReq) *dao.Cr
 		Genre:            tournamentDTO.Genre,
 		Sport:            tournamentDTO.Sport,
 		Surface:          tournamentDTO.Surface,
+		CompetitorType:   tournamentDTO.CompetitorType,
 	}
 
 	return tournamentDAO

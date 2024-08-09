@@ -8,11 +8,11 @@ import (
 )
 
 type CreateMatchDAOReq struct {
-	Sport         models.SPORT       `bson:"sport"`
-	Round         primitive.ObjectID `bson:"round_id"`
-	Result        string             `bson:"result"`
-	Winner        primitive.ObjectID `bson:"winner"`
-	TournamentID  primitive.ObjectID `bson:"tournament_id"`
+	Sport        models.SPORT        `bson:"sport"`
+	RoundID      *primitive.ObjectID `bson:"round_id"`
+	Result       string              `bson:"result"`
+	Winner       *primitive.ObjectID `bson:"winner"`
+	TournamentID *primitive.ObjectID `bson:"tournament_id"`
 	// Votes        map[string]string  `bson:"votes"`
 	CreatedAt time.Time  `bson:"created_at"`
 	UpdatedAt time.Time  `bson:"updated_at"`

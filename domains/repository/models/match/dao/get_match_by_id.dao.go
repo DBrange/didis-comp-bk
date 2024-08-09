@@ -10,7 +10,7 @@ import (
 type GetMatchByIDDAORes struct {
 	ID            primitive.ObjectID `bson:"_id"`
 	Sport         models.SPORT       `bson:"sport"`
-	Round         primitive.ObjectID `bson:"round_id"`
+	RoundID         primitive.ObjectID `bson:"round_id"`
 	Result        primitive.ObjectID `bson:"result"`
 	Winner        primitive.ObjectID `bson:"winner"`
 	TournamentID  primitive.ObjectID `bson:"tournament_id"`

@@ -12,30 +12,30 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateTeam(ctx context.Context, teamInfoDAO *dao.CreateTeamDAOReq) (*primitive.ObjectID, error) {
+func (r *Repository) CreateTeam(ctx context.Context, teamInfoDAO *dao.CreateTeamDAOReq) (string, error) {
 	teamInfoDAO.SetTimeStamp()
-fmt.Printf("teamammm %+v", teamInfoDAO)
+	// teamInfoDAO.Admins := 
 
 	result, err := r.teamColl.InsertOne(ctx, teamInfoDAO)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
-			return nil, fmt.Errorf("%w: error duplicate key for team: %s", customerrors.ErrDuplicateKey, err.Error())
+			return "", fmt.Errorf("%w: error duplicate key for team: %s", customerrors.ErrDuplicateKey, err.Error())
 		}
 
 		if writeErr, ok := err.(mongo.WriteException); ok {
 			for _, we := range writeErr.WriteErrors {
 				if we.Code == 14 {
-					return nil, fmt.Errorf("%w: error team scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
+					return "", fmt.Errorf("%w: error team scheme type: %s", customerrors.ErrSchemaViolation, err.Error())
 				}
 			}
 		}
 
-		return nil, fmt.Errorf("error when inserting team: %w", err)
+		return "", fmt.Errorf("error when inserting team: %w", err)
 	}
 
-	id := result.InsertedID.(primitive.ObjectID)
+	id := result.InsertedID.(primitive.ObjectID).Hex()
 
-	return &id, nil
+	return id, nil
 }
 
 func (r *Repository) GetTeamByID(ctx context.Context, teamID string) (*dao.GetTeamByIDDAORes, error) {

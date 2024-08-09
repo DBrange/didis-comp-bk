@@ -49,10 +49,26 @@ func (a *ProfileProxyAdapter) ModifyPassword(ctx context.Context, userID, newPas
 	return a.profileService.ModifyPassword(ctx, userID, newPassword, oldPassword)
 }
 
-func (a *ProfileProxyAdapter) RegisterCompetitor(ctx context.Context, userID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error {
-	return a.profileService.RegisterCompetitor(ctx, userID, sport, competitorType)
+func (a *ProfileProxyAdapter) RegisterCompetitor(ctx context.Context, userIDs []string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error {
+	return a.profileService.RegisterCompetitor(ctx, userIDs, sport, competitorType)
 }
 
 func (a *ProfileProxyAdapter) Login(ctx context.Context, loginDTO *profile_dto.LoginDTOReq) (string, string, error) {
 	return a.profileService.Login(ctx, loginDTO)
+}
+
+func (a *ProfileProxyAdapter) FollowProfile(ctx context.Context, fromUserID, toUserID string) error {
+	return a.profileService.FollowProfile(ctx, fromUserID, toUserID)
+}
+
+func (a *ProfileProxyAdapter) GetProfileInfoInCategory(ctx context.Context, categoryID, competitorID string) (*profile_dto.GetProfileInfoInCategoryDTORes, error) {
+	return a.profileService.GetProfileInfoInCategory(ctx, categoryID, competitorID)
+}
+
+func (a *ProfileProxyAdapter) GetProfileAvailabilityInCategory(ctx context.Context, competitorID, day string) (*profile_dto.GetDailyAvailabilityByIDDTORes, error) {
+	return a.profileService.GetProfileAvailabilityInCategory(ctx, competitorID, day)
+}
+
+func (a *ProfileProxyAdapter) GetProfileTournamentsInCategory(ctx context.Context, categoryID, competitorID, lastID string, limit int) ([]*profile_dto.GetTournamentsFromCategoryDTORes, error) {
+	return a.profileService.GetProfileTournamentsInCategory(ctx, categoryID, competitorID, lastID, limit)
 }

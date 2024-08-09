@@ -7,7 +7,7 @@ type GetAvailabilityByIDDTORes struct {
 }
 
 type GetDailyAvailabilityByIDDTORes struct {
-	Day       string                        `json:"day"`
+	Day       models.DAY                        `json:"day"`
 	TimeSlots []*GetDailyTimeSlotByIDDTORes `json:"time_slots"`
 }
 

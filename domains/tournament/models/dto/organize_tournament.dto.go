@@ -5,17 +5,17 @@ import (
 )
 
 type OrganizeTournamentDTOReq struct {
-	Name             string                            `json:"name" validate:"required,min=2"`
-	Points           *int                              `json:"points"`
-	TotalPrize       float64                           `json:"total_prize"`
-	TotalCompetitors int                               `json:"total_competitors" validate:"required"`
-	MaxCapacity      int                               `json:"max_capacity" validate:"required"`
-	Genre            models.GENRE                      `json:"genre" validate:"required,genre"`
-	Sport            models.SPORT                      `json:"sport" validate:"required,sport"`
+	Name             string                           `json:"name" validate:"required,min=2"`
+	Points           *int                             `json:"points"`
+	TotalPrize       float64                          `json:"total_prize"`
+	MaxCapacity      models.TOURNAMENT_CAPACITY       `json:"max_capacity" validate:"required,tournamentCapacity"`
+	Genre            models.GENRE                     `json:"genre" validate:"required,genre"`
+	Sport            models.SPORT                     `json:"sport" validate:"required,sport"`
 	Location         OrganizeTournamentLocationDTOReq `json:"location,omitempty"`
-	Surface          *models.TENNIS_SURFACE            `json:"surface"`
-	LeagueID         *string                           `json:"league_id"`
-	OrganizerID      string                            `json:"organizer_id" validate:"required"`
+	Surface          *models.TENNIS_SURFACE           `json:"surface" validate:"surface,omitempty"`
+	CompetitorType   models.COMPETITOR_TYPE           `json:"competitor_type" validate:"required,competitorType"`
+	CategoryID       *string                          `json:"category_id"`
+	OrganizerID      string                           `json:"organizer_id" validate:"required"`
 }
 
 type OrganizeTournamentLocationDTOReq struct {

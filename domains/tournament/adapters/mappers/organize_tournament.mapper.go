@@ -10,11 +10,11 @@ func OrganizeTournamentMapper(organizerTournamentDTO *tournament_dto.OrganizeTou
 		Name:             organizerTournamentDTO.Name,
 		Points:           organizerTournamentDTO.Points,
 		TotalPrize:       organizerTournamentDTO.TotalPrize,
-		TotalCompetitors: organizerTournamentDTO.TotalCompetitors,
 		MaxCapacity:      organizerTournamentDTO.MaxCapacity,
 		Genre:            organizerTournamentDTO.Genre,
 		Sport:            organizerTournamentDTO.Sport,
 		Surface:          *organizerTournamentDTO.Surface,
+		CompetitorType:   organizerTournamentDTO.CompetitorType,
 	}
 
 	locationInfoDTO := &tournament_dto.CreateLocationDTOReq{
@@ -25,5 +25,5 @@ func OrganizeTournamentMapper(organizerTournamentDTO *tournament_dto.OrganizeTou
 		Long:    organizerTournamentDTO.Location.Long,
 	}
 
-	return tournamentInfoDTO, locationInfoDTO, organizerTournamentDTO.LeagueID, organizerTournamentDTO.OrganizerID
+	return tournamentInfoDTO, locationInfoDTO, organizerTournamentDTO.CategoryID, organizerTournamentDTO.OrganizerID
 }

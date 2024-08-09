@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Repository struct {
@@ -17,7 +15,7 @@ type Repository struct {
 	availabilityColl      *mongo.Collection
 	roleColl              *mongo.Collection
 	organizerColl         *mongo.Collection
-	leagueColl            *mongo.Collection
+	categoryColl          *mongo.Collection
 	tournamentColl        *mongo.Collection
 	potColl               *mongo.Collection
 	tournamentGroupColl   *mongo.Collection
@@ -38,7 +36,7 @@ type Repository struct {
 	competitorUserColl         *mongo.Collection // Intermediate table
 	followerColl               *mongo.Collection // Intermediate table
 	guestCompetitorColl        *mongo.Collection // Intermediate table
-	leagueRegistrationColl     *mongo.Collection // Intermediate table
+	categoryRegistrationColl   *mongo.Collection // Intermediate table
 	opinionColl                *mongo.Collection // Intermediate table
 	tournamentRegistrationColl *mongo.Collection // Intermediate table
 	userChatColl               *mongo.Collection // Intermediate table
@@ -52,7 +50,7 @@ func NewRepository(
 	availabilityColl *mongo.Collection,
 	roleColl *mongo.Collection,
 	organizerColl *mongo.Collection,
-	leagueColl *mongo.Collection,
+	categoryColl *mongo.Collection,
 	tournamentColl *mongo.Collection,
 	potColl *mongo.Collection,
 	tournamentGroupColl *mongo.Collection,
@@ -73,7 +71,7 @@ func NewRepository(
 	competitorUserColl *mongo.Collection, // Intermediate table
 	followerColl *mongo.Collection, // Intermediate table
 	guestCompetitorColl *mongo.Collection, // Intermediate table
-	leagueRegistrationColl *mongo.Collection, // Intermediate table
+	categoryRegistrationColl *mongo.Collection, // Intermediate table
 	opinionColl *mongo.Collection, // Intermediate table
 	tournamentRegistrationColl *mongo.Collection, // Intermediate table
 	userChatColl *mongo.Collection, // Intermediate table
@@ -87,7 +85,7 @@ func NewRepository(
 		availabilityColl:      availabilityColl,
 		roleColl:              roleColl,
 		organizerColl:         organizerColl,
-		leagueColl:            leagueColl,
+		categoryColl:          categoryColl,
 		tournamentColl:        tournamentColl,
 		potColl:               potColl,
 		tournamentGroupColl:   tournamentGroupColl,
@@ -108,7 +106,7 @@ func NewRepository(
 		competitorUserColl:         competitorUserColl,         // Intermediate table
 		followerColl:               followerColl,               // Intermediate table
 		guestCompetitorColl:        guestCompetitorColl,        // Intermediate table
-		leagueRegistrationColl:     leagueRegistrationColl,     // Intermediate table
+		categoryRegistrationColl:   categoryRegistrationColl,   // Intermediate table
 		opinionColl:                opinionColl,                // Intermediate table
 		tournamentRegistrationColl: tournamentRegistrationColl, // Intermediate table
 		userChatColl:               userChatColl,               // Intermediate table
@@ -126,10 +124,10 @@ func NewRepository(
 
 func (r *Repository) EnsureIndexes(ctx context.Context) error {
 	collections := map[*mongo.Collection][]mongo.IndexModel{
-		r.userColl: {
-			{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetUnique(true)},
-			{Keys: bson.D{{Key: "username", Value: 1}}, Options: options.Index().SetUnique(true)},
-		},
+		// r.userColl: {
+		// 	{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetUnique(true)},
+		// 	{Keys: bson.D{{Key: "username", Value: 1}}, Options: options.Index().SetUnique(true)},
+		// },
 		// r.locationColl: {
 		//     {Keys: bson.D{{Key: "unique_field", Value: 1}}, Options: options.Index().SetUnique(true)},
 		// },

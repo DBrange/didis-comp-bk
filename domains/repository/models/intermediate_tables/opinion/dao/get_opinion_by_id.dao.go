@@ -12,7 +12,7 @@ type GetOpinionByIDDAORes struct {
 	Score        float32            `bson:"score"`
 	Anonymous    bool               `bson:"anonymous"`
 	TournamentID primitive.ObjectID `bson:"tournament_id"`
-	LeagueID     primitive.ObjectID `bson:"league_id"`
+	CategoryID   primitive.ObjectID `bson:"category_id"`
 	OrganizerID  primitive.ObjectID `bson:"organizer_id"`
 	TeamID       primitive.ObjectID `bson:"team_id"`
 	UserID       primitive.ObjectID `bson:"user_id"`

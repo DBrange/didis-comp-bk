@@ -7,10 +7,10 @@ import (
 )
 
 type CreateOrganizerDAOReq struct {
-	Leagues                 []primitive.ObjectID `bson:"leagues"`
+	Categories              []primitive.ObjectID `bson:"categories"`
 	AverageScore            float32              `bson:"average_score"`
 	AverageTournamentePrize float32              `bson:"average_tournament_score"`
-	TotalLeagues            int                  `bson:"total_leagues"`
+	TotalCategories         int                  `bson:"total_categories"`
 	TotalTournaments        int                  `bson:"total_tournaments"`
 	UserID                  primitive.ObjectID   `bson:"user_id"`
 	CreatedAt               time.Time            `bson:"created_at"`

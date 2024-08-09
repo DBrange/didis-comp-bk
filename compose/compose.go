@@ -5,12 +5,12 @@ import (
 
 	"github.com/DBrange/didis-comp-bk/compose/dashboard"
 	"github.com/DBrange/didis-comp-bk/database"
+	category_adap_drivens "github.com/DBrange/didis-comp-bk/domains/category/adapters/drivens"
+	category_adap_drivers "github.com/DBrange/didis-comp-bk/domains/category/adapters/drivers"
+	category_services "github.com/DBrange/didis-comp-bk/domains/category/services"
 	control_plane_adap_drivens "github.com/DBrange/didis-comp-bk/domains/control_plane/adapters/drivens"
 	control_plane_adap_drivers "github.com/DBrange/didis-comp-bk/domains/control_plane/adapters/drivers"
 	control_plane_services "github.com/DBrange/didis-comp-bk/domains/control_plane/services"
-	league_adap_drivens "github.com/DBrange/didis-comp-bk/domains/league/adapters/drivens"
-	league_adap_drivers "github.com/DBrange/didis-comp-bk/domains/league/adapters/drivers"
-	league_services "github.com/DBrange/didis-comp-bk/domains/league/services"
 	location_adap_drivens "github.com/DBrange/didis-comp-bk/domains/location/adapters/drivens"
 	location_adap_drivers "github.com/DBrange/didis-comp-bk/domains/location/adapters/drivers"
 	location_services "github.com/DBrange/didis-comp-bk/domains/location/services"
@@ -32,7 +32,7 @@ func Compose() (dashboard.Dashboard, error) {
 		"availabilities",
 		"roles",
 		"organizers",
-		"leagues",
+		"categories",
 		"tournaments",
 		"pots",
 		"tournament_groups",
@@ -53,7 +53,7 @@ func Compose() (dashboard.Dashboard, error) {
 		"competitor_users",         // Intermediate table
 		"followers",                // Intermediate table
 		"guest_competitors",        // Intermediate table
-		"league_registrations",     // Intermediate table
+		"category_registrations",   // Intermediate table
 		"opinions",                 // Intermediate table
 		"tournament_registrations", // Intermediate table
 		"user_chats",               // Intermediate table
@@ -71,7 +71,7 @@ func Compose() (dashboard.Dashboard, error) {
 	availabilityColl := collectionMap["availabilities"]
 	roleColl := collectionMap["roles"]
 	organizerColl := collectionMap["organizers"]
-	leagueColl := collectionMap["leagues"]
+	categoryColl := collectionMap["categories"]
 	tournamentColl := collectionMap["tournaments"]
 	potColl := collectionMap["pots"]
 	tournamentGroupColl := collectionMap["tournament_groups"]
@@ -92,7 +92,7 @@ func Compose() (dashboard.Dashboard, error) {
 	competitorUserColl := collectionMap["competitor_users"]                 // Intermediate table
 	followerColl := collectionMap["followers"]                              // Intermediate table
 	guestCompetitorColl := collectionMap["guest_competitors"]               // Intermediate table
-	leagueRegistrationColl := collectionMap["league_registrations"]         // Intermediate table
+	categoryRegistrationColl := collectionMap["category_registrations"]     // Intermediate table
 	opinionColl := collectionMap["opinions"]                                // Intermediate table
 	tournamentRegistrationColl := collectionMap["tournament_registrations"] // Intermediate table
 	userChatColl := collectionMap["user_chats"]                             // Intermediate table
@@ -105,7 +105,7 @@ func Compose() (dashboard.Dashboard, error) {
 		availabilityColl,
 		roleColl,
 		organizerColl,
-		leagueColl,
+		categoryColl,
 		tournamentColl,
 		potColl,
 		tournamentGroupColl,
@@ -126,7 +126,7 @@ func Compose() (dashboard.Dashboard, error) {
 		competitorUserColl,         // Intermediate table
 		followerColl,               // Intermediate table
 		guestCompetitorColl,        // Intermediate table
-		leagueRegistrationColl,     // Intermediate table
+		categoryRegistrationColl,   // Intermediate table
 		opinionColl,                // Intermediate table
 		tournamentRegistrationColl, // Intermediate table
 		userChatColl,               // Intermediate table
@@ -140,7 +140,7 @@ func Compose() (dashboard.Dashboard, error) {
 	profileManagerProxyAdapter := repo_adap_divers.NewProfileManagerProxyAdapter(repository)
 	locationManagerProxyAdapter := repo_adap_divers.NewLocationManagerProxyAdapter(repository)
 	tournamentManagerProxyAdapter := repo_adap_divers.NewTournamentManagerProxyAdapter(repository)
-	leagueManagerProxyAdapter := repo_adap_divers.NewLeagueManagerProxyAdapter(repository)
+	categoryManagerProxyAdapter := repo_adap_divers.NewCategoryManagerProxyAdapter(repository)
 
 	// Create repository drivens
 
@@ -149,24 +149,24 @@ func Compose() (dashboard.Dashboard, error) {
 	userQueryerAdapter := profile_adap_drivens.NewProfileQueryerAdapter(profileManagerProxyAdapter)
 	locationQueryerAdapter := location_adap_drivens.NewLocationQueryerAdapter(locationManagerProxyAdapter)
 	tournamentQueryerAdapter := tournament_adap_drivens.NewTournamentQueryerAdapter(tournamentManagerProxyAdapter)
-	leagueQueryerAdapter := league_adap_drivens.NewLeagueQueryerAdapter(leagueManagerProxyAdapter)
+	categoryQueryerAdapter := category_adap_drivens.NewCategoryQueryerAdapter(categoryManagerProxyAdapter)
 
 	// Create services
 	controlPlaneServices := control_plane_services.NewControlPlaneService(controlPlaneQuerierAdapter)
 	userServices := profile_services.NewProfileService(userQueryerAdapter)
 	locationServices := location_services.NewLocationService(locationQueryerAdapter)
 	tournamentServices := tournament_services.NewTournamentService(tournamentQueryerAdapter)
-	leagueServices := league_services.NewLeagueService(leagueQueryerAdapter)
+	categoryServices := category_services.NewCategoryService(categoryQueryerAdapter)
 
 	// Create  drivers
 	controlPlaneProxyAdapter := control_plane_adap_drivers.NewControlPlaneProxyAdapter(controlPlaneServices)
 	profileProxyAdapter := profile_adap_drivers.NewProfileProxyAdapter(userServices)
 	locationProxyAdapter := location_adap_drivers.NewLocationProxyAdapter(locationServices)
 	tournamentProxyAdapter := tournament_adap_drivers.NewTournamentProxyAdapter(tournamentServices)
-	leagueProxyAdapter := league_adap_drivers.NewLeagueProxyAdapter(leagueServices)
+	categoryProxyAdapter := category_adap_drivers.NewCategoryProxyAdapter(categoryServices)
 
 	// Create dashboard
-	dashboard := dashboard.NewDashboardService(controlPlaneProxyAdapter, profileProxyAdapter, locationProxyAdapter, tournamentProxyAdapter, leagueProxyAdapter)
+	dashboard := dashboard.NewDashboardService(controlPlaneProxyAdapter, profileProxyAdapter, locationProxyAdapter, tournamentProxyAdapter, categoryProxyAdapter)
 
 	return dashboard, nil
 }

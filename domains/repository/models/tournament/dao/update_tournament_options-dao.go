@@ -7,8 +7,9 @@ import (
 
 type UpdateTournamentOptionsDAOReq struct {
 	DoubleEliminationID  *primitive.ObjectID   `bson:"double_elimination_id,omitempty"`
-	Rounds               *[]primitive.ObjectID `bson:"rounds,omitempty"`
 	Pots                 *[]primitive.ObjectID `bson:"pots,omitempty"`
 	Groups               *[]primitive.ObjectID `bson:"groups,omitempty"`
+	Matches              *[]primitive.ObjectID `bson:"matches,omitempty"`
+	Rounds               *[]primitive.ObjectID `bson:"rounds,omitempty"`
 	common.UpdateBaseDAO `bson:",inline"`
 }
