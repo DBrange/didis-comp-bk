@@ -11,7 +11,7 @@ const (
 	ROUND_5R    ROUND = "5R"
 	ROUND_OF    ROUND = "OF"
 	ROUND_CF    ROUND = "CF"
-	ROUND_SF    ROUND = "SM"
+	ROUND_SF    ROUND = "SF"
 	ROUND_F     ROUND = "F"
 )
 

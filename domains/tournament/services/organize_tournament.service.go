@@ -82,7 +82,7 @@ func (s *TournamentService) tournamentWithPotsGroups(
 	// Update the tournament slice of pots and/or groups
 	err := s.updatePotsGroupsSlice(sessCtx, options, &tournamentOptions, tournamentID)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	// Update tournament
@@ -116,6 +116,16 @@ func (s *TournamentService) updatePotsGroupsSlice(
 		if err != nil {
 			return err
 		}
+		roundID, err := s.createRoundsForGroup(sessCtx, tournamentID)
+		if err != nil {
+			return err
+		}
+
+		roundSlice := []string{roundID}
+		if err := s.updateTournament(sessCtx, tournamentID, nil, &roundSlice, nil); err != nil {
+			return err
+		}
+
 	}
 
 	// Create double elimination
@@ -131,7 +141,7 @@ func (s *TournamentService) updatePotsGroupsSlice(
 	return nil
 }
 
-type FnCreate func(ctx context.Context, tournamentID string) (string, error)
+type FnCreate func(ctx context.Context, tournamentID string, postion int) (string, error)
 
 // Create slice of pots and/or groups
 func (s *TournamentService) createPotsGroupsSlice(
@@ -144,7 +154,7 @@ func (s *TournamentService) createPotsGroupsSlice(
 ) error {
 	IDs := make([]string, quantity)
 	for i := 0; i < quantity; i++ {
-		vID, err := fnCreate(sessCtx, tournamentID) // valueID
+		vID, err := fnCreate(sessCtx, tournamentID, i+1) // valueID
 		if err != nil {
 			errMsg := fmt.Sprintf("error when creating %sID", name)
 			return customerrors.HandleErrMsg(err, "tournament", errMsg)
@@ -164,9 +174,9 @@ func (s *TournamentService) calculateRoundsNumber(matchesNumber models.TOURNAMEN
 	// If number of matches is valid, the corresponding number of rounds required will be sent
 	for i, quantity := range quantityOpts {
 		if quantity == matchesNumber {
-			return i, nil
+			return i + 1, nil
 		}
-	}	
+	}
 
 	err := fmt.Errorf("invalid total competitors number")
 	return 0, customerrors.HandleErrMsg(err, "tournament", "error when calculating rounds number")
@@ -264,6 +274,18 @@ func (s *TournamentService) createRounds(ctx context.Context, roundsNumber int, 
 
 	return roundsCreated, nil
 }
+func (s *TournamentService) createRoundsForGroup(ctx context.Context, tournamentID string) (string, error) {
+	roundDTO := &dto.CreateRoundDTOReq{
+		TournamentID: tournamentID,
+		Name:         models.ROUND_GROUP,
+	}
+	roundID, err := s.tournamentQueryer.CreateRound(ctx, roundDTO)
+	if err != nil {
+		return "", customerrors.HandleErrMsg(err, "tournament", "error when creating rounds")
+	}
+
+	return roundID, nil
+}
 
 func (s *TournamentService) createMatches(ctx context.Context, matchesNumber int, roundsCreated []string, tournamentID string, sport models.SPORT) ([]string, error) {
 	matchesCreated := make([]string, matchesNumber)
@@ -272,11 +294,16 @@ func (s *TournamentService) createMatches(ctx context.Context, matchesNumber int
 			Sport:        sport,
 			TournamentID: tournamentID,
 			RoundID:      s.calculateRoundInMatch(roundsCreated),
+			Position:     i + 1,
 		}
 
 		matchID, err := s.tournamentQueryer.CreateMatch(ctx, matchDTO)
 		if err != nil {
 			return []string{}, customerrors.HandleErrMsg(err, "tournament", "error when creating matches")
+		}
+
+		if err := s.CreateCompetitorMatches(ctx, matchID); err != nil {
+			return []string{}, err
 		}
 
 		matchesCreated[i] = matchID
@@ -401,4 +428,21 @@ func (s *TournamentService) createMatchesRounds(ctx context.Context, tournamentI
 	}
 
 	return matchesCreated, roundsCreated, err
+}
+
+func (s *TournamentService) CreateCompetitorMatches(ctx context.Context, matchID string) error {
+	for i := 0; i < 2; i++ {
+		competitorMatch := &dto.CreateCompetitorMatchDTOReq{
+			Position:     i + 1,
+			CompetitorID: nil,
+			MatchID:      matchID,
+		}
+
+		// create competitor_match
+		if err := s.tournamentQueryer.CreateCompetitorMatch(ctx, competitorMatch); err != nil {
+			return customerrors.HandleErrMsg(err, "tournament", "error when creating competitorMatches")
+		}
+	}
+
+	return nil
 }

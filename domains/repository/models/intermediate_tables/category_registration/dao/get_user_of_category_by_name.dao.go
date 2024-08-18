@@ -5,7 +5,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 type GetCompetitorsOfCategoryDAORes struct {
 	ID                  primitive.ObjectID                    `bson:"_id"`
 	CurrentPosition     *int                                  `bson:"current_position"`
-	RegisteredPositions []int                                 `bson:"registered_positions"`
+	RegisteredPositions []RegistedPositionDAORes              `bson:"registered_positions"`
 	Points              int                                   `bson:"points"`
 	Users               []*GetCompetitorsOfCategoryUserDAORes `bson:"users"`
 	GuestUsers          []*GetCompetitorsOfCategoryUserDAORes `bson:"guest_users"`

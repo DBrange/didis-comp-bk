@@ -22,7 +22,7 @@ func (s *ProfileService) RegisterUser(ctx context.Context, profileInfoDTO *dto.R
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	// err := s.profileQueryer.WithTransaction(ctx, func(ctx mongo.SessionContext) error {
-// s.profileQueryer.InitialiseRole(ctx)
+	// s.profileQueryer.InitialiseRole(ctx)
 	wg := &sync.WaitGroup{}
 
 	locationCh := make(chan *locationResult, 1)

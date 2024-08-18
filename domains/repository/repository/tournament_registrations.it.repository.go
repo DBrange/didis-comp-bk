@@ -281,3 +281,122 @@ func (r *Repository) getCompetitorsInTournamentExecuteAggregation(ctx context.Co
 
 	return competitorsDAO, nil
 }
+
+func (r *Repository) GetTournamentCompetitorIDs(ctx context.Context, tournamentOID *primitive.ObjectID) ([]string, error) {
+	filter := bson.M{"tournament_id": tournamentOID}
+
+	projection := bson.M{"competitor_id": 1}
+
+	opts := options.Find().SetProjection(projection)
+
+	cursor, err := r.tournamentRegistrationColl.Find(ctx, filter, opts)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: no documents found for tournamentRegistration", customerrors.ErrNotFound)
+		}
+		return nil, fmt.Errorf("error when searching for tournamentRegistration: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	// Extrae los IDs de los documentos encontrados.
+	var competitorIDs []string
+	for cursor.Next(ctx) {
+		var doc struct {
+			CompetitorID primitive.ObjectID `bson:"competitor_id"`
+		}
+		if err := cursor.Decode(&doc); err != nil {
+			return nil, err
+		}
+		competitorIDs = append(competitorIDs, doc.CompetitorID.Hex())
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return competitorIDs, nil
+
+}
+
+
+
+func (r *Repository) VerifyCompetitorExistsInTournament(ctx context.Context, tournamentOID *primitive.ObjectID, competitorOID *primitive.ObjectID) error {
+	filter := bson.M{
+		"tournament_id": tournamentOID,
+		"competitor_id": competitorOID,
+		"deleted_at":    bson.M{"$exists": false}, // Para asegurarte de que el registro no esté marcado como eliminado
+	}
+
+	opts := options.FindOne().SetProjection(bson.M{"competitor_id": 1})
+
+	var result struct{}
+
+	err := r.tournamentRegistrationColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		fmt.Printf("por aca %v", err)
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("%w: error when searching for competitor in tournament: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return fmt.Errorf("error when searching for the competitor in tournament: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Repository) VerifyMultipleCompetitorsExistsInTournament(ctx context.Context, tournamentOID *primitive.ObjectID, competitorOIDs []*primitive.ObjectID) error {
+	if len(competitorOIDs) == 0 {
+		return nil // No hay competidores para verificar
+	}
+
+	filter := bson.M{
+		"tournament_id": tournamentOID,
+		"competitor_id": bson.M{"$in": competitorOIDs},
+		"deleted_at":    bson.M{"$exists": false}, // Para asegurarte de que el registro no esté marcado como eliminado
+	}
+
+	opts := options.Find().SetProjection(bson.M{"competitor_id": 1})
+
+	cursor, err := r.tournamentRegistrationColl.Find(ctx, filter, opts)
+	if err != nil {
+		return fmt.Errorf("error when searching for competitors in tournament: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var foundCompetitorIDs []*primitive.ObjectID
+	for cursor.Next(ctx) {
+		var result struct {
+			CompetitorID *primitive.ObjectID `bson:"competitor_id"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return fmt.Errorf("error decoding tournament registration: %w", err)
+		}
+		foundCompetitorIDs = append(foundCompetitorIDs, result.CompetitorID)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return fmt.Errorf("error iterating cursor: %w", err)
+	}
+
+	if len(foundCompetitorIDs) != len(competitorOIDs) {
+		missingIDs := r.getMissingIDs(competitorOIDs, foundCompetitorIDs)
+		return fmt.Errorf("%w: the following competitors were not found in the tournament: %v", customerrors.ErrNotFound, missingIDs)
+	}
+
+	return nil
+}
+
+func (s *Repository) getMissingIDs(requested []*primitive.ObjectID, found []*primitive.ObjectID) []*primitive.ObjectID {
+    foundMap := make(map[string]bool)
+    for _, id := range found {
+        foundMap[id.Hex()] = true
+    }
+
+    var missing []*primitive.ObjectID
+    for _, id := range requested {
+        if !foundMap[id.Hex()] {
+            missing = append(missing, id)
+        }
+    }
+    return missing
+}
+

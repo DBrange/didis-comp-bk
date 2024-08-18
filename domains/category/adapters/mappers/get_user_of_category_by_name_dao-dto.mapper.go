@@ -18,7 +18,7 @@ func GetUsersOfCategoryByNameDAOtoDTO(competitorsDAO []*dao.GetCompetitorsOfCate
 			ID:                  competitor.ID.Hex(),
 			CurrentPosition:     competitor.CurrentPosition,
 			Points:              competitor.Points,
-			RegisteredPositions: competitor.RegisteredPositions,
+			RegisteredPositions: MapGetUsersOfCategoryByNameRegisteredPositionDAOToDTO(competitor.RegisteredPositions),
 			Users:               participantsDAOtoDTO(competitor.Users),
 			GuestUsers:          participantsDAOtoDTO(competitor.GuestUsers),
 		}
@@ -44,4 +44,17 @@ func participantsDAOtoDTO(participantsDAO []*dao.GetCompetitorsOfCategoryUserDAO
 
 	return paticipantsDTO
 
+}
+
+func MapGetUsersOfCategoryByNameRegisteredPositionDAOToDTO(dao []dao.RegistedPositionDAORes) []dto.RegistedPositionDTORes {
+	registeredPositions := make([]dto.RegistedPositionDTORes, len(dao))
+
+	for i, rp := range registeredPositions {
+		registeredPositions[i] = dto.RegistedPositionDTORes{
+			Date:     rp.Date,
+			Position: rp.Position,
+		}
+	}
+
+	return registeredPositions
 }

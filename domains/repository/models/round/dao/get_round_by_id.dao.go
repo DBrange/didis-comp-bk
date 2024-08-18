@@ -7,9 +7,12 @@ import (
 )
 
 type GetRoundByIDDAORes struct {
-	ID           primitive.ObjectID `bson:"_id"`
-	TournamentID primitive.ObjectID `bson:"tournament_id"`
-	Name         models.ROUND       `bson:"round"`
-	TotalPrize   float64            `bson:"total_prize"`
+	ID                *primitive.ObjectID `bson:"_id"`
+	TournamentID      *primitive.ObjectID `bson:"tournament_id"`
+	Name              models.ROUND        `bson:"round"`
+	TotalPrize        float64             `bson:"total_prize"`
+	Points            int                 `bson:"points"`
+	TotalClassified   int                 `bson:"total_classify"`
+	BestThird         int                 `bson:"total_classify"`
 	common.GetBaseDAO `bson:",inline"`
 }

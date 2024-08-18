@@ -34,5 +34,6 @@ func (s *CategoryService) AddCompetitorInCategory(ctx context.Context, categoryI
 	if err := s.categoryQueryer.IncrementTotalParticipants(ctx, categoryID); err != nil{
 		return customerrors.HandleErrMsg(err, "category", "error when increment total participants")
 	}
+	
 return nil
 }

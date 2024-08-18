@@ -7,8 +7,8 @@ import (
 )
 
 type CreateCompetitorMatchDAOReq struct {
-	CompetitorID primitive.ObjectID `bson:"competitor_id"`
-	MatchID      primitive.ObjectID `bson:"match_id"`
+	CompetitorID *primitive.ObjectID `bson:"competitor_id"`
+	MatchID      *primitive.ObjectID `bson:"match_id"`
 	Position     int                `bson:"position"`
 	CreatedAt    time.Time          `bson:"created_at"`
 	UpdatedAt    time.Time          `bson:"updated_at"`

@@ -1,0 +1,32 @@
+package models
+
+type ORGANIZE_BRACKET int
+
+const (
+	ORGANIZE_BRACKET_RANK       ORGANIZE_BRACKET = 1
+	ORGANIZE_BRACKET_RANDOM     ORGANIZE_BRACKET = 2
+	ORGANIZE_BRACKET_FIRST_FOUR ORGANIZE_BRACKET = 3
+)
+
+func (g ORGANIZE_BRACKET) IsValid() bool {
+	switch g {
+	case ORGANIZE_BRACKET_RANK, ORGANIZE_BRACKET_RANDOM, ORGANIZE_BRACKET_FIRST_FOUR:
+		return true
+	}
+	return false
+}
+
+type ORGANIZE_TYPE int
+
+const (
+	ORGANIZE_TYPE_MATCH      ORGANIZE_TYPE = 1
+	ORGANIZE_TYPE_COMPETITOR ORGANIZE_TYPE = 2
+)
+
+func (g ORGANIZE_TYPE) IsValid() bool {
+	switch g {
+	case ORGANIZE_TYPE_MATCH, ORGANIZE_TYPE_COMPETITOR:
+		return true
+	}
+	return false
+}

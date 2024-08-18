@@ -132,6 +132,45 @@ func (r *Repository) VerifyCompetitorExists(ctx context.Context, competitorOID *
 	return nil
 }
 
+func (r *Repository) VerifyMultipleCompetitorsExists(ctx context.Context, competitorOIDs []*primitive.ObjectID) error {
+	if len(competitorOIDs) == 0 {
+		return nil // No hay competidores para verificar
+	}
+
+	filter := bson.M{"_id": bson.M{"$in": competitorOIDs}}
+	opts := options.Find().SetProjection(bson.M{"_id": 1})
+
+	cursor, err := r.competitorColl.Find(ctx, filter, opts)
+	if err != nil {
+		return fmt.Errorf("error when searching for competitors: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var foundIDs []*primitive.ObjectID
+	for cursor.Next(ctx) {
+		var result struct {
+			ID *primitive.ObjectID `bson:"_id"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return fmt.Errorf("error decoding competitor: %w", err)
+		}
+		foundIDs = append(foundIDs, result.ID)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return fmt.Errorf("error iterating cursor: %w", err)
+	}
+
+	if len(foundIDs) != len(competitorOIDs) {
+		missingIDs := r.getMissingIDs(competitorOIDs, foundIDs)
+		return fmt.Errorf("%w: the following competitors were not found: %v", customerrors.ErrNotFound, missingIDs)
+	}
+
+	return nil
+}
+
+
+
 // func (r *Repository) CreateCompetitorType(ctx context.Context, competitorType models.COMPETITOR_TYPE, userID string) (string, error) {
 // 	type createTypeCompetitor func(ctx context.Context) (string, error)
 

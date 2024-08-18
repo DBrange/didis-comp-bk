@@ -11,7 +11,7 @@ func CreateMatchDTOtoDAO(matchDTO *dto.CreateMatchDTOReq, convert utils.ConvertT
 	if err != nil {
 		return nil, err
 	}
-	
+
 	tournamentOID, err := convert(matchDTO.TournamentID)
 	if err != nil {
 		return nil, err
@@ -22,6 +22,7 @@ func CreateMatchDTOtoDAO(matchDTO *dto.CreateMatchDTOReq, convert utils.ConvertT
 		RoundID:      roundOID,
 		Result:       matchDTO.Result,
 		TournamentID: tournamentOID,
+		Position:     matchDTO.Position,
 	}
 
 	return matchDAO, nil

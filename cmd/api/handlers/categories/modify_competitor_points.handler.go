@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/utils"
@@ -19,7 +18,6 @@ func (h *Handler) ModifyCompetitorPoints(c *gin.Context) {
 
 	pointsNum, err := utils.ParseToInt(c, "points")
 	if err != nil {
-		fmt.Print("aaaa")
 		customerrors.ErrorResponse(err, c)
 		return
 	}

@@ -45,4 +45,6 @@ type ForQueryingCategory interface {
 	CreateDouble(ctx context.Context, doubleInfoDTO *dto.CreateDoubleDTOReq) (string, error)
 	CreateTeam(ctx context.Context, teamInfoDTO *dto.CreateTeamDTOReq) (string, error)
 	CreateCompetitorStats(ctx context.Context, competitorID string) error
+	GetCategoryRegistrationSortedByPoints(ctx context.Context, categoryID string) ([]*dto.GetCategoryRegistrationSortedByPointsDTORes, error)
+	UpdateCategoryRegistrationCurrentPosition(ctx context.Context, categoryID string, categoryRegistrationDTO []*dto.GetCategoryRegistrationSortedByPointsDTORes) error
 }

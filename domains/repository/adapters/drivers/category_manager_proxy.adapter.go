@@ -84,7 +84,7 @@ func (a *CategoryManagerProxyAdapter) GetCompetitorsOfCategoryByName(ctx context
 	} else {
 		lastOID = nil
 	}
-	return a.repository.GetCompetitorsOfCategoryByName(ctx, categoryOID,  sport, competitorType, limit, lastOID,name)
+	return a.repository.GetCompetitorsOfCategoryByName(ctx, categoryOID, sport, competitorType, limit, lastOID, name)
 }
 
 func (a *CategoryManagerProxyAdapter) GetCompetitorsFollowed(
@@ -214,4 +214,25 @@ func (a *CategoryManagerProxyAdapter) CreateTeam(ctx context.Context, teamInfoDA
 func (a *CategoryManagerProxyAdapter) CreateCompetitorStats(ctx context.Context, competitorOID *primitive.ObjectID) error {
 	return a.repository.CreateCompetitorStats(ctx, competitorOID)
 
+}
+
+func (a *CategoryManagerProxyAdapter) GetCategoryRegistrationSortedByPoints(ctx context.Context, categoryID string) ([]*category_registration_dao.GetCategoryRegistrationSortedByPointsDAORes, error) {
+	categoryOID, err := a.ConvertToObjectID(categoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.repository.GetCategoryRegistrationSortedByPoints(ctx, categoryOID)
+}
+
+func (a *CategoryManagerProxyAdapter) UpdateCategoryRegistrationCurrentPosition(ctx context.Context, categoryOID *primitive.ObjectID, categoryRegistration []*category_registration_dao.GetCategoryRegistrationSortedByPointsDAORes) error {
+	return a.repository.UpdateCategoryRegistrationCurrentPosition(ctx, categoryOID, categoryRegistration)
+}
+
+func (a *CategoryManagerProxyAdapter) VerifyTournamentGroupInTournament(ctx context.Context, tournamentOID *primitive.ObjectID, groupOIDs []*primitive.ObjectID) error {
+	return a.repository.VerifyTournamentGroupInTournament(ctx, tournamentOID, groupOIDs)
+}
+
+func (a *CategoryManagerProxyAdapter) DeletePotByPosition(ctx context.Context, position int, tournamentOID *primitive.ObjectID) error {
+	return a.repository.DeletePotByPosition(ctx, position, tournamentOID)
 }

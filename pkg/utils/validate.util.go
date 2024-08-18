@@ -16,6 +16,7 @@ func init() {
 
 	Validate.RegisterValidation("genre", validateGenre)
 	Validate.RegisterValidation("sport", validateSport)
+	Validate.RegisterValidation("round", validateRound)
 	Validate.RegisterValidation("surface", validateSurface)
 	Validate.RegisterValidation("tournamentCapacity", validateTournamentCapacity)
 	Validate.RegisterValidation("competitorType", validateCompetitorType)
@@ -37,6 +38,11 @@ func validateGenre(fl validator.FieldLevel) bool {
 
 func validateSport(fl validator.FieldLevel) bool {
 	genre := models.SPORT(fl.Field().String())
+	return genre.IsValid()
+}
+
+func validateRound(fl validator.FieldLevel) bool {
+	genre := models.ROUND(fl.Field().String())
 	return genre.IsValid()
 }
 

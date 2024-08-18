@@ -1,9 +1,9 @@
 package dto
 
 type GetCompetitorsOfCategoryDTORes struct {
-	ID        string                                `json:"id"`
+	ID                  string                                `json:"id"`
 	CurrentPosition     *int                                  `json:"current_position"`
-	RegisteredPositions []int                                 `json:"registered_positions"`
+	RegisteredPositions []RegistedPositionDTORes                    `json:"registered_positions"`
 	Points              int                                   `json:"points"`
 	Users               []*GetCompetitorsOfCategoryUserDTORes `json:"users"`
 	GuestUsers          []*GetCompetitorsOfCategoryUserDTORes `json:"guest_users"`

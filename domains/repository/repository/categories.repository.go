@@ -352,7 +352,6 @@ func (r *Repository) GetTournamentsFromCategory(ctx context.Context, categoryOID
 		return nil, fmt.Errorf("error when decoding category: %w", err)
 	}
 
-	fmt.Printf("esta es la data: %d", len(result))
 	if len(result) == 0 {
 		return []dao.GetTournamentsFromCategoryDAORes{}, nil
 	}

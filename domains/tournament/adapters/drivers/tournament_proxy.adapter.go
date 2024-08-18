@@ -40,3 +40,59 @@ func (a *TournamentProxyAdapter) ListCompetitorsInTournament(
 ) ([]*dto.GetCompetitorsInTournamentDTORes, error) {
 	return a.tournamentService.ListCompetitorsInTournament(ctx, tournamentID, categoryID, lastID, limit)
 }
+
+func (a *TournamentProxyAdapter) ModifyBracketMatch(ctx context.Context, matchID string, competitors []*dto.UpdateCompetitorMatchDTOReq) error {
+	return a.tournamentService.ModifyBracketMatch(ctx, matchID, competitors)
+}
+
+func (a *TournamentProxyAdapter) ModifyRoundTotalPrize(ctx context.Context, roundID string, totalPrize float64) error {
+	return a.tournamentService.ModifyRoundTotalPrize(ctx, roundID, totalPrize)
+}
+
+func (a *TournamentProxyAdapter) GetRoundWithMatches(ctx context.Context, roundID, categoryID string) (*dto.GetRoundWithMatchesDTORes, error) {
+	return a.tournamentService.GetRoundWithMatches(ctx, roundID, categoryID)
+}
+
+func (a *TournamentProxyAdapter) OrganizeBracket(ctx context.Context,tournamentID string, competitorsDTOs []*dto.UpdateCompetitorMatchDTOReq) error {
+	return a.tournamentService.OrganizeBracket(ctx, tournamentID,competitorsDTOs)
+}
+
+func (a *TournamentProxyAdapter) EndMatch(ctx context.Context, match *dto.EndMatchDTOReq) error {
+	return a.tournamentService.EndMatch(ctx, match)
+}
+
+func (a *TournamentProxyAdapter) ModifyRoundPoints(ctx context.Context, roundID string, points int) error {
+	return a.tournamentService.ModifyRoundPoints(ctx, roundID, points)
+}
+
+func (a *TournamentProxyAdapter) EndTournament(ctx context.Context, tournamentID, competitorID string) error {
+	return a.tournamentService.EndTournament(ctx, tournamentID, competitorID)
+}
+
+func (a *TournamentProxyAdapter) AddCompetitorInTournamentGroup(ctx context.Context, groupID, tournamentID string, competitorID string) error {
+	return a.tournamentService.AddCompetitorInTournamentGroup(ctx, groupID, tournamentID, competitorID)
+}
+
+func (a *TournamentProxyAdapter) OrganizeTournamentGroups(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT) error {
+	return a.tournamentService.OrganizeTournamentGroups(ctx, tournamentID, roundID, competitorDTOs, sport)
+}
+
+func (a *TournamentProxyAdapter) ModifyTournamentGroups(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT) error {
+	return a.tournamentService.ModifyTournamentGroups(ctx, tournamentID, roundID, competitorDTOs, sport)
+}
+
+func (a *TournamentProxyAdapter) OrganizePots(ctx context.Context, tournamentID string, potDTOs []*dto.SetPotCompetitorDTOReq) error {
+	return a.tournamentService.OrganizePots(ctx, tournamentID, potDTOs)
+}
+
+func (a *TournamentProxyAdapter) ModifyPots(ctx context.Context, tournamentID, potID, competitorID string, add bool) error {
+	return a.tournamentService.ModifyPots(ctx, tournamentID, potID, competitorID, add)
+}
+
+func (a *TournamentProxyAdapter) UpdateQuantityPotsInTournament(ctx context.Context, tournamentID string, position int, add bool) error {
+	return a.tournamentService.UpdateQuantityPotsInTournament(ctx, tournamentID, position, add)
+}
+
+func (a *TournamentProxyAdapter) UpdateQuantityGroupsInTournament(ctx context.Context, tournamentID string, position int, add bool) error{
+	return a.tournamentService.UpdateQuantityGroupsInTournament(ctx, tournamentID, position, add)
+}

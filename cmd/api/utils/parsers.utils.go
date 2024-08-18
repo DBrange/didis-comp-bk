@@ -33,3 +33,17 @@ func ParseToInt(c *gin.Context, query string) (int, error) {
 	}
 	return queryInt, nil
 }
+
+func ParseToFloat(c *gin.Context, query string) (float64, error) {
+	queryStr := c.Query(query)
+
+	queryFloat, err := strconv.ParseFloat(queryStr, 64) 
+	if err != nil {
+		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
+		ErrorHandlers := customerrors.CreateErrorHandlers("")
+		errMsgTemplate := "error validation "
+		return 0, customerrors.HandleError(err, ErrorHandlers, errMsgTemplate)
+	}
+	return queryFloat, nil
+}
+

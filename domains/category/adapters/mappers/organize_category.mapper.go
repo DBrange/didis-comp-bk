@@ -8,7 +8,7 @@ func OrganizeCategoryMapper(organizerCategory *dto.OrganizeCategoryDTOReq) *dto.
 	categoryDTO := &dto.CreateCategoryDTOReq{
 		Name:              organizerCategory.Name,
 		Genre:             organizerCategory.Genre,
-		TotalParticipants: organizerCategory.TotalParticipants,
+		// TotalParticipants: organizerCategory.TotalParticipants,
 		RangeMovement:     organizerCategory.RangeMovement,
 		Sport:             organizerCategory.Sport,
 	}

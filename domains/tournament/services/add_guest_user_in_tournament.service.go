@@ -12,8 +12,12 @@ import (
 func (s *TournamentService) AddGuestUserInTournament(ctx context.Context, tournamentID string, guestUsersDTO []*dto.CreateGuestUserDTOReq, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error {
 	var guestUserIDs []string
 
-	if err := s.tournamentQueryer.VerifyTournamentsExists(ctx, tournamentID); err != nil {
-		return customerrors.HandleErrMsg(err, "tournament", "error when creating a tournament registration")
+	available, err := s.tournamentQueryer.VerifyTournamentsCapacity(ctx, tournamentID)
+	if err != nil {
+		return customerrors.HandleErrMsg(err, "tournament", "error when verify if tournament exits")
+	}
+	if !available {
+		return customerrors.HandleErrMsg(err, "tournament", "tournament max capacity")
 	}
 
 	for _, guestUserDTO := range guestUsersDTO {
@@ -57,6 +61,10 @@ func (s *TournamentService) AddGuestUserInTournament(ctx context.Context, tourna
 		CompetitorID: competitorID,
 	}
 	if err := s.tournamentQueryer.CreateTournamentRegistration(ctx, tournamentRegistrationDTO); err != nil {
+		return customerrors.HandleErrMsg(err, "tournament", "error when creating a tournament registration")
+	}
+
+	if err := s.tournamentQueryer.IncrementTotalCompetitorsInTournament(ctx, tournamentID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when creating a tournament registration")
 	}
 

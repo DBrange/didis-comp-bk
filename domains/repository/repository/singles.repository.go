@@ -16,10 +16,6 @@ func (r *Repository) CreateSingle(ctx context.Context, singleInfoDAO *dao.Create
 
 	result, err := r.singleColl.InsertOne(ctx, singleInfoDAO)
 	if err != nil {
-		if mongo.IsDuplicateKeyError(err) {
-			return "", fmt.Errorf("%w: error duplicate key for single: %s", customerrors.ErrDuplicateKey, err.Error())
-		}
-
 		if writeErr, ok := err.(mongo.WriteException); ok {
 			for _, we := range writeErr.WriteErrors {
 				if we.Code == 14 {

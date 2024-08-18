@@ -7,8 +7,9 @@ import (
 )
 
 type UpdateMatchDAOReq struct {
-	Result *string             `bson:"result,omitempty"`
-	Winner *primitive.ObjectID `bson:"winner,omitempty"`
+	Result   *string             `bson:"result,omitempty"`
+	Winner   *primitive.ObjectID `bson:"winner,omitempty"`
+	Position int                 `bson:"position,omitempty"`
 	// Votes        map[string]string  `bson:"votes,omitempty"`
 	UpdatedAt time.Time `bson:"updated_at,omitempty"`
 }

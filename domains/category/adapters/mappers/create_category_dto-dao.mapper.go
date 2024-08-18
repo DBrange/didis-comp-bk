@@ -9,7 +9,7 @@ func CreateCategoryDTOtoDAO(categoryDTO *dto.CreateCategoryDTOReq) *dao.CreateCa
 	categoryDAO := &dao.CreateCategoryDAOReq{
 		Name:              categoryDTO.Name,
 		Genre:             categoryDTO.Genre,
-		TotalParticipants: categoryDTO.TotalParticipants,
+		// TotalParticipants: categoryDTO.TotalParticipants,
 		RangeMovement:     categoryDTO.RangeMovement,
 		AverageScore:      categoryDTO.AverageScore,
 		Sport:             categoryDTO.Sport,

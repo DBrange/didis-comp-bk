@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
-	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
 	competitor_stats_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/competitor_stats/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -58,31 +58,86 @@ func (r *Repository) GetCompetitorStatsByID(ctx context.Context, competitorStats
 	return &competitorStats, nil
 }
 
-func (r *Repository) UpdateCompetitorStats(ctx context.Context, competitorStatsID string, competitorStatsInfoDAO *competitor_stats_dao.UpdateCompetitorStatsDAOReq) error {
-	competitorStatsOID, err := r.ConvertToObjectID(competitorStatsID)
-	if err != nil {
-		return err
+// func (r *Repository) UpdateCompetitorStats(ctx context.Context, competitorStatsID string, competitorStatsInfoDAO *competitor_stats_dao.UpdateCompetitorStatsDAOReq) error {
+// 	competitorStatsOID, err := r.ConvertToObjectID(competitorStatsID)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	competitorStatsInfoDAO.RenewUpdate()
+
+// 	filter := bson.M{"_id": *competitorStatsOID}
+// 	update, err := api_assets.StructToBsonMap(competitorStatsInfoDAO)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	result, err := r.competitorStatsColl.UpdateOne(
+// 		ctx,
+// 		filter,
+// 		bson.M{"$set": update},
+// 	)
+// 	if err != nil {
+// 		return fmt.Errorf("error updating competitorStats: %w", err)
+// 	}
+
+// 	if result.MatchedCount == 0 {
+// 		return fmt.Errorf("%w: no competitorStats found with id: %s", customerrors.ErrNotFound, competitorStatsID)
+// 	}
+
+// 	return nil
+// }
+
+func (r *Repository) AddMatchInCompetitorStats(ctx context.Context, competitorOID, matchOID *primitive.ObjectID) error {
+	if competitorOID == nil{
+		return nil
 	}
-
-	competitorStatsInfoDAO.RenewUpdate()
-
-	filter := bson.M{"_id": *competitorStatsOID}
-	update, err := api_assets.StructToBsonMap(competitorStatsInfoDAO)
-	if err != nil {
-		return err
+	
+	filter := bson.M{"competitor_id": competitorOID}
+	update := bson.M{
+		"$push": bson.M{"matches": matchOID},
+		"$set":  bson.M{"updated_at": time.Now().UTC()},
 	}
 
 	result, err := r.competitorStatsColl.UpdateOne(
 		ctx,
 		filter,
-		bson.M{"$set": update},
+		update,
 	)
 	if err != nil {
 		return fmt.Errorf("error updating competitorStats: %w", err)
 	}
 
 	if result.MatchedCount == 0 {
-		return fmt.Errorf("%w: no competitorStats found with id: %s", customerrors.ErrNotFound, competitorStatsID)
+		return fmt.Errorf("%w: no competitorStats found with competitor_id: %s", customerrors.ErrNotFound, competitorOID.Hex())
+	}
+
+	return nil
+}
+
+func (r *Repository) UpdateCompetitorStats(ctx context.Context, competitorOID *primitive.ObjectID, winner bool) error {
+	incrementField := "total_wins"
+	if !winner {
+		incrementField = "total_losses"
+	}
+
+	filter := bson.M{"competitor_id": competitorOID}
+	update := bson.M{
+		"$inc": bson.M{incrementField: 1},
+		"$set": bson.M{"updated_at": time.Now().UTC()},
+	}
+
+	result, err := r.competitorStatsColl.UpdateOne(
+		ctx,
+		filter,
+		update,
+	)
+	if err != nil {
+		return fmt.Errorf("error updating competitorStats: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: no competitorStats found with competitor_id: %s", customerrors.ErrNotFound, competitorOID.Hex())
 	}
 
 	return nil
@@ -95,4 +150,91 @@ func (r *Repository) DeleteCompetitorStats(ctx context.Context, competitorStatsI
 	}
 
 	return nil
+}
+
+func (r *Repository) AddTournamentWonInCompetitorStats(ctx context.Context, competitorOID, tournamentOID *primitive.ObjectID) error {
+	filter := bson.M{"competitor_id": competitorOID}
+
+	update := bson.M{"$push": bson.M{"tournaments_won": tournamentOID}}
+
+	result, err := r.competitorStatsColl.UpdateOne(
+		ctx,
+		filter,
+		update,
+	)
+	if err != nil {
+		return fmt.Errorf("error updating competitorStats: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: no competitorStats found with competitor_id: %s", customerrors.ErrNotFound, competitorOID.Hex())
+	}
+
+	return nil
+}
+
+func (r *Repository) AddPrizeInMultipleCompetitorStats(ctx context.Context, competitorOIDs []*primitive.ObjectID, prize float64) error {
+	// Filtro para seleccionar los documentos que coincidan con los IDs de los competidores
+	filter := bson.M{"competitor_id": bson.M{"$in": competitorOIDs}}
+
+	// Operación de actualización para incrementar el campo total_prize
+	update := bson.M{
+		"$inc": bson.M{
+			"money_earned": prize,
+		},
+	}
+
+	// Ejecutar la actualización en la colección
+	_, err := r.competitorStatsColl.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("error updating total_prize: %v", err)
+	}
+
+	return nil
+}
+
+func (r *Repository) RemoveMultipleCompetitorStatsMatches(ctx context.Context, competitorOIDs, matchesToRemove []*primitive.ObjectID) error {
+	filter := bson.M{"competitor_id": bson.M{"$in": competitorOIDs}}
+		fmt.Println("a")
+		
+		cursor, err := r.competitorStatsColl.Find(ctx, filter)
+		if err != nil {
+			return fmt.Errorf("error retrieving category registrations: %w", err)
+		}
+		defer cursor.Close(ctx)
+		
+		for cursor.Next(ctx) {
+			var result struct {
+				Matches      []*primitive.ObjectID `bson:"matches"`
+				CompetitorID *primitive.ObjectID `bson:"competitor_id"`
+			}
+			fmt.Println("b")
+			
+			if err := cursor.Decode(&result); err != nil {
+				return fmt.Errorf("error decoding competitor: %w", err)
+			}
+			
+			fmt.Println("c")
+		competitorFilter := bson.M{"competitor_id": result.CompetitorID}
+
+		update := bson.M{
+			"$pull": bson.M{
+				"matches": bson.M{
+					"$in": matchesToRemove,
+				},
+			},
+		}
+
+		_, err := r.competitorStatsColl.UpdateOne(ctx, competitorFilter, update)
+		if err != nil {
+			return fmt.Errorf("error updating competitor %v: %w", result.CompetitorID, err)
+		}
+	}
+
+	if err := cursor.Err(); err != nil {
+		return fmt.Errorf("error iterating cursor: %w", err)
+	}
+
+	return nil
+
 }

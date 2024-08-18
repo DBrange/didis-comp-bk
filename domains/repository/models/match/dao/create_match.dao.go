@@ -13,6 +13,7 @@ type CreateMatchDAOReq struct {
 	Result       string              `bson:"result"`
 	Winner       *primitive.ObjectID `bson:"winner"`
 	TournamentID *primitive.ObjectID `bson:"tournament_id"`
+	Position     int                 `bson:"position"`
 	// Votes        map[string]string  `bson:"votes"`
 	CreatedAt time.Time  `bson:"created_at"`
 	UpdatedAt time.Time  `bson:"updated_at"`

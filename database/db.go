@@ -17,7 +17,7 @@ var (
 	// pwd      = "password"
 	// host     = "mongo"
 	// port     = "27017"
-	database = "didis-comp-bk-api"
+	Database = "didis-comp-bk-api"
 )
 
 var MongoClient *mongo.Client
@@ -61,7 +61,7 @@ func init() {
 }
 
 func GetCollection(collection string) *mongo.Collection {
-	return MongoClient.Database(database).Collection(collection)
+	return MongoClient.Database(Database).Collection(collection)
 }
 
 func GetCollections(collectionNames []string) (map[string]*mongo.Collection, error) {

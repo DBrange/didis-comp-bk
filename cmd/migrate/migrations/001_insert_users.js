@@ -1,0 +1,170 @@
+require("dotenv").config(); // Cargar las variables de entorno
+const { MongoClient, ObjectId } = require("mongodb");
+
+const uri = process.env.MONGO_URI; // Leer URI de MongoDB desde las variables de entorno
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+async function run() {
+  try {
+    await client.connect();
+    const db = client.db(process.env.DB_NAME);
+    const collection = db.collection("users");
+
+    // Insertar datos de prueba
+    await collection.insertMany([
+      {
+        _id: new ObjectId("66b8252ee85d47dc5e737abc"),
+        roles: [new ObjectId("66b8252ee85d47dc5e737ab8")],
+        first_name: "Julian",
+        last_name: "Coria",
+        username: "johndoe",
+        birthdate: new Date("1990-01-01T00:00:00Z"),
+        password: "asd123ASD.",
+        email: "john.doe@example.com",
+        phone: "1234567890",
+        image: "path/to/image.jpg",
+        genre: "M",
+        location_id: new ObjectId("66bae5f38f7e1d13c7687467"),
+        created_at: new Date("1990-01-01T00:00:00Z"),
+        updated_at: new Date("1990-01-01T00:00:00Z"),
+      },
+      {
+        _id: new ObjectId("66b8253b625966db1dc69ae7"),
+        roles: [new ObjectId("66b8252ee85d47dc5e737ab8")],
+        first_name: "John",
+        last_name: "Doe",
+        username: "johndoe",
+        birthdate: new Date("1990-01-01T00:00:00Z"),
+        password: "asd123ASD.",
+        email: "john.doe@example.com",
+        phone: "1234567890",
+        image: "path/to/image.jpg",
+        genre: "M",
+        location_id: new ObjectId("66bae5f38f7e1d13c7687468"),
+        created_at: new Date("1990-01-01T00:00:00Z"),
+        updated_at: new Date("1990-01-01T00:00:00Z"),
+      },
+      {
+        _id: new ObjectId("66b8253d625966db1dc69aea"),
+        roles: [new ObjectId("66b8252ee85d47dc5e737ab8")],
+        first_name: "Didier",
+        last_name: "Brange",
+        username: "nose",
+        birthdate: new Date("1990-01-01T00:00:00Z"),
+        password: "asd123ASD.",
+        email: "nose@example.com",
+        phone: "1234567890",
+        image: "path/to/image.jpg",
+        genre: "M",
+        location_id: new ObjectId("66bae5f38f7e1d13c7687469"),
+        created_at: new Date("1990-01-01T00:00:00Z"),
+        updated_at: new Date("1990-01-01T00:00:00Z"),
+      },
+      {
+        _id: new ObjectId("66b82540625966db1dc69aed"),
+        roles: [new ObjectId("66b8252ee85d47dc5e737ab8")],
+        first_name: "Amelie",
+        last_name: "Brange",
+        username: "nose",
+        birthdate: new Date("1990-01-01T00:00:00Z"),
+        password: "asd123ASD.",
+        email: "nose@example.com",
+        phone: "1234567890",
+        image: "path/to/image.jpg",
+        genre: "M",
+        location_id: new ObjectId("66bae5f38f7e1d13c768746a"),
+        created_at: new Date("1990-01-01T00:00:00Z"),
+        updated_at: new Date("1990-01-01T00:00:00Z"),
+      },
+      {
+        _id: new ObjectId("66b82543625966db1dc69af0"),
+        roles: [new ObjectId("66b8252ee85d47dc5e737ab8")],
+        first_name: "Camille",
+        last_name: "Brange",
+        username: "nose",
+        birthdate: new Date("1990-01-01T00:00:00Z"),
+        password: "asd123ASD.",
+        email: "nose@example.com",
+        phone: "1234567890",
+        image: "path/to/image.jpg",
+        genre: "M",
+        location_id: new ObjectId("66bae5f38f7e1d13c768746b"),
+        created_at: new Date("1990-01-01T00:00:00Z"),
+        updated_at: new Date("1990-01-01T00:00:00Z"),
+      },
+      {
+        _id: new ObjectId("66b82548625966db1dc69af3"),
+        roles: [new ObjectId("66b8252ee85d47dc5e737ab8")],
+        first_name: "Raul",
+        last_name: "Brange",
+        username: "nose",
+        birthdate: new Date("1990-01-01T00:00:00Z"),
+        password: "asd123ASD.",
+        email: "nose@example.com",
+        phone: "1234567890",
+        image: "path/to/image.jpg",
+        genre: "M",
+        location_id: new ObjectId("66bae5f38f7e1d13c768746c"),
+        created_at: new Date("1990-01-01T00:00:00Z"),
+        updated_at: new Date("1990-01-01T00:00:00Z"),
+      },
+      {
+        _id: new ObjectId("66b8254a625966db1dc69af6"),
+        roles: [new ObjectId("66b8252ee85d47dc5e737ab8")],
+        first_name: "Nancy",
+        last_name: "Coria",
+        username: "nose",
+        birthdate: new Date("1990-01-01T00:00:00Z"),
+        password: "asd123ASD.",
+        email: "nose@example.com",
+        phone: "1234567890",
+        image: "path/to/image.jpg",
+        genre: "M",
+        location_id: new ObjectId("66bae5f38f7e1d13c768746d"),
+        created_at: new Date("1990-01-01T00:00:00Z"),
+        updated_at: new Date("1990-01-01T00:00:00Z"),
+      },
+      {
+        _id: new ObjectId("66b8254c625966db1dc69af9"),
+        roles: [new ObjectId("66b8252ee85d47dc5e737ab8")],
+        first_name: "Javier",
+        last_name: "Coria",
+        username: "nose",
+        birthdate: new Date("1990-01-01T00:00:00Z"),
+        password: "asd123ASD.",
+        email: "nose@example.com",
+        phone: "1234567890",
+        image: "path/to/image.jpg",
+        genre: "M",
+        location_id: new ObjectId("66bae5f38f7e1d13c768746e"),
+        created_at: new Date("1990-01-01T00:00:00Z"),
+        updated_at: new Date("1990-01-01T00:00:00Z"),
+      },
+      {
+        _id: new ObjectId("64dabc1234567890abcdef00"),
+        roles: [new ObjectId("66b8252ee85d47dc5e737ab8")],
+        first_name: "Damian",
+        last_name: "Coria",
+        username: "nose",
+        birthdate: new Date("1990-01-01T00:00:00Z"),
+        password: "asd123ASD.",
+        email: "nose@example.com",
+        phone: "1234567890",
+        image: "path/to/image.jpg",
+        genre: "M",
+        location_id: new ObjectId("66bae5f38f7e1d13c768746f"),
+        created_at: new Date("1990-01-01T00:00:00Z"),
+        updated_at: new Date("1990-01-01T00:00:00Z"),
+      },
+    ]);
+
+    console.log("Datos insertados");
+  } finally {
+    await client.close();
+  }
+}
+
+run().catch(console.dir);

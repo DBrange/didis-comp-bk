@@ -10,4 +10,5 @@ type CreateMatchDTOReq struct {
 	Result       string       `json:"result"`
 	Winner       string       `json:"winner"`
 	TournamentID string       `json:"tournament_id"`
+	Position     int          `json:"position"`
 }

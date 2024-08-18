@@ -18,7 +18,7 @@ type CreateUserDAOReq struct {
 	Image      *string              `bson:"image"`
 	Active     bool                 `bson:"active"`
 	Genre      models.GENRE         `bson:"genre"`
-	Roles      []primitive.ObjectID `bson:"roles"`
+	Roles      []*primitive.ObjectID `bson:"roles"`
 	LocationID *primitive.ObjectID  `bson:"location_id"`
 	PaymentID  *primitive.ObjectID  `bson:"payment_id"`
 	CreatedAt  time.Time            `bson:"created_at"`

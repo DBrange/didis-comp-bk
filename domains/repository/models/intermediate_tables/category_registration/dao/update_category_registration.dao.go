@@ -5,8 +5,8 @@ import (
 )
 
 type UpdateCategoryRegistrationDAOReq struct {
-	Points               *int   `bson:"points,omitempty"`
-	RegisteredPositions  *[]int `bson:"registered_positions,omitempty"`
-	CurrentPosition      *int   `bson:"current_position,omitempty"`
+	Points               *int                      `bson:"points,omitempty"`
+	RegisteredPositions  *[]RegistedPositionDAORes `bson:"registered_positions,omitempty"`
+	CurrentPosition      *int                      `bson:"current_position,omitempty"`
 	common.UpdateBaseDAO `bson:",inline"`
 }

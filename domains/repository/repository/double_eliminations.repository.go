@@ -42,8 +42,8 @@ func (r *Repository) CreateDoubleElimination(ctx context.Context, doubleEliminat
 func (r *Repository) CreateDoubleEliminationEmpty(ctx context.Context) (string, error) {
 	var doubleEliminationEmptyDAO dao.CreateDoubleEliminationDAOReq
 
-	doubleEliminationEmptyDAO.Matches = []primitive.ObjectID{}
-	doubleEliminationEmptyDAO.Rounds = []primitive.ObjectID{}
+	doubleEliminationEmptyDAO.Matches = []*primitive.ObjectID{}
+	doubleEliminationEmptyDAO.Rounds = []*primitive.ObjectID{}
 
 	doubleEliminationEmptyDAO.SetTimeStamp()
 

@@ -7,8 +7,8 @@ import (
 )
 
 type CreateDoubleEliminationDAOReq struct {
-	Matches   []primitive.ObjectID `bson:"matches"`
-	Rounds    []primitive.ObjectID `bson:"rounds"`
+	Matches   []*primitive.ObjectID `bson:"matches"`
+	Rounds    []*primitive.ObjectID `bson:"rounds"`
 	CreatedAt time.Time            `bson:"created_at"`
 	UpdatedAt time.Time            `bson:"updated_at"`
 	DeletedAt *time.Time           `bson:"deleted_at,omitempty"`

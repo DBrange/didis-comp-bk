@@ -256,3 +256,23 @@ func (a *CategoryQueryerAdapter) CreateCompetitorStats(ctx context.Context, comp
 
 	return a.adapter.CreateCompetitorStats(ctx, competitorOID)
 }
+
+func (a *CategoryQueryerAdapter) GetCategoryRegistrationSortedByPoints(ctx context.Context, categoryID string) ([]*dto.GetCategoryRegistrationSortedByPointsDTORes, error) {
+	categoryRegistrationSortedDAO, err := a.adapter.GetCategoryRegistrationSortedByPoints(ctx, categoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	categoryRegistrationSortedDTO := mappers.GetCategoryRegistrationSortedByPointsDAOtoDTO(categoryRegistrationSortedDAO)
+
+	return categoryRegistrationSortedDTO, nil
+}
+
+func (a *CategoryQueryerAdapter) UpdateCategoryRegistrationCurrentPosition(ctx context.Context, categoryID string, categoryRegistrationDTO []*dto.GetCategoryRegistrationSortedByPointsDTORes) error {
+	categoryRegistrationDAO, categoryOID, err := mappers.UpdateCategoryRegistrationCurrentPositionDTOtoDAO(categoryRegistrationDTO, categoryID, a.ConvertToObjectID)
+	if err != nil {
+		return err
+	}
+
+	return a.adapter.UpdateCategoryRegistrationCurrentPosition(ctx, categoryOID, categoryRegistrationDAO)
+}
