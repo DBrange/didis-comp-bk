@@ -2,9 +2,11 @@ package ports
 
 import (
 	"context"
+	"time"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	optional_models "github.com/DBrange/didis-comp-bk/cmd/api/models/options/tournament"
+	availability_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/avaliability/dao"
 	double_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/double/dao"
 	double_elimination_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/double_elimination/dao"
 	guest_user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/guest_user/dao"
@@ -59,7 +61,7 @@ type ForManagingTournament interface {
 	CreateTeam(ctx context.Context, teamInfoDAO *team_dao.CreateTeamDAOReq) (string, error)
 	ListCompetitorsInTournament(ctx context.Context, tournamentID, categoryID, lastID string, limit int) ([]*tournament_registration_dao.GetCompetitorsInTournamentDAORes, error)
 	VerifyCompetitorExists(ctx context.Context, competitorOID *primitive.ObjectID) error
-	VerifyTournamentsExists(ctx context.Context, tournamentOID *primitive.ObjectID) error
+	VerifyTournamentExists(ctx context.Context, tournamentOID *primitive.ObjectID) error
 	CreateCompetitorStats(ctx context.Context, competitorOID *primitive.ObjectID) error
 	UpdateCompetitorMatch(ctx context.Context, matchOID *primitive.ObjectID, competitorMatchDAO *competitor_match_dao.UpdateCompetitorMatchDAOReq) error
 	VerifyMatchExists(ctx context.Context, matchOID *primitive.ObjectID) error
@@ -133,4 +135,21 @@ type ForManagingTournament interface {
 	DeleteGroupByPosition(ctx context.Context, position int, tournamentOID *primitive.ObjectID) error
 	GetTournamentGroupPositions(ctx context.Context, tournamentOID string) ([]*pot_dao.PotOrGroupPositionDAORes, error)
 	GetTournamentGroupMatchesByPosition(ctx context.Context, position int, tournamentOID string) ([]string, []string, error)
+	GetDoubleElimRoundID(ctx context.Context, tournamentOID string, round models.ROUND) (string, error)
+	AddMatchInDoubleElim(ctx context.Context, doubleElimOID, matchOID *primitive.ObjectID) error
+	GetDoubleElimID(ctx context.Context, tournamentID string) (string, error)
+	GetTournamentRoundNames(ctx context.Context, tournamentOID string) ([]models.ROUND, error)
+	GetAllDoubleElimRoundIDs(ctx context.Context, doubleEliminationOID string) ([]string, error)
+	GetDoubleElimInfoToFinaliseIt(ctx context.Context, doubleElimOID string) (*double_elimination_dao.GetDoubleElimInfoToFinaliseItDAORes, error)
+	GetDoubleElimCompetitorChampion(ctx context.Context, doubleElimOID string) (string, error)
+	GetCompetitorChampion(ctx context.Context, tournamentOID string) (string, error)
+	GetMultipleAvailabilitiesByCompetitor(ctx context.Context, competitorOIDs []string) ([][]*availability_dao.GetDailyAvailabilityByIDDAORes, error)
+	UpdateMultipleMatchesDate(ctx context.Context, matchDates []*match_dao.MatchDateDAOReq) error
+	GetAvailabilityByTournamentID(ctx context.Context, tournamentID string) ([]*availability_dao.GetDailyAvailabilityByIDDAORes, error)
+	GetTournamentAvailavility(ctx context.Context, tournamentID string) (*tournament_dao.TournamentAvailabilityDAO, error)
+	CreateAvailability(ctx context.Context, userOID, competitorOID, tournamentOID *primitive.ObjectID) error
+	GetAllDatesMatchesFromTournament(ctx context.Context, tournamentID string) ([]time.Time, error)
+	UpdateMatchDate(ctx context.Context, matchID *primitive.ObjectID, date *time.Time) error
+	VerifyCompetitorIDInCompetitorUser(ctx context.Context, competitorIDs []*primitive.ObjectID) (bool, error)
+	UpdateTournamentStartDate(ctx context.Context, tournamentOID *primitive.ObjectID) error
 }

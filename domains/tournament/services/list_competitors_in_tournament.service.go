@@ -12,7 +12,7 @@ func (s *TournamentService) ListCompetitorsInTournament(
 	tournamentID, categoryID,
 	lastID string, limit int,
 ) ([]*dto.GetCompetitorsInTournamentDTORes, error) {
-	competitorsDTO, err := s.tournamentQueryer.GetCompetitorsInTournament(ctx, tournamentID, categoryID, lastID, limit)
+	competitorsDTO, err := s.tournamentQuerier.GetCompetitorsInTournament(ctx, tournamentID, categoryID, lastID, limit)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "tournament", "error when getting tournament competitors")
 	}

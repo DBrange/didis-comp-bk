@@ -8,7 +8,7 @@ import (
 )
 
 func (s *ProfileService) ModifyPassword(ctx context.Context, userID, newPassword, oldPassword string) error {
-	password, err := s.profileQueryer.GetUserPasswordByID(ctx, userID)
+	password, err := s.profileQuerier.GetUserPasswordByID(ctx, userID)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "profile", "error getting profile password")
 	}
@@ -23,7 +23,7 @@ func (s *ProfileService) ModifyPassword(ctx context.Context, userID, newPassword
 		return customerrors.HandleErrMsg(err, "profile", "error when hashing password")
 	}
 
-	if err := s.profileQueryer.UpdateUserPassword(ctx, userID, passwordHashed); err != nil {
+	if err := s.profileQuerier.UpdateUserPassword(ctx, userID, passwordHashed); err != nil {
 		return customerrors.HandleErrMsg(err, "profile", "error updating password")
 	}
 

@@ -12,13 +12,13 @@ import (
 func (s *CategoryService) AddGuestUserInCategory(ctx context.Context, categoryID string, guestUsersDTO []*dto.CreateGuestUserDTOReq, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error {
 	var guestUserIDs []string
 
-	if err := s.categoryQueryer.VerifyCategoryExists(ctx, categoryID); err != nil {
+	if err := s.categoryQuerier.VerifyCategoryExists(ctx, categoryID); err != nil {
 		return customerrors.HandleErrMsg(err, "category", "error verify category exists")
 	}
 
 	for _, guestUserDTO := range guestUsersDTO {
 		// Create guest user
-		guestUserID, err := s.categoryQueryer.CreateGuestUser(ctx, guestUserDTO)
+		guestUserID, err := s.categoryQuerier.CreateGuestUser(ctx, guestUserDTO)
 		if err != nil {
 			return customerrors.HandleErrMsg(err, "category", "error when creating a guest user")
 		}
@@ -33,12 +33,12 @@ func (s *CategoryService) AddGuestUserInCategory(ctx context.Context, categoryID
 	}
 
 	// Create competitor
-	competitorID, err := s.categoryQueryer.CreateCompetitor(ctx, sport, competitorType, competiorTypeID)
+	competitorID, err := s.categoryQuerier.CreateCompetitor(ctx, sport, competitorType, competiorTypeID)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "category", "error when creating a competitor")
 	}
 
-	if err := s.categoryQueryer.CreateCompetitorStats(ctx, competitorID); err != nil {
+	if err := s.categoryQuerier.CreateCompetitorStats(ctx, competitorID); err != nil {
 		return err
 	}
 
@@ -48,7 +48,7 @@ func (s *CategoryService) AddGuestUserInCategory(ctx context.Context, categoryID
 			GuestUserID:  guestUserID,
 			CompetitorID: competitorID,
 		}
-		s.categoryQueryer.CreateGuestCompetitor(ctx, guestCompetitorDTO)
+		s.categoryQuerier.CreateGuestCompetitor(ctx, guestCompetitorDTO)
 	}
 	// Add competitor in category
 	categoryRegistrationDTO := &dto.CreateCategoryRegistrationDTOReq{
@@ -57,11 +57,11 @@ func (s *CategoryService) AddGuestUserInCategory(ctx context.Context, categoryID
 	}
 
 	// Add competitor in category
-	if err := s.categoryQueryer.CreateCategoryRegistration(ctx, categoryRegistrationDTO); err != nil {
+	if err := s.categoryQuerier.CreateCategoryRegistration(ctx, categoryRegistrationDTO); err != nil {
 		return customerrors.HandleErrMsg(err, "category", "error when creating categoryRegistration")
 	}
 
-	if err := s.categoryQueryer.IncrementTotalParticipants(ctx, categoryID); err != nil {
+	if err := s.categoryQuerier.IncrementTotalParticipants(ctx, categoryID); err != nil {
 		return customerrors.HandleErrMsg(err, "category", "error when increment total participants")
 	}
 
@@ -74,16 +74,16 @@ func (r *CategoryService) CreateCompetitorType(ctx context.Context, competitorTy
 	createMap := map[models.COMPETITOR_TYPE]createTypeCompetitor{
 		models.COMPETITOR_TYPE_SINGLE: func(ctx context.Context) (string, error) {
 			singleDTO := &dto.CreateSingleDTOReq{}
-			return r.categoryQueryer.CreateSingle(ctx, singleDTO)
+			return r.categoryQuerier.CreateSingle(ctx, singleDTO)
 		},
 		models.COMPETITOR_TYPE_DOUBLE: func(ctx context.Context) (string, error) {
 			doubleDTO := &dto.CreateDoubleDTOReq{}
-			return r.categoryQueryer.CreateDouble(ctx, doubleDTO)
+			return r.categoryQuerier.CreateDouble(ctx, doubleDTO)
 		},
 		models.COMPETITOR_TYPE_TEAM: func(ctx context.Context) (string, error) {
 			teamDTO := &dto.CreateTeamDTOReq{}
 			teamDTO.Admins = []string{}
-			return r.categoryQueryer.CreateTeam(ctx, teamDTO)
+			return r.categoryQuerier.CreateTeam(ctx, teamDTO)
 		},
 	}
 

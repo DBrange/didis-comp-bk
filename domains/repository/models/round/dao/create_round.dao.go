@@ -11,7 +11,7 @@ type CreateRoundDAOReq struct {
 	Name                 models.ROUND       `bson:"round"`
 	TotalPrize           float64            `bson:"total_prize"`
 	Points               int                `bson:"points"`
-	TotalClassified      int                `bson:"total_classify"`
+	TotalClassified      int                `bson:"total_classified"`
 	BestThird            int                `bson:"best_third"`
 	common.CreateBaseDAO `bson:",inline"`
 }

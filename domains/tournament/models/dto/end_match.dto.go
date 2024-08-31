@@ -11,4 +11,5 @@ type EndMatchDTOReq struct {
 	Sport              models.SPORT `json:"sport" validate:"required,sport"`
 	Round              models.ROUND `json:"round" validate:"round"`
 	RoundID            string       `json:"round_id" validate:"required"`
+	DoubleElimID       string       `json:"double_elimination_id" validate:""`
 }

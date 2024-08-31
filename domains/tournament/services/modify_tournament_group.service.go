@@ -10,16 +10,15 @@ import (
 )
 
 func (s *TournamentService) ModifyTournamentGroups(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT) error {
-
 	// Verifications
 	if err := s.verificationsModifyTournamentGroups(ctx, tournamentID, roundID, competitorDTOs); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
 
-	err := s.tournamentQueryer.WithTransaction(ctx, func(sessCtx mongo.SessionContext) error {
+	err := s.tournamentQuerier.WithTransaction(ctx, func(sessCtx mongo.SessionContext) error {
 		for _, compecompetitorDTO := range competitorDTOs {
 			// Get matches of the groups
-			matchesToRemove, competitorIDs, err := s.tournamentQueryer.GetTournamentGroupMatches(ctx, compecompetitorDTO.GroupID)
+			matchesToRemove, competitorIDs, err := s.tournamentQuerier.GetTournamentGroupMatches(ctx, compecompetitorDTO.GroupID)
 			if err != nil {
 				return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 			}
@@ -30,12 +29,12 @@ func (s *TournamentService) ModifyTournamentGroups(ctx context.Context, tourname
 		}
 
 		// Add competitors on each group
-		if err := s.tournamentQueryer.AddCompetitorsToTournamentGroups(sessCtx, tournamentID, competitorDTOs); err != nil {
+		if err := s.tournamentQuerier.AddCompetitorsToTournamentGroups(sessCtx, tournamentID, competitorDTOs); err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 		}
 
 		// create matches alghoritm
-		if err := s.createRoundRobin(sessCtx, tournamentID, roundID, competitorDTOs, sport); err != nil {
+		if err := s.createRoundRobinOneGroup(sessCtx, tournamentID, roundID, competitorDTOs, sport); err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 		}
 
@@ -43,6 +42,24 @@ func (s *TournamentService) ModifyTournamentGroups(ctx context.Context, tourname
 	})
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when creating tournament location")
+	}
+
+	return nil
+}
+
+func (s *TournamentService) createRoundRobinOneGroup(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT) error {
+	competitorsInMatchMap, err := s.createMatchesFromRoundRobin(ctx, tournamentID, roundID, competitorDTOs, sport)
+	if err != nil {
+		return err
+	}
+
+	courtAvailability, tournamentAvailabilities, timetablesNotAvailables, err := s.getCompleteAvailabilityInTournament(ctx, tournamentID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.updateMatchesDates(ctx, competitorsInMatchMap, courtAvailability, tournamentAvailabilities, timetablesNotAvailables); err != nil {
+		return err
 	}
 
 	return nil
@@ -59,17 +76,17 @@ func (s *TournamentService) verificationsModifyTournamentGroups(ctx context.Cont
 	}
 
 	// Verify if group is on tournament
-	if err := s.tournamentQueryer.VerifyTournamentGroupInTournament(ctx, tournamentID, groupIDs); err != nil {
+	if err := s.tournamentQuerier.VerifyTournamentGroupInTournament(ctx, tournamentID, groupIDs); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
 
 	// Verify if round is on tournament
-	if err := s.tournamentQueryer.VerifyRoundInTournament(ctx, roundID, tournamentID); err != nil {
+	if err := s.tournamentQuerier.VerifyRoundInTournament(ctx, roundID, tournamentID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
 
 	// Verify if tournament contain all competitors
-	if err := s.tournamentQueryer.VerifyMultipleCompetitorsExistsInTournament(ctx, tournamentID, competitorIDs); err != nil {
+	if err := s.tournamentQuerier.VerifyMultipleCompetitorsExistsInTournament(ctx, tournamentID, competitorIDs); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when verifying competitors")
 	}
 
@@ -82,7 +99,7 @@ func (s *TournamentService) eliminateGroup(ctx context.Context, tournamentID str
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
 
-	if err := s.deleteMatches(ctx,  matchesToRemove); err != nil {
+	if err := s.deleteMatches(ctx, matchesToRemove); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
 
@@ -91,24 +108,24 @@ func (s *TournamentService) eliminateGroup(ctx context.Context, tournamentID str
 
 func (s *TournamentService) removeMatches(ctx context.Context, tournamentID string, competitorIDs, matchesToRemove []string) error {
 	// sacar los matches de tournament
-	if err := s.tournamentQueryer.RemoveMultipleTournamentMatches(ctx, tournamentID, matchesToRemove); err != nil {
+	if err := s.tournamentQuerier.RemoveMultipleTournamentMatches(ctx, tournamentID, matchesToRemove); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
 
 	// sacar los matches de competitorStats y cambiar las
-	if err := s.tournamentQueryer.RemoveMultipleCompetitorStatsMatches(ctx, competitorIDs, matchesToRemove); err != nil {
+	if err := s.tournamentQuerier.RemoveMultipleCompetitorStatsMatches(ctx, competitorIDs, matchesToRemove); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
 
 	return nil
 }
 
-func (s *TournamentService) deleteMatches(ctx context.Context,  matchesToRemove []string) error {
-	if err := s.tournamentQueryer.DeleteMultipleMatches(ctx, matchesToRemove); err != nil {
+func (s *TournamentService) deleteMatches(ctx context.Context, matchesToRemove []string) error {
+	if err := s.tournamentQuerier.DeleteMultipleMatches(ctx, matchesToRemove); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when creating competitorMatches")
 	}
 
-	if err := s.tournamentQueryer.DeleteMultipleCompetitorMatches(ctx, matchesToRemove); err != nil {
+	if err := s.tournamentQuerier.DeleteMultipleCompetitorMatches(ctx, matchesToRemove); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when creating competitorMatches")
 	}
 

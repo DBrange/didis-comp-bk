@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
@@ -369,6 +370,46 @@ func (r *Repository) DeleteMultipleMatches(ctx context.Context, matchesToRemove 
 
 	if result.DeletedCount == 0 {
 		return fmt.Errorf("%w: no matches found with the provided ids", customerrors.ErrNotFound)
+	}
+
+	return nil
+}
+
+func (r *Repository) UpdateMultipleMatchesDate(ctx context.Context, matchDates []*dao.MatchDateDAOReq) error {
+	// Crear operaciones de escritura en lote
+	var operations []mongo.WriteModel
+	for _, matchDate := range matchDates {
+		filter := bson.M{"_id": matchDate.ID}
+		update := bson.M{"$set": bson.M{"date": matchDate.Date}}
+
+		// Agregar la operación de actualización
+		operations = append(operations, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update))
+	}
+
+	// Ejecutar las operaciones en lote
+	_, err := r.matchColl.BulkWrite(ctx, operations)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Repository) UpdateMatchDate(ctx context.Context, matchOID *primitive.ObjectID, date *time.Time) error {
+	filter := bson.M{"_id": matchOID}
+	update := bson.M{"$set": bson.M{"date": date}}
+
+	result, err := r.matchColl.UpdateOne(
+		ctx,
+		filter,
+		update,
+	)
+	if err != nil {
+		return fmt.Errorf("error updating match: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: no match found with id: %s", customerrors.ErrNotFound, matchOID.Hex())
 	}
 
 	return nil

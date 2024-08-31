@@ -10,15 +10,16 @@ import (
 type Availability struct {
 	ID                  primitive.ObjectID   `bson:"_id,omitempty"`
 	DailyAvailabilities []*DailyAvailability `bson:"daily_availabilities"`
-	UserID              *primitive.ObjectID   `bson:"user_id"`
-	CompetitorID        *primitive.ObjectID   `bson:"competitor_id"`
+	UserID              *primitive.ObjectID  `bson:"user_id"`
+	CompetitorID        *primitive.ObjectID  `bson:"competitor_id"`
+	TournamentID        *primitive.ObjectID  `bson:"tournament_id"`
 	CreatedAt           time.Time            `bson:"created_at"`
 	UpdatedAt           time.Time            `bson:"updated_at"`
 	DeletedAt           *time.Time           `bson:"deleted_at,omitempty"`
 }
 
 type DailyAvailability struct {
-	Day       models.DAY       `bson:"day"`
+	Day       models.DAY  `bson:"day"`
 	TimeSlots []*TimeSlot `bson:"time_slots"`
 }
 

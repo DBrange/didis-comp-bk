@@ -18,29 +18,9 @@ func (r *Repository) AvailabilityColl() *mongo.Collection {
 	return r.availabilityColl
 }
 
-func (r *Repository) CreateAvailability(ctx context.Context, userID, competitorID *string) error {
+func (r *Repository) CreateAvailability(ctx context.Context, userOID, competitorOID, tournamentOID *primitive.ObjectID) error {
 	defaultAvailability := r.generateDefaultAvailability()
 	currentDate := time.Now().UTC()
-
-	var OID *primitive.ObjectID
-
-	if userID != nil {
-		userOID, err := r.ConvertToObjectID(*userID)
-		if err != nil {
-			return err
-		}
-
-		OID = userOID
-	}
-
-	if competitorID != nil {
-		competitorOID, err := r.ConvertToObjectID(*competitorID)
-		if err != nil {
-			return err
-		}
-
-		OID = competitorOID
-	}
 
 	availability := &availability_dao.CreateAvailability{
 		DailyAvailabilities: defaultAvailability,
@@ -48,10 +28,12 @@ func (r *Repository) CreateAvailability(ctx context.Context, userID, competitorI
 		UpdatedAt:           currentDate,
 	}
 
-	if userID != nil {
-		availability.UserID = OID
+	if userOID != nil {
+		availability.UserID = userOID
+	} else if competitorOID != nil {
+		availability.CompetitorID = competitorOID
 	} else {
-		availability.CompetitorID = OID
+		availability.TournamentID = tournamentOID
 	}
 
 	_, err := r.availabilityColl.InsertOne(ctx, &availability)
@@ -228,6 +210,7 @@ func (r *Repository) GetDailyAvailabilityByID(ctx context.Context, availabilityI
 
 	return availability.DailyAvailabilities[0], nil
 }
+
 func (r *Repository) GetDailyAvailabilityUserID(ctx context.Context, userID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
 	userOID, err := r.ConvertToObjectID(userID)
 	if err != nil {
@@ -255,7 +238,7 @@ func (r *Repository) GetDailyAvailabilityUserID(ctx context.Context, userID, day
 }
 func (r *Repository) GetDailyAvailabilityCompetitorID(ctx context.Context, competitorOID *primitive.ObjectID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
 	var availability availability_dao.GetAvailabilityByIDDAORes
-fmt.Printf("eseee %s", competitorOID)
+	fmt.Printf("eseee %s", competitorOID)
 	projection := bson.M{
 		"daily_availabilities.$": 1,
 	}
@@ -298,4 +281,24 @@ func (r *Repository) GetAvailabilityIDByUserID(ctx context.Context, userID strin
 	}
 
 	return result.ID.Hex(), nil
+}
+
+func (r *Repository) GetAvailabilityByTournamentID(ctx context.Context, tournamentOID *primitive.ObjectID) ([]*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
+	filter := bson.M{"tournament_id": tournamentOID}
+
+	var result availability_dao.GetAvailabilityByIDDAORes
+
+	projection := bson.M{"daily_availabilities": 1, "_id": 0}
+
+	opts := options.FindOne().SetProjection(projection)
+
+	err := r.availabilityColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for the 'availability': %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for the availability: %w", err)
+	}
+
+	return result.DailyAvailabilities, nil
 }

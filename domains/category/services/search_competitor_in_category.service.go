@@ -9,7 +9,7 @@ import (
 )
 
 func (s *CategoryService) SearchCompetitorInCategory(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetCompetitorsOfCategoryDTORes, error) {
-	competitorDTOs, err := s.categoryQueryer.GetCompetitorsOfCategoryByName(ctx, categoryID, name, sport, competitorType, limit, lastID)
+	competitorDTOs, err := s.categoryQuerier.GetCompetitorsOfCategoryByName(ctx, categoryID, name, sport, competitorType, limit, lastID)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "category", "error when searching competitor name")
 	}

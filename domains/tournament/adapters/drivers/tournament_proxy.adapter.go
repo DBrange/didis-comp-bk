@@ -6,14 +6,14 @@ import (
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	option_models "github.com/DBrange/didis-comp-bk/cmd/api/models/options/tournament"
 	"github.com/DBrange/didis-comp-bk/domains/tournament/models/dto"
-	"github.com/DBrange/didis-comp-bk/domains/tournament/services"
+	tournament_service "github.com/DBrange/didis-comp-bk/domains/tournament/services"
 )
 
 type TournamentProxyAdapter struct {
-	tournamentService *services.TournamentService
+	tournamentService *tournament_service.TournamentService
 }
 
-func NewTournamentProxyAdapter(tournamentService *services.TournamentService) *TournamentProxyAdapter {
+func NewTournamentProxyAdapter(tournamentService *tournament_service.TournamentService) *TournamentProxyAdapter {
 	return &TournamentProxyAdapter{
 		tournamentService: tournamentService,
 	}
@@ -41,8 +41,8 @@ func (a *TournamentProxyAdapter) ListCompetitorsInTournament(
 	return a.tournamentService.ListCompetitorsInTournament(ctx, tournamentID, categoryID, lastID, limit)
 }
 
-func (a *TournamentProxyAdapter) ModifyBracketMatch(ctx context.Context, matchID string, competitors []*dto.UpdateCompetitorMatchDTOReq) error {
-	return a.tournamentService.ModifyBracketMatch(ctx, matchID, competitors)
+func (a *TournamentProxyAdapter) ModifyBracketMatch(ctx context.Context, tournamentID, userID string, competitors []*dto.UpdateCompetitorMatchDTOReq) error {
+	return a.tournamentService.ModifyBracketMatch(ctx, tournamentID, userID, competitors)
 }
 
 func (a *TournamentProxyAdapter) ModifyRoundTotalPrize(ctx context.Context, roundID string, totalPrize float64) error {
@@ -53,8 +53,8 @@ func (a *TournamentProxyAdapter) GetRoundWithMatches(ctx context.Context, roundI
 	return a.tournamentService.GetRoundWithMatches(ctx, roundID, categoryID)
 }
 
-func (a *TournamentProxyAdapter) OrganizeBracket(ctx context.Context,tournamentID string, competitorsDTOs []*dto.UpdateCompetitorMatchDTOReq) error {
-	return a.tournamentService.OrganizeBracket(ctx, tournamentID,competitorsDTOs)
+func (a *TournamentProxyAdapter) OrganizeBracket(ctx context.Context, tournamentID string, competitorsDTOs []*dto.UpdateCompetitorMatchDTOReq) error {
+	return a.tournamentService.OrganizeBracket(ctx, tournamentID, competitorsDTOs)
 }
 
 func (a *TournamentProxyAdapter) EndMatch(ctx context.Context, match *dto.EndMatchDTOReq) error {
@@ -65,8 +65,8 @@ func (a *TournamentProxyAdapter) ModifyRoundPoints(ctx context.Context, roundID 
 	return a.tournamentService.ModifyRoundPoints(ctx, roundID, points)
 }
 
-func (a *TournamentProxyAdapter) EndTournament(ctx context.Context, tournamentID, competitorID string) error {
-	return a.tournamentService.EndTournament(ctx, tournamentID, competitorID)
+func (a *TournamentProxyAdapter) EndTournament(ctx context.Context, tournamentID string, doubleElimID string) error {
+	return a.tournamentService.EndTournament(ctx, tournamentID, doubleElimID)
 }
 
 func (a *TournamentProxyAdapter) AddCompetitorInTournamentGroup(ctx context.Context, groupID, tournamentID string, competitorID string) error {
@@ -93,6 +93,6 @@ func (a *TournamentProxyAdapter) UpdateQuantityPotsInTournament(ctx context.Cont
 	return a.tournamentService.UpdateQuantityPotsInTournament(ctx, tournamentID, position, add)
 }
 
-func (a *TournamentProxyAdapter) UpdateQuantityGroupsInTournament(ctx context.Context, tournamentID string, position int, add bool) error{
+func (a *TournamentProxyAdapter) UpdateQuantityGroupsInTournament(ctx context.Context, tournamentID string, position int, add bool) error {
 	return a.tournamentService.UpdateQuantityGroupsInTournament(ctx, tournamentID, position, add)
 }

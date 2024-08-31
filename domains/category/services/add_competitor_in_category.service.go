@@ -9,11 +9,11 @@ import (
 
 func (s *CategoryService) AddCompetitorInCategory(ctx context.Context, categoryID, competitorID string) error {
 	// Verify if category and competitor exists
-	if err := s.categoryQueryer.VerifyCategoryExists(ctx, categoryID); err != nil {
+	if err := s.categoryQuerier.VerifyCategoryExists(ctx, categoryID); err != nil {
 		return customerrors.HandleErrMsg(err, "category", "error verify category exists")
 	}
 
-	if err := s.categoryQueryer.VerifyCompetitorExists(ctx, competitorID); err != nil {
+	if err := s.categoryQuerier.VerifyCompetitorExists(ctx, competitorID); err != nil {
 		return customerrors.HandleErrMsg(err, "category", "error verify competitor exists")
 	}
 
@@ -23,17 +23,17 @@ func (s *CategoryService) AddCompetitorInCategory(ctx context.Context, categoryI
 	}
 
 	// Verify if category and competitor exists
-	if err := s.categoryQueryer.VerifyCategoryExistsRelation(ctx, categoryRegistrationDTO); err != nil {
+	if err := s.categoryQuerier.VerifyCategoryExistsRelation(ctx, categoryRegistrationDTO); err != nil {
 		return customerrors.HandleErrMsg(err, "category", "error verify category exists")
 	}
-	
-	if err := s.categoryQueryer.CreateCategoryRegistration(ctx, categoryRegistrationDTO); err != nil{
+
+	if err := s.categoryQuerier.CreateCategoryRegistration(ctx, categoryRegistrationDTO); err != nil {
 		return customerrors.HandleErrMsg(err, "category", "error when creating categoryRegistration")
 	}
 
-	if err := s.categoryQueryer.IncrementTotalParticipants(ctx, categoryID); err != nil{
+	if err := s.categoryQuerier.IncrementTotalParticipants(ctx, categoryID); err != nil {
 		return customerrors.HandleErrMsg(err, "category", "error when increment total participants")
 	}
-	
-return nil
+
+	return nil
 }

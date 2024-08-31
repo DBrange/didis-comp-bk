@@ -8,7 +8,7 @@ import (
 )
 
 func (s *CategoryService) GetCategoryInfo(ctx context.Context, categoryID string) (*dto.GetCategoryInfoByIDDTORes, error) {
-	categoryInfoDTO, err := s.categoryQueryer.GetCategoryInfoByID(ctx, categoryID)
+	categoryInfoDTO, err := s.categoryQuerier.GetCategoryInfoByID(ctx, categoryID)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "category", "error when getting category info")
 	}

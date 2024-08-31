@@ -7,8 +7,8 @@ import (
 )
 
 type CreateChatMessageDAOReq struct {
-	ChatID    primitive.ObjectID `bson:"chat_id"`
-	SenderID  primitive.ObjectID `bson:"sender_id"` // userID
+	ChatID    *primitive.ObjectID `bson:"chat_id"`
+	SenderID  *primitive.ObjectID `bson:"sender_id"` // userID
 	Content   string             `bson:"content"`
 	CreatedAt time.Time          `bson:"created_at"`
 	UpdatedAt time.Time          `bson:"updated_at"`

@@ -39,7 +39,7 @@ type Repository struct {
 	categoryRegistrationColl   *mongo.Collection // Intermediate table
 	opinionColl                *mongo.Collection // Intermediate table
 	tournamentRegistrationColl *mongo.Collection // Intermediate table
-	userChatColl               *mongo.Collection // Intermediate table
+	participantChatColl        *mongo.Collection // Intermediate table
 }
 
 func NewRepository(
@@ -74,7 +74,7 @@ func NewRepository(
 	categoryRegistrationColl *mongo.Collection, // Intermediate table
 	opinionColl *mongo.Collection, // Intermediate table
 	tournamentRegistrationColl *mongo.Collection, // Intermediate table
-	userChatColl *mongo.Collection, // Intermediate table
+	participantChatColl *mongo.Collection, // Intermediate table
 
 ) (*Repository, error) {
 
@@ -109,7 +109,7 @@ func NewRepository(
 		categoryRegistrationColl:   categoryRegistrationColl,   // Intermediate table
 		opinionColl:                opinionColl,                // Intermediate table
 		tournamentRegistrationColl: tournamentRegistrationColl, // Intermediate table
-		userChatColl:               userChatColl,               // Intermediate table
+		participantChatColl:        participantChatColl,        // Intermediate table
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

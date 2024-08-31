@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
+	"github.com/DBrange/didis-comp-bk/domains/repository/models/avaliability/dao"
 	competitor_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/competitor/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -168,7 +169,36 @@ func (r *Repository) VerifyMultipleCompetitorsExists(ctx context.Context, compet
 
 	return nil
 }
+func (r *Repository) GetMultipleAvailabilitiesByCompetitor(ctx context.Context, competitorOIDs []*primitive.ObjectID) ([][]*dao.GetDailyAvailabilityByIDDAORes, error) {
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"competitor_id": bson.M{"$in": competitorOIDs}}}},
+		bson.D{{Key: "$project", Value: bson.M{
+			"daily_availabilities": 1,
+		}}},
+	}
 
+	cursor, err := r.availabilityColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error when aggregating availabilities: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var result [][]*dao.GetDailyAvailabilityByIDDAORes
+
+	for cursor.Next(ctx) {
+		var dailyAvailability dao.GetAvailabilityByIDDAORes
+		if err := cursor.Decode(&dailyAvailability); err != nil {
+			return nil, fmt.Errorf("error when decoding availabilities: %w", err)
+		}
+		result = append(result, dailyAvailability.DailyAvailabilities)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	return result, nil
+}
 
 
 // func (r *Repository) CreateCompetitorType(ctx context.Context, competitorType models.COMPETITOR_TYPE, userID string) (string, error) {

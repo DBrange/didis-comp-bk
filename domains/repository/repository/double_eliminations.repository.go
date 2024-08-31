@@ -3,12 +3,15 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/double_elimination/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (r *Repository) DoubleEliminationColl() *mongo.Collection {
@@ -152,4 +155,173 @@ func (r *Repository) DeleteDoubleElimination(ctx context.Context, doubleEliminat
 	}
 
 	return nil
+}
+
+func (r *Repository) AddMatchInDoubleElim(ctx context.Context, doubleElimOID, matchOID *primitive.ObjectID) error {
+
+	filter := bson.M{"_id": doubleElimOID}
+
+	update := bson.M{
+		"$push": bson.M{"matches": matchOID},
+		"$set":  bson.M{"updated_at": time.Now().UTC()},
+	}
+
+	result, err := r.doubleEliminationColl.UpdateOne(
+		ctx,
+		filter,
+		update,
+	)
+	if err != nil {
+		return fmt.Errorf("error updating tournament: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: no match found in doubleElimination with id: %s", customerrors.ErrNotFound, matchOID.Hex())
+	}
+
+	return nil
+}
+
+func (r *Repository) GetDoubleElimRoundID(ctx context.Context, doubleEliminationOID *primitive.ObjectID, round models.ROUND) (string, error) {
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"_id": doubleEliminationOID}}},
+		bson.D{{Key: "$unwind", Value: "$rounds"}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "rounds",
+			"localField":   "rounds",
+			"foreignField": "_id",
+			"as":           "round",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$round"}},
+		bson.D{{Key: "$match", Value: bson.M{"round.round": round}}},
+		bson.D{{Key: "$project", Value: bson.M{"_id": "$round._id"}}},
+	}
+
+	cursor, err := r.doubleEliminationColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return "", fmt.Errorf("error when aggregating rounds: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var result struct {
+		ID *primitive.ObjectID `bson:"_id"`
+	}
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return "", fmt.Errorf("error when decoding round ID: %w", err)
+		}
+
+		return result.ID.Hex(), nil
+	}
+
+	if err := cursor.Err(); err != nil {
+		return "", fmt.Errorf("cursor error: %w", err)
+	}
+
+	return "", fmt.Errorf("%w: no round found with round name: %s", customerrors.ErrNotFound, round)
+}
+
+func (r *Repository) GetAllDoubleElimRoundIDs(ctx context.Context, doubleEliminationOID *primitive.ObjectID) ([]string, error) {
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"_id": doubleEliminationOID}}},
+		bson.D{{Key: "$unwind", Value: "$rounds"}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "rounds",
+			"localField":   "rounds",
+			"foreignField": "_id",
+			"as":           "round",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$round"}},
+		bson.D{{Key: "$project", Value: bson.M{"_id": "$round._id"}}},
+	}
+
+	cursor, err := r.doubleEliminationColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error when aggregating rounds: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var roundIDs []string
+
+	for cursor.Next(ctx) {
+		var result struct {
+			ID *primitive.ObjectID `bson:"_id"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("error when decoding round ID: %w", err)
+		}
+		roundIDs = append(roundIDs, result.ID.Hex())
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	return roundIDs, nil
+}
+
+func (r *Repository) GetDoubleElimInfoToFinaliseIt(ctx context.Context, doubleElimOID *primitive.ObjectID) (*dao.GetDoubleElimInfoToFinaliseItDAORes, error) {
+	var doubleElimInfo *dao.GetDoubleElimInfoToFinaliseItDAORes
+
+	filter := bson.M{"_id": doubleElimOID}
+
+	opts := options.FindOne().SetProjection(bson.M{"total_prize": 1, "points": 1})
+
+	err := r.doubleEliminationColl.FindOne(ctx, filter, opts).Decode(&doubleElimInfo)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for doubleElim: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for the doubleElim: %w", err)
+	}
+
+	return doubleElimInfo, nil
+}
+
+func (r *Repository) GetDoubleElimCompetitorChampion(ctx context.Context, doubleElimOID *primitive.ObjectID) (string, error) {
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"_id": doubleElimOID}}},
+		bson.D{{Key: "$unwind", Value: "$rounds"}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "rounds",
+			"localField":   "rounds",
+			"foreignField": "_id",
+			"as":           "round",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$round"}},
+		bson.D{{Key: "$match", Value: bson.M{"round.round": "F"}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "matches",
+			"localField":   "round._id",
+			"foreignField": "round_id",
+			"as":           "match",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$match"}},
+		bson.D{{Key: "$project", Value: bson.M{"_id": "$match.winner"}}},
+	}
+
+	cursor, err := r.doubleEliminationColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return "", fmt.Errorf("error when aggregating match: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var competitor struct {
+		ID *primitive.ObjectID `bson:"_id"`
+	}
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&competitor); err != nil {
+			return "", fmt.Errorf("error when decoding round ID: %w", err)
+		}
+
+		return competitor.ID.Hex(), nil
+	}
+
+	if err := cursor.Err(); err != nil {
+		return "", fmt.Errorf("cursor error: %w", err)
+	}
+
+	return "", fmt.Errorf("%w: no round found with match winner", customerrors.ErrNotFound)
 }

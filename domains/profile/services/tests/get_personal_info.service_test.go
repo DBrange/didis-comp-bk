@@ -48,7 +48,7 @@ package services_test
 // 			Long:    &long,
 // 		},
 // 	}
-	
+
 // 	testTable := map[string]struct {
 // 		setup         func(mockForQueryProfile *mocks.MockForQueryingProfile)
 // 		assertionFunc func(subTest *testing.T, personalInfo *dto.GetPersonalInfoByIDDTORes, err error)
@@ -120,11 +120,11 @@ package services_test
 // 			ctrl := gomock.NewController(t)
 // 			defer ctrl.Finish()
 
-// 			mockForProfileQueryer := mocks.NewMockForQueryingProfile(ctrl)
+// 			mockForProfileQuerier := mocks.NewMockForQueryingProfile(ctrl)
 
-// 			profileService := services.NewProfileService(mockForProfileQueryer)
+// 			profileService := services.NewProfileService(mockForProfileQuerier)
 
-// 			test.setup(mockForProfileQueryer)
+// 			test.setup(mockForProfileQuerier)
 
 // 			personalInfo, err := profileService.GetPersonalInfoByID(context.Background(), test.userID)
 

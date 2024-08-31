@@ -9,7 +9,7 @@ import (
 )
 
 func (s *TournamentService) AddCompetitorInTournament(ctx context.Context, tournamentRegistrationDTO *tournament_registration_dto.CreateTournamentRegistrationDTOReq) error {
-	available, err := s.tournamentQueryer.VerifyTournamentsCapacity(ctx, tournamentRegistrationDTO.TournamentID)
+	available, err := s.tournamentQuerier.VerifyTournamentsCapacity(ctx, tournamentRegistrationDTO.TournamentID)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when verify if tournament exits")
 	}
@@ -17,19 +17,19 @@ func (s *TournamentService) AddCompetitorInTournament(ctx context.Context, tourn
 		return customerrors.HandleErrMsg(err, "tournament", "tournament max capacity")
 	}
 	fmt.Println(1)
-	if err := s.tournamentQueryer.VerifyCompetitorExists(ctx, tournamentRegistrationDTO.CompetitorID); err != nil {
+	if err := s.tournamentQuerier.VerifyCompetitorExists(ctx, tournamentRegistrationDTO.CompetitorID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when verify if competitor exits")
 	}
 	fmt.Println(2)
-	
-	if err := s.tournamentQueryer.CreateTournamentRegistration(ctx, tournamentRegistrationDTO); err != nil {
+
+	if err := s.tournamentQuerier.CreateTournamentRegistration(ctx, tournamentRegistrationDTO); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when registering a competitor")
 	}
 	fmt.Println(3)
-	if err := s.tournamentQueryer.IncrementTotalCompetitorsInTournament(ctx, tournamentRegistrationDTO.TournamentID); err != nil {
+	if err := s.tournamentQuerier.IncrementTotalCompetitorsInTournament(ctx, tournamentRegistrationDTO.TournamentID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when creating a tournament registration")
 	}
-	
+
 	fmt.Println(4)
 
 	return nil

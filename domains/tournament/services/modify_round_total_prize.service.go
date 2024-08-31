@@ -7,7 +7,7 @@ import (
 )
 
 func (s *TournamentService) ModifyRoundTotalPrize(ctx context.Context, roundID string, totalPrize float64) error {
-	if err := s.tournamentQueryer.UpdateRoundTotalPrize(ctx, roundID, totalPrize); err != nil {
+	if err := s.tournamentQuerier.UpdateRoundTotalPrize(ctx, roundID, totalPrize); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when updating round total prize")
 	}
 

@@ -6,8 +6,14 @@ import (
 )
 
 func GetTournamentInfoToFinaliseItDAOtoDTO(tournamentInfoDAO *dao.GetTournamentInfoToFinaliseItDAORes) *dto.GetTournamentInfoToFinaliseItDTORes {
+	var categoryID string
+	
+	if tournamentInfoDAO.CategoryID != nil{
+		categoryID = tournamentInfoDAO.CategoryID.Hex()
+	}
+	
 	tournamentInfoDTO := &dto.GetTournamentInfoToFinaliseItDTORes{
-		CategoryID: tournamentInfoDAO.CategoryID.Hex(),
+		CategoryID: categoryID,
 		TotalPrize: tournamentInfoDAO.TotalPrize,
 		Points:     tournamentInfoDAO.Points,
 	}

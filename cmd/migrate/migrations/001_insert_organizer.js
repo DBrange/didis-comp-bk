@@ -16,13 +16,24 @@ async function run() {
     // Insertar datos de prueba
     await collection.insertMany([
       {
-        _id: new ObjectId("66b82550625966db1dc69afd"),
-        categories: [new ObjectId("66b825ef625966db1dc69b26")],
+        _id: new ObjectId("66c27fb7cd58ba6c51446dbe"),
+        categories: [new ObjectId("66c28019cd58ba6c51446de7")],
         average_score: 0,
         average_tournament_score: 0,
         total_categories: 0,
         total_tournaments: 0,
-        user_id: new ObjectId("64dabc1234567890abcdef00"),
+        user_id: new ObjectId("66c27fb7cd58ba6c51446dbd"),
+        created_at: new Date("1990-01-01T00:00:00Z"),
+        updated_at: new Date("1990-01-01T00:00:00Z"),
+      },
+      {
+        _id: new ObjectId("66c60bb40ac870e55afaa26d"),
+        categories: [],
+        average_score: 0,
+        average_tournament_score: 0,
+        total_categories: 0,
+        total_tournaments: 0,
+        user_id: new ObjectId("66c60bb40ac870e55afaa26c"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },

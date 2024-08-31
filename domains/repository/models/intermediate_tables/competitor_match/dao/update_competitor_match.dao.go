@@ -6,8 +6,8 @@ import (
 )
 
 type UpdateCompetitorMatchDAOReq struct {
-	MatchID              *primitive.ObjectID `bson:"match_id,omitempty"`
-	CompetitorID         *primitive.ObjectID `bson:"competitor_id,omitempty"`
-	Position             *int                `bson:"position,omitempty"`
+	MatchID              primitive.ObjectID `bson:"match_id"`
+	CompetitorID         primitive.ObjectID `bson:"competitor_id"`
+	Position             int                `bson:"position"`
 	common.UpdateBaseDAO `bson:",inline"`
 }

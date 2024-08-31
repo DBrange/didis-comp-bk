@@ -134,7 +134,7 @@ func (r *Repository) SetCompetitorInNextMatch(ctx context.Context, matchOID, com
 
 func (r *Repository) VerifyCompetitorsMatch(ctx context.Context, matchOID, competitorOID *primitive.ObjectID) error {
 	filterLosser := bson.M{"match_id": matchOID, "competitor_id": competitorOID}
-	fmt.Printf("posicion %v", competitorOID)
+
 	var competitor struct{}
 
 	err := r.competitorMatchColl.FindOne(ctx, filterLosser).Decode(&competitor)

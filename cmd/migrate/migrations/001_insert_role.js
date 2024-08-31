@@ -16,21 +16,21 @@ async function run() {
     // Insertar datos de prueba
     await collection.insertMany([
       {
-        _id: new ObjectId("66b8252ee85d47dc5e737aba"),
+        _id: new ObjectId("66c27f6f54cbea309e42280b"),
         name: "ADMIN",
         role_type: "USER",
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66b8252ee85d47dc5e737ab8"),
+        _id: new ObjectId("66c27f6f54cbea309e42280c"),
         name: "FREE",
         role_type: "USER",
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66b8252ee85d47dc5e737ab9"),
+        _id: new ObjectId("66c27f6f54cbea309e42280d"),
         name: "BASIC",
         role_type: "USER",
         created_at: new Date("1990-01-01T00:00:00Z"),

@@ -13,9 +13,9 @@ import (
 )
 
 func (s *TournamentService) OrganizeTournament(ctx context.Context, organizeTournamentDTO *dto.OrganizeTournamentDTOReq, options *option_models.OrganizeTournamentOptions) error {
-	err := s.tournamentQueryer.WithTransaction(ctx, func(sessCtx mongo.SessionContext) error {
+	err := s.tournamentQuerier.WithTransaction(ctx, func(sessCtx mongo.SessionContext) error {
 		// Mapping info
-		tournamentDTO, locationDTO, categoryID, organizerID := mappers.OrganizeTournamentMapper(organizeTournamentDTO)
+		tournamentDTO, doubleElim, locationDTO, categoryID, organizerID := mappers.OrganizeTournamentMapper(organizeTournamentDTO)
 
 		// Verifications
 		if err := s.verifications(sessCtx, organizerID, categoryID); err != nil {
@@ -23,13 +23,13 @@ func (s *TournamentService) OrganizeTournament(ctx context.Context, organizeTour
 		}
 
 		// Create location for tournament
-		locationID, err := s.tournamentQueryer.CreateLocation(sessCtx, locationDTO)
+		locationID, err := s.tournamentQuerier.CreateLocation(sessCtx, locationDTO)
 		if err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when creating tournament location")
 		}
 
 		// Create tournament
-		tournamentID, err := s.tournamentQueryer.CreateTournament(
+		tournamentID, err := s.tournamentQuerier.CreateTournament(
 			sessCtx,
 			tournamentDTO,
 			locationID,
@@ -41,9 +41,15 @@ func (s *TournamentService) OrganizeTournament(ctx context.Context, organizeTour
 			return customerrors.HandleErrMsg(err, "tournament", "error when creating tournament")
 		}
 
+		// Create availability for tournament
+		err = s.tournamentQuerier.CreateAvailability(ctx, nil, nil, &tournamentID)
+		if err != nil {
+			return customerrors.HandleErrMsg(err, "profile", "error when creating availability")
+		}
+
 		// If a category ID is available, add this tournament at the category
 		if categoryID != nil {
-			if err := s.tournamentQueryer.AddTournamentInCategory(sessCtx, *categoryID, tournamentID); err != nil {
+			if err := s.tournamentQuerier.AddTournamentInCategory(sessCtx, *categoryID, tournamentID); err != nil {
 				return customerrors.HandleErrMsg(err, "tournament", "error when adding tournament to category")
 			}
 		}
@@ -57,7 +63,7 @@ func (s *TournamentService) OrganizeTournament(ctx context.Context, organizeTour
 
 		// Without pots and groups, add aumatically the rounds and firts matches into tournament
 		if options.QuantityGroups <= 0 && options.QuantityPots <= 0 {
-			if err := s.onlyBrackets(sessCtx, tournamentID, tournamentDTO, options); err != nil {
+			if err := s.onlyBrackets(sessCtx, tournamentID, tournamentDTO, doubleElim, options); err != nil {
 				return err
 			}
 		}
@@ -86,7 +92,7 @@ func (s *TournamentService) tournamentWithPotsGroups(
 	}
 
 	// Update tournament
-	if err = s.tournamentQueryer.UpdateTournamentRelations(sessCtx, tournamentID, &tournamentOptions, true); err != nil {
+	if err = s.tournamentQuerier.UpdateTournamentRelations(sessCtx, tournamentID, &tournamentOptions, true); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when updating tournament")
 	}
 
@@ -103,7 +109,7 @@ func (s *TournamentService) updatePotsGroupsSlice(
 	// Create Pots slice
 	if options.QuantityPots > 0 {
 		tournamentOptions.Pots = &[]string{}
-		err := s.createPotsGroupsSlice(sessCtx, tournamentID, options.QuantityPots, "pot", tournamentOptions.Pots, s.tournamentQueryer.CreatePot)
+		err := s.createPotsGroupsSlice(sessCtx, tournamentID, options.QuantityPots, "pot", tournamentOptions.Pots, s.tournamentQuerier.CreatePot)
 		if err != nil {
 			return err
 		}
@@ -112,7 +118,7 @@ func (s *TournamentService) updatePotsGroupsSlice(
 	//Create groups slice
 	if options.QuantityGroups > 0 {
 		tournamentOptions.Groups = &[]string{}
-		err := s.createPotsGroupsSlice(sessCtx, tournamentID, options.QuantityGroups, "group", tournamentOptions.Groups, s.tournamentQueryer.CreateTournamentGroup)
+		err := s.createPotsGroupsSlice(sessCtx, tournamentID, options.QuantityGroups, "group", tournamentOptions.Groups, s.tournamentQuerier.CreateTournamentGroup)
 		if err != nil {
 			return err
 		}
@@ -129,14 +135,14 @@ func (s *TournamentService) updatePotsGroupsSlice(
 	}
 
 	// Create double elimination
-	if options.DoubleElimination {
-		doubleEliminationID, err := s.tournamentQueryer.CreateDoubleEliminationEmpty(sessCtx)
-		if err != nil {
-			return customerrors.HandleErrMsg(err, "tournament", "error when creating double elimination")
-		}
+	// if options.DoubleElimination {
+	// 	doubleEliminationID, err := s.tournamentQuerier.CreateDoubleEliminationEmpty(sessCtx)
+	// 	if err != nil {
+	// 		return customerrors.HandleErrMsg(err, "tournament", "error when creating double elimination")
+	// 	}
 
-		tournamentOptions.DoubleEliminationID = &doubleEliminationID
-	}
+	// 	tournamentOptions.DoubleEliminationID = &doubleEliminationID
+	// }
 
 	return nil
 }
@@ -264,7 +270,7 @@ func (s *TournamentService) createRounds(ctx context.Context, roundsNumber int, 
 			Name:         s.calculateRoundName(i),
 		}
 
-		roundID, err := s.tournamentQueryer.CreateRound(ctx, roundDTO)
+		roundID, err := s.tournamentQuerier.CreateRound(ctx, roundDTO)
 		if err != nil {
 			return []string{}, customerrors.HandleErrMsg(err, "tournament", "error when creating rounds")
 		}
@@ -279,7 +285,7 @@ func (s *TournamentService) createRoundsForGroup(ctx context.Context, tournament
 		TournamentID: tournamentID,
 		Name:         models.ROUND_GROUP,
 	}
-	roundID, err := s.tournamentQueryer.CreateRound(ctx, roundDTO)
+	roundID, err := s.tournamentQuerier.CreateRound(ctx, roundDTO)
 	if err != nil {
 		return "", customerrors.HandleErrMsg(err, "tournament", "error when creating rounds")
 	}
@@ -297,7 +303,7 @@ func (s *TournamentService) createMatches(ctx context.Context, matchesNumber int
 			Position:     i + 1,
 		}
 
-		matchID, err := s.tournamentQueryer.CreateMatch(ctx, matchDTO)
+		matchID, err := s.tournamentQuerier.CreateMatch(ctx, matchDTO)
 		if err != nil {
 			return []string{}, customerrors.HandleErrMsg(err, "tournament", "error when creating matches")
 		}
@@ -320,7 +326,7 @@ func (s *TournamentService) updateTournament(ctx context.Context, tournamentID s
 	}
 
 	// Update tournament with the new matches, rounds and doubleElimination(if it is true)
-	if err := s.tournamentQueryer.UpdateTournamentRelations(ctx, tournamentID, tournamentOptsDTO, true); err != nil {
+	if err := s.tournamentQuerier.UpdateTournamentRelations(ctx, tournamentID, tournamentOptsDTO, true); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when updating tournament")
 	}
 
@@ -329,13 +335,13 @@ func (s *TournamentService) updateTournament(ctx context.Context, tournamentID s
 
 func (s *TournamentService) verifications(ctx context.Context, organizerID string, categoryID *string) error {
 	// Verify if organizer exists
-	if err := s.tournamentQueryer.VerifyOrganizerExists(ctx, organizerID); err != nil {
+	if err := s.tournamentQuerier.VerifyOrganizerExists(ctx, organizerID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error organizer not exists")
 	}
 
 	// Verify if category exists
 	if categoryID != nil {
-		if err := s.tournamentQueryer.VerifyCategoryExists(ctx, *categoryID); err != nil {
+		if err := s.tournamentQuerier.VerifyCategoryExists(ctx, *categoryID); err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error category not exists")
 		}
 	}
@@ -344,7 +350,7 @@ func (s *TournamentService) verifications(ctx context.Context, organizerID strin
 }
 
 // Without pots and groups, add aumatically the rounds and firts matche into tournaments
-func (s *TournamentService) onlyBrackets(ctx context.Context, tournamentID string, tournamentDTO *dto.CreateTournamentDTOReq, options *option_models.OrganizeTournamentOptions) error {
+func (s *TournamentService) onlyBrackets(ctx context.Context, tournamentID string, tournamentDTO *dto.CreateTournamentDTOReq, doubleElim *dto.GetDoubleElimInfoToFinaliseItDTORes, options *option_models.OrganizeTournamentOptions) error {
 	if options.QuantityGroups <= 0 && options.QuantityPots <= 0 {
 		matchesNumber, roundsNumber, err := s.calculateQuantityMatchesRounds(tournamentDTO.MaxCapacity, tournamentDTO.CompetitorType)
 		if err != nil {
@@ -359,8 +365,8 @@ func (s *TournamentService) onlyBrackets(ctx context.Context, tournamentID strin
 		var doubleEliminationID string
 
 		// if DoubleElimination is true, create and also calculate their matches and rounds, always halving the number of main draw matches
-		if options.DoubleElimination {
-			doubleElimID, err := s.createDoubleElimination(ctx, tournamentID, tournamentDTO, int(matchesNumber), roundsNumber)
+		if doubleElim != nil {
+			doubleElimID, err := s.createDoubleElimination(ctx, tournamentID, tournamentDTO, doubleElim, int(matchesNumber), roundsNumber)
 			if err != nil {
 				return err
 			}
@@ -377,7 +383,7 @@ func (s *TournamentService) onlyBrackets(ctx context.Context, tournamentID strin
 	return nil
 }
 
-func (s *TournamentService) createDoubleElimination(ctx context.Context, tournamentID string, tournamentDTO *dto.CreateTournamentDTOReq, matchesNumber, roundsNumber int) (string, error) {
+func (s *TournamentService) createDoubleElimination(ctx context.Context, tournamentID string, tournamentDTO *dto.CreateTournamentDTOReq, doubleElim *dto.GetDoubleElimInfoToFinaliseItDTORes, matchesNumber, roundsNumber int) (string, error) {
 	matchesNumberde := matchesNumber / 2
 	roundsNumberde := roundsNumber - 1
 
@@ -387,11 +393,13 @@ func (s *TournamentService) createDoubleElimination(ctx context.Context, tournam
 	}
 
 	doubleEliminationDTO := &dto.CreateDoubleEliminationDTOReq{
-		Matches: matchesCreated,
-		Rounds:  roundsCreated,
+		Matches:    matchesCreated,
+		Rounds:     roundsCreated,
+		TotalPrize: doubleElim.TotalPrize,
+		Points:     doubleElim.Points,
 	}
 
-	doubleEliminationID, err := s.tournamentQueryer.CreateDoubleElimination(ctx, doubleEliminationDTO)
+	doubleEliminationID, err := s.tournamentQuerier.CreateDoubleElimination(ctx, doubleEliminationDTO)
 	if err != nil {
 		return "", customerrors.HandleErrMsg(err, "tournament", "error when creating double elimination")
 	}
@@ -439,7 +447,7 @@ func (s *TournamentService) CreateCompetitorMatches(ctx context.Context, matchID
 		}
 
 		// create competitor_match
-		if err := s.tournamentQueryer.CreateCompetitorMatch(ctx, competitorMatch); err != nil {
+		if err := s.tournamentQuerier.CreateCompetitorMatch(ctx, competitorMatch); err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when creating competitorMatches")
 		}
 	}

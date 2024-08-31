@@ -8,7 +8,7 @@ import (
 )
 
 func (s *ProfileService) GetProfileTournamentsInCategory(ctx context.Context, categoryID, competitorID, lastID string, limit int) ([]*dto.GetTournamentsFromCategoryDTORes, error) {
-	tournametsDTO, err := s.profileQueryer.GetCompetitorTournamentsInCategory(ctx, categoryID, competitorID, lastID, limit)
+	tournametsDTO, err := s.profileQuerier.GetCompetitorTournamentsInCategory(ctx, categoryID, competitorID, lastID, limit)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "profile", "error getting competitor profile tournaments from category")
 	}

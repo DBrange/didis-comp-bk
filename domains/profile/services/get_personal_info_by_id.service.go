@@ -9,12 +9,12 @@ import (
 )
 
 func (s *ProfileService) GetPersonalInfoByID(ctx context.Context, userID string) (*dto.GetPersonalInfoByIDDTORes, error) {
-	userInfo, err := s.profileQueryer.GetUserByID(ctx, userID)
+	userInfo, err := s.profileQuerier.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "profile", "error getting personal info")
 	}
 
-	locationInfo, err := s.profileQueryer.GetLocationByID(ctx, userInfo.LocationID)
+	locationInfo, err := s.profileQuerier.GetLocationByID(ctx, userInfo.LocationID)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "profile", "error getting local personal info")
 	}

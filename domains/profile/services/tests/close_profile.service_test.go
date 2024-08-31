@@ -98,11 +98,11 @@ func TestService_CloseProfile(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockForProfileQueryer := mocks.NewMockForQueryingProfile(ctrl)
+			mockForProfileQuerier := mocks.NewMockForQueryingProfile(ctrl)
 
-			profileService := services.NewProfileService(mockForProfileQueryer)
+			profileService := services.NewProfileService(mockForProfileQuerier)
 
-			test.setup(mockForProfileQueryer)
+			test.setup(mockForProfileQuerier)
 
 			err := profileService.CloseProfile(context.Background(), test.userID)
 

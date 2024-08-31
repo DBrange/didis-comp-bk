@@ -16,7 +16,7 @@ async function run() {
     // Insertar datos de prueba
     await collection.insertMany([
       {
-        _id: new ObjectId("66b825ef625966db1dc69b26"),
+        _id: new ObjectId("66c28019cd58ba6c51446de7"),
         name: "Categoria A",
         genre: "M",
         total_participants: 4,
@@ -24,8 +24,8 @@ async function run() {
         average_score: 0,
         sport: "TENNIS",
         competitor_type: "S",
-        organizer_id: new ObjectId("66b82550625966db1dc69afd"),
-        tournaments: [new ObjectId("66b8260e625966db1dc69b28")],
+        organizer_id: new ObjectId("66c27fb7cd58ba6c51446dbe"),
+        tournaments: [new ObjectId("66c2802ccd58ba6c51446de9")],
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },

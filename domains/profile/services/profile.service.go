@@ -5,11 +5,11 @@ import (
 )
 
 type ProfileService struct {
-	profileQueryer ports.ForQueryingProfile
+	profileQuerier ports.ForQueryingProfile
 }
 
-func NewProfileService(profileQueryer ports.ForQueryingProfile) *ProfileService {
+func NewProfileService(profileQuerier ports.ForQueryingProfile) *ProfileService {
 	return &ProfileService{
-		profileQueryer: profileQueryer,
+		profileQuerier: profileQuerier,
 	}
 }

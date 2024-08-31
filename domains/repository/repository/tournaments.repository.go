@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	models "github.com/DBrange/didis-comp-bk/cmd/api/models/options/tournament"
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
+	tournament_models "github.com/DBrange/didis-comp-bk/cmd/api/models/options/tournament"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/pot/dao"
 	tournament_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/tournament/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
@@ -19,7 +20,7 @@ func (r *Repository) CreateTournament(
 	ctx context.Context,
 	tournamentInfoDAO *tournament_dao.CreateTournamentDAOReq,
 	locationID string,
-	options *models.OrganizeTournamentOptions,
+	options *tournament_models.OrganizeTournamentOptions,
 	categoryID *string,
 	organizerID string,
 ) (string, error) {
@@ -50,6 +51,7 @@ func (r *Repository) CreateTournament(
 	tournamentInfoDAO.Matches = []primitive.ObjectID{}
 	tournamentInfoDAO.Pots = []primitive.ObjectID{}
 	tournamentInfoDAO.Groups = []primitive.ObjectID{}
+	tournamentInfoDAO.Availability = tournament_dao.TournamentAvailabilityDAO{}
 
 	tournamentInfoDAO.SetTimeStamp()
 
@@ -96,6 +98,31 @@ func (r *Repository) UpdateTournamentFinishDate(ctx context.Context, tournamentO
 
 	update := bson.M{
 		"$set": bson.M{"finish_date": currentDate, "updated_at": currentDate},
+	}
+
+	result, err := r.tournamentColl.UpdateOne(
+		ctx,
+		filter,
+		update,
+	)
+	if err != nil {
+		return fmt.Errorf("error updating tournament: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: no tournament found with id: %s", customerrors.ErrNotFound, tournamentOID.Hex())
+	}
+
+	return nil
+}
+
+func (r *Repository) UpdateTournamentStartDate(ctx context.Context, tournamentOID *primitive.ObjectID) error {
+	filter := bson.M{"_id": tournamentOID}
+
+	currentDate := time.Now().UTC()
+
+	update := bson.M{
+		"$set": bson.M{"start_date": currentDate, "updated_at": currentDate},
 	}
 
 	result, err := r.tournamentColl.UpdateOne(
@@ -254,6 +281,7 @@ func (r *Repository) AddCategoryInTournament(ctx context.Context, tournamentID s
 
 	return nil
 }
+
 func (r *Repository) AddMatchInTournament(ctx context.Context, tournamentOID, matchOID *primitive.ObjectID) error {
 
 	filter := bson.M{"_id": tournamentOID}
@@ -306,7 +334,7 @@ func (r *Repository) AddMultipleMatchesInTournament(ctx context.Context, tournam
 	return nil
 }
 
-func (r *Repository) VerifyTournamentsExists(ctx context.Context, tournamentOID *primitive.ObjectID) error {
+func (r *Repository) VerifyTournamentExists(ctx context.Context, tournamentOID *primitive.ObjectID) error {
 	var result struct{}
 
 	filter := bson.M{"_id": tournamentOID}
@@ -671,7 +699,6 @@ func (r *Repository) GetTournamentGroupPositions(ctx context.Context, tournament
 		return nil, fmt.Errorf("error when decoding tournament: %w", err)
 	}
 
-fmt.Printf("estas son las posiciones %v", groups)
 	return groups, nil
 }
 
@@ -837,37 +864,228 @@ func (r *Repository) VerifyNumberGroupsInTournament(ctx context.Context, tournam
 	return nil
 }
 
-// func (r *Repository) AddCompetitorInTournament(ctx context.Context, tournamentID, competitorID string) ( error) {
-// 	tournamentOID, err := r.ConvertToObjectID(tournamentID)
-// 	if err != nil {
-// 		return  err
-// 	}
+func (r *Repository) GetDoubleElimID(ctx context.Context, tournamentOID *primitive.ObjectID) (string, error) {
+	var result struct {
+		DoubleElim *primitive.ObjectID `bson:"double_elimination_id"`
+	}
 
-// 	competitorOID, err := r.ConvertToObjectID(competitorID)
-// 	if err != nil {
-// 		return  err
-// 	}
+	filter := bson.M{"_id": tournamentOID}
 
-// 	filter := bson.M{"_id": tournamentOID}
+	projection := bson.M{"double_elimination_id": 1}
 
-// 	update := bson.M{
-// 		"&push": bson.M{
-// 			"competitors": bson.M{"$each": competitorOID},
-// 		},
-// 	}
+	opts := options.FindOne().SetProjection(projection)
 
-// 	result, err := r.tournamentColl.UpdateOne(
-// 		ctx,
-// 		filter,
-// 		update,
-// 	)
-// 	if err != nil {
-// 		return fmt.Errorf("error updating tournament: %w", err)
-// 	}
+	err := r.tournamentColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return "", nil // O manejar este caso como prefieras
+		}
+		return "", err
+	}
 
-// 	if result.MatchedCount == 0 {
-// 		return fmt.Errorf("%w: no tournament found with id: %s", customerrors.ErrNotFound, tournamentID)
-// 	}
+	return result.DoubleElim.Hex(), nil
+}
 
-// 	return  nil
-// }
+func (r *Repository) GetRoundID(ctx context.Context, tournamentOID *primitive.ObjectID, roundName models.ROUND) (string, error) {
+	var result struct {
+		ID primitive.ObjectID `bson:"_id"`
+	}
+
+	// Pipeline de agregación
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"_id": tournamentOID}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "rounds",
+			"localField":   "rounds",
+			"foreignField": "_id",
+			"as":           "rounds",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$rounds"}},
+		bson.D{{Key: "$match", Value: bson.M{"rounds.round": roundName}}},
+		bson.D{{Key: "$project", Value: bson.M{"_id": "$rounds._id"}}},
+	}
+
+	// Ejecutamos la agregación
+	cursor, err := r.tournamentColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return "", fmt.Errorf("error when searching for the round: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	// Verificamos si el cursor tiene documentos
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return "", fmt.Errorf("error when decoding round ID: %w", err)
+		}
+	} else {
+		return "", fmt.Errorf("%w: no round found with name: %s", customerrors.ErrNotFound, roundName)
+	}
+
+	fmt.Printf("este rseria el obj %v", result.ID)
+	// Convertimos el ObjectID a string
+	return result.ID.Hex(), nil
+}
+
+func (r *Repository) GetTournamentRoundNames(ctx context.Context, tournamentOID *primitive.ObjectID) ([]models.ROUND, error) {
+	pipeline := mongo.Pipeline{
+		// Filtramos el documento del torneo por su ID
+		bson.D{{Key: "$match", Value: bson.M{"_id": tournamentOID}}},
+		// Realizamos el lookup para obtener los detalles de las rondas
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "rounds",
+			"localField":   "rounds",
+			"foreignField": "_id",
+			"as":           "rounds",
+		}}},
+		// Desenrollamos el array "rounds" para procesar cada elemento
+		bson.D{{Key: "$unwind", Value: "$rounds"}},
+		// Agrupamos los nombres de las rondas en un array
+		bson.D{{Key: "$group", Value: bson.M{
+			"_id":    nil,
+			"rounds": bson.M{"$addToSet": "$rounds.round"},
+		}}},
+		// Proyectamos el array de nombres de rondas
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":    0,
+			"rounds": 1,
+		}}},
+	}
+
+	cursor, err := r.tournamentColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error when aggregating round names: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var result struct {
+		Rounds []models.ROUND `bson:"rounds"`
+	}
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("error when decoding round names: %w", err)
+		}
+
+		return result.Rounds, nil
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	return nil, fmt.Errorf("no rounds found for tournament ID: %s", tournamentOID.Hex())
+}
+
+func (r *Repository) GetCompetitorChampion(ctx context.Context, tournamentOID *primitive.ObjectID) (string, error) {
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"_id": tournamentOID}}},
+		bson.D{{Key: "$unwind", Value: "$rounds"}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "rounds",
+			"localField":   "rounds",
+			"foreignField": "_id",
+			"as":           "round",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$round"}},
+		bson.D{{Key: "$match", Value: bson.M{"round.round": "F"}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "matches",
+			"localField":   "round._id",
+			"foreignField": "round_id",
+			"as":           "match",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$match"}},
+		bson.D{{Key: "$project", Value: bson.M{"_id": "$match.winner"}}},
+	}
+
+	cursor, err := r.tournamentColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return "", fmt.Errorf("error when aggregating match: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var competitor struct {
+		ID *primitive.ObjectID `bson:"_id"`
+	}
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&competitor); err != nil {
+			return "", fmt.Errorf("error when decoding round ID: %w", err)
+		}
+
+		return competitor.ID.Hex(), nil
+	}
+
+	if err := cursor.Err(); err != nil {
+		return "", fmt.Errorf("cursor error: %w", err)
+	}
+
+	return "", fmt.Errorf("%w: no round found with match winner", customerrors.ErrNotFound)
+}
+
+func (r *Repository) GetTournamentAvailavility(ctx context.Context, tournamentOID *primitive.ObjectID) (*tournament_dao.TournamentAvailabilityDAO, error) {
+	var result struct {
+		Avilability tournament_dao.TournamentAvailabilityDAO `bson:"availability"`
+	}
+
+	filter := bson.M{"_id": tournamentOID}
+
+	opts := options.FindOne().SetProjection(bson.M{"availability": 1})
+
+	err := r.tournamentColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for tournament: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for the tournament: %w", err)
+	}
+
+	return &result.Avilability, nil
+
+}
+
+func (r *Repository) GetAllDatesMatchesFromTournament(ctx context.Context, tournamentOID *primitive.ObjectID) ([]time.Time, error) {
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"_id": tournamentOID}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "matches",
+			"localField":   "_id",
+			"foreignField": "tournament_id",
+			"as":           "match",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$match"}},
+		bson.D{{Key: "$match", Value: bson.M{"match.date": bson.M{"$ne": nil}}}}, // Este filtro excluye los null
+		bson.D{{Key: "$group", Value: bson.M{
+			"_id":   nil,
+			"dates": bson.M{"$addToSet": "$match.date"},
+		}}},
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":   0,
+			"dates": 1,
+		}}},
+	}
+
+	cursor, err := r.tournamentColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error when aggregating match dates: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var result struct {
+		Dates []time.Time `bson:"dates"`
+	}
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("error when decoding match dates: %w", err)
+		}
+
+		return result.Dates, nil
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	return nil, fmt.Errorf("no rounds found for tournament ID: %s", tournamentOID.Hex())
+}

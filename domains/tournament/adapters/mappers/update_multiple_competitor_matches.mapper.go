@@ -10,19 +10,19 @@ func UpdateMultipleCompetitorMatchesDTOtoDAO(competitorMatchDTOs []*dto.UpdateCo
 	competitorMatchDAOs := make([]*dao.UpdateCompetitorMatchDAOReq, len(competitorMatchDTOs))
 
 	for i, competitorMatchDTO := range competitorMatchDTOs {
-		matchOID, err := convert(*competitorMatchDTO.MatchID)
+		matchOID, err := convert(competitorMatchDTO.MatchID)
 		if err != nil {
 			return nil, err
 		}
 
-		competitorOID, err := convert(*competitorMatchDTO.CompetitorID)
+		competitorOID, err := convert(competitorMatchDTO.CompetitorID)
 		if err != nil {
 			return nil, err
 		}
 
 		competitorMatchDAOs[i] = &dao.UpdateCompetitorMatchDAOReq{
-			MatchID:      matchOID,
-			CompetitorID: competitorOID,
+			MatchID:      *matchOID,
+			CompetitorID: *competitorOID,
 			Position:     competitorMatchDTO.Position,
 		}
 

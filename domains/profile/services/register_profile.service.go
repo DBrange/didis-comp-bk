@@ -21,8 +21,8 @@ type roleResult struct {
 func (s *ProfileService) RegisterUser(ctx context.Context, profileInfoDTO *dto.RegisterUserDTOReq) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	// err := s.profileQueryer.WithTransaction(ctx, func(ctx mongo.SessionContext) error {
-	// s.profileQueryer.InitialiseRole(ctx)
+	// err := s.profileQuerier.WithTransaction(ctx, func(ctx mongo.SessionContext) error {
+	// s.profileQuerier.InitialiseRole(ctx)
 	wg := &sync.WaitGroup{}
 
 	locationCh := make(chan *locationResult, 1)
@@ -72,19 +72,19 @@ func (s *ProfileService) RegisterUser(ctx context.Context, profileInfoDTO *dto.R
 	}
 
 	// Crear el usuario
-	userID, err := s.profileQueryer.CreateUser(ctx, userDTO)
+	userID, err := s.profileQuerier.CreateUser(ctx, userDTO)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "profile", "error when creating user")
 	}
 
 	// Crear el organizador o disponibilidad según sea necesario
 	if profileInfoDTO.Organizer {
-		err := s.profileQueryer.CreateOrganizer(ctx, userID)
+		err := s.profileQuerier.CreateOrganizer(ctx, userID)
 		if err != nil {
 			return customerrors.HandleErrMsg(err, "profile", "error when creating organizer")
 		}
 	} else {
-		err := s.profileQueryer.CreateAvailability(ctx, &userID, nil)
+		err := s.profileQuerier.CreateAvailability(ctx, &userID, nil, nil)
 		if err != nil {
 			return customerrors.HandleErrMsg(err, "profile", "error when creating availability")
 		}
@@ -98,18 +98,18 @@ func (s *ProfileService) RegisterUser(ctx context.Context, profileInfoDTO *dto.R
 	// }
 
 	//ACTIVAR LUEGO
-	// s.profileQueryer.ActivateUserNotification(ctx)
+	// s.profileQuerier.ActivateUserNotification(ctx)
 
 }
 
 func (s *ProfileService) createLocationConcurrently(ctx context.Context, locationInfoDTO *dto.CreateLocationDTOReq, wg *sync.WaitGroup, locationCh chan<- *locationResult) {
 	defer wg.Done()
-	locationID, err := s.profileQueryer.CreateLocation(ctx, locationInfoDTO)
+	locationID, err := s.profileQuerier.CreateLocation(ctx, locationInfoDTO)
 	locationCh <- &locationResult{ID: locationID, Err: err}
 }
 
 func (s *ProfileService) getRoleByNameAndTypeConcurrently(ctx context.Context, roleName string, roleType string, wg *sync.WaitGroup, roleCh chan<- *roleResult) {
 	defer wg.Done()
-	role, err := s.profileQueryer.GetRoleByNameAndType(ctx, roleName, roleType)
+	role, err := s.profileQuerier.GetRoleByNameAndType(ctx, roleName, roleType)
 	roleCh <- &roleResult{Role: role, Err: err}
 }

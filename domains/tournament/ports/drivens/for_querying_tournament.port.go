@@ -2,6 +2,7 @@ package ports
 
 import (
 	"context"
+	"time"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	option_models "github.com/DBrange/didis-comp-bk/cmd/api/models/options/tournament"
@@ -51,7 +52,7 @@ type ForQueryingTournament interface {
 		limit int,
 	) ([]*tournament_dto.GetCompetitorsInTournamentDTORes, error)
 	VerifyCompetitorExists(ctx context.Context, competitorID string) error
-	VerifyTournamentsExists(ctx context.Context, tournamentID string) error
+	VerifyTournamentExists(ctx context.Context, tournamentID string) error
 	CreateCompetitorStats(ctx context.Context, competitorID string) error
 	UpdateCompetitorMatch(ctx context.Context, matchID string, competitorMatchDTO *tournament_dto.UpdateCompetitorMatchDTOReq) error
 	VerifyMatchExists(ctx context.Context, matchID string) error
@@ -118,12 +119,29 @@ type ForQueryingTournament interface {
 	UpdatePotPositions(ctx context.Context, potID string, position int) error
 	DeletePotByPosition(ctx context.Context, position int, tournamentID string) error
 	VerifyNumberPotsInTournament(ctx context.Context, tournamentID string, position int) error
-
-	VerifyNumberGroupsInTournament(ctx context.Context, tournamentOID string, position int) error
-	AddGroupInTournament(ctx context.Context, tournamentOID, groupOID string) error
-	UpdateGroupPositions(ctx context.Context, groupOID string, position int) error
-	RemoveGroupToTournament(ctx context.Context, tournamentOID string, position int) error
-	DeleteGroupByPosition(ctx context.Context, position int, tournamentOID string) error
-	GetTournamentGroupPositions(ctx context.Context, tournamentOID string) ([]*tournament_dto.PotOrGroupPositionDTORes, error)
-	GetTournamentGroupMatchesByPosition(ctx context.Context, position int, tournamentOID string) ([]string, []string, error)
+	VerifyNumberGroupsInTournament(ctx context.Context, tournamentID string, position int) error
+	AddGroupInTournament(ctx context.Context, tournamentID, groupID string) error
+	UpdateGroupPositions(ctx context.Context, groupID string, position int) error
+	RemoveGroupToTournament(ctx context.Context, tournamentID string, position int) error
+	DeleteGroupByPosition(ctx context.Context, position int, tournamentID string) error
+	GetTournamentGroupPositions(ctx context.Context, tournamentID string) ([]*tournament_dto.PotOrGroupPositionDTORes, error)
+	GetTournamentGroupMatchesByPosition(ctx context.Context, position int, tournamentID string) ([]string, []string, error)
+	GetDoubleElimRoundID(ctx context.Context, tournamentID string, round models.ROUND) (string, error)
+	AddMatchInDoubleElim(ctx context.Context, doubleElimID, matchID string) error
+	GetDoubleElimID(ctx context.Context, tournamentID string) (string, error)
+	GetTournamentRoundNames(ctx context.Context, tournamentID string) ([]models.ROUND, error)
+	GetAllDoubleElimRoundIDs(ctx context.Context, doubleEliminationID string) ([]string, error)
+	GetDoubleElimInfoToFinaliseIt(ctx context.Context, doubleElimID string) (*tournament_dto.GetDoubleElimInfoToFinaliseItDTORes, error)
+	GetDoubleElimCompetitorChampion(ctx context.Context, doubleElimOID string) (string, error)
+	GetCompetitorChampion(ctx context.Context, tournamentOID string) (string, error)
+	GetMultipleAvailabilitiesByCompetitor(ctx context.Context, competitorIDs []string) ([][]*tournament_dto.GetDailyAvailabilityByIDDTORes, error)
+	UpdateMultipleMatchesDate(ctx context.Context, matchDates []*tournament_dto.MatchDateDTOReq) error
+	GetAvailabilityByTournamentID(ctx context.Context, tournamentID string) ([]*tournament_dto.GetDailyAvailabilityByIDDTORes, error)
+	GetTournamentAvailavility(ctx context.Context, tournamentID string) (*tournament_dto.TournamentAvailabilityDTO, error)
+	CreateAvailability(ctx context.Context, userID, competitorID, tournamentID *string) error
+	GetAllDatesMatchesFromTournament(ctx context.Context, tournamentID string) ([]time.Time, error)
+	UpdateMatchDate(ctx context.Context, matchID string, date *time.Time) error
+	CreateMatchChat(ctx context.Context, matchID string, competitorIDs []string, userID string) error
+	VerifyCompetitorIDInCompetitorUser(ctx context.Context, competitorIDs []string) (bool, error)
+	UpdateTournamentStartDate(ctx context.Context, tournamentID string) error
 }

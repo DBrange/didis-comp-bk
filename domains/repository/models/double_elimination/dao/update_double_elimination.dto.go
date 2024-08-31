@@ -7,9 +7,11 @@ import (
 )
 
 type UpdateDoubleEliminationDAOReq struct {
-	Matches   *[]primitive.ObjectID `bson:"matches,omitempty"`
-	Rounds    *[]primitive.ObjectID `bson:"rounds,omitempty"`
-	UpdatedAt time.Time             `bson:"updated_at"`
+	Matches    *[]*primitive.ObjectID `bson:"matches,omitempty"`
+	Rounds     *[]*primitive.ObjectID `bson:"rounds,omitempty"`
+	TotalPrize *float64               `bson:"total_prize,omitempty"`
+	Points     *int                   `bson:"points,omitempty"`
+	UpdatedAt  time.Time              `bson:"updated_at"`
 }
 
 func (u *UpdateDoubleEliminationDAOReq) RenewUpdate() {

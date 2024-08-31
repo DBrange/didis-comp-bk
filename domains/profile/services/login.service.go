@@ -9,7 +9,7 @@ import (
 )
 
 func (s *ProfileService) Login(ctx context.Context, loginDTO *dto.LoginDTOReq) (string, string, error) {
-	password, userID, err := s.profileQueryer.GetUserPasswordForLogin(ctx, loginDTO.Username)
+	password, userID, err := s.profileQuerier.GetUserPasswordForLogin(ctx, loginDTO.Username)
 	if err != nil {
 		return "", "", customerrors.HandleErrMsg(err, "profile", "error getting password")
 	}
@@ -18,7 +18,7 @@ func (s *ProfileService) Login(ctx context.Context, loginDTO *dto.LoginDTOReq) (
 		return "", "", customerrors.HandleErrMsg(err, "profile", "error passwords do not match")
 	}
 
-	roles, err := s.profileQueryer.GetUserRoles(ctx, userID)
+	roles, err := s.profileQuerier.GetUserRoles(ctx, userID)
 	if err != nil {
 		return "", "", customerrors.HandleErrMsg(err, "profile", "error getting profile roles")
 	}

@@ -132,11 +132,11 @@ package services_test
 // 			ctrl := gomock.NewController(t)
 // 			defer ctrl.Finish()
 
-// 			mockForProfileQueryer := mocks.NewMockForQueryingProfile(ctrl)
+// 			mockForProfileQuerier := mocks.NewMockForQueryingProfile(ctrl)
 
-// 			profileService := services.NewProfileService(mockForProfileQueryer)
+// 			profileService := services.NewProfileService(mockForProfileQuerier)
 
-// 			test.setup(mockForProfileQueryer)
+// 			test.setup(mockForProfileQuerier)
 
 // 			err := profileService.RegisterUser(context.Background(), test.profileDTO)
 

@@ -97,3 +97,22 @@ func (r *Repository) DeleteCompetitorUser(ctx context.Context, competitorUserID 
 
 	return nil
 }
+
+func (r *Repository) VerifyCompetitorIDInCompetitorUser(ctx context.Context, competitorIDs []*primitive.ObjectID) (bool, error) {
+	// Crear el filtro para buscar ambos IDs en la colección
+	filter := bson.M{"competitor_id": bson.M{"$in": competitorIDs}}
+
+	// Contar cuántos documentos coinciden con los IDs proporcionados
+	count, err := r.userColl.CountDocuments(ctx, filter)
+	if err != nil {
+		return false, fmt.Errorf("error when counting competitor users: %w", err)
+	}
+
+	// Si el número de documentos encontrados es igual al número de IDs proporcionados, ambos existen
+	if count == int64(len(competitorIDs)) {
+		return true, nil
+	}
+
+	// Si no, falta al menos uno de los IDs
+	return false, nil
+}

@@ -8,7 +8,7 @@ import (
 )
 
 func (driven *LocationService) CreateLocation(ctx context.Context, locationInfoDTO *dto.CreateLocationDTOReq) (string, error) {
-	id, err := driven.locationQueryer.CreateLocation(ctx, locationInfoDTO)
+	id, err := driven.locationQuerier.CreateLocation(ctx, locationInfoDTO)
 
 	if err != nil {
 		locationErrorHandlers := customerrors.CreateErrorHandlers("location")

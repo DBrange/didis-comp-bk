@@ -14,7 +14,8 @@ type GetMatchByIDDAORes struct {
 	Result       *primitive.ObjectID `bson:"result"`
 	Winner       *primitive.ObjectID `bson:"winner"`
 	TournamentID *primitive.ObjectID `bson:"tournament_id"`
-	Position     int                `bson:"position"`
+	Position     int                 `bson:"position"`
+	Date         *time.Time          `bson:"date"`
 	// Votes        map[string]string  `bson:"votes"`
 	CreatedAt time.Time  `bson:"created_at"`
 	UpdatedAt time.Time  `bson:"updated_at"`

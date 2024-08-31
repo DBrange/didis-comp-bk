@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"time"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/DBrange/didis-comp-bk/cmd/api/utils"
@@ -16,13 +17,13 @@ func (s *TournamentService) OrganizeTournamentGroups(ctx context.Context, tourna
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
 
-	err := s.tournamentQueryer.WithTransaction(ctx, func(sessCtx mongo.SessionContext) error {
+	err := s.tournamentQuerier.WithTransaction(ctx, func(sessCtx mongo.SessionContext) error {
 		// Add competitors on each group
-		if err := s.tournamentQueryer.AddCompetitorsToTournamentGroups(sessCtx, tournamentID, competitorDTOs); err != nil {
+		if err := s.tournamentQuerier.AddCompetitorsToTournamentGroups(sessCtx, tournamentID, competitorDTOs); err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 		}
 
-		// create matches alghoritm
+		// Create matches alghoritm
 		if err := s.createRoundRobin(sessCtx, tournamentID, roundID, competitorDTOs, sport); err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 		}
@@ -37,9 +38,36 @@ func (s *TournamentService) OrganizeTournamentGroups(ctx context.Context, tourna
 }
 
 func (s *TournamentService) createRoundRobin(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT) error {
+	competitorsInMatchMap, err := s.createMatchesFromRoundRobin(ctx, tournamentID, roundID, competitorDTOs, sport)
+	if err != nil {
+		return err
+	}
+
+	courtAvailability, tournamentAvailabilities, err := s.getPartialAvailabilityInTournament(ctx, tournamentID)
+	if err != nil {
+		return err
+	}
+
+	timetablesNotAvailables := []time.Time{}
+	if err := s.updateMatchesDates(ctx, competitorsInMatchMap, courtAvailability, tournamentAvailabilities, timetablesNotAvailables); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *TournamentService) createMatchesFromRoundRobin(
+	ctx context.Context,
+	tournamentID,
+	roundID string,
+	competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq,
+	sport models.SPORT,
+) (map[string][]string, error) {
+	competitorsInMatchMap := make(map[string][]string)
+
 	for _, competitorDTO := range competitorDTOs {
 		competitors := competitorDTO.Competitors
-		n := len(competitors)
+
 		matchesNum := s.CalculateTotalMatchesInGroup(competitors) // Número total de partidos en un sistema "todos contra todos"
 
 		competitorMatchDTO := make([]*dto.UpdateCompetitorMatchDTOReq, matchesNum*2) // *2 porque cada partido tiene 2 competidores
@@ -47,53 +75,74 @@ func (s *TournamentService) createRoundRobin(ctx context.Context, tournamentID, 
 		// Create matches
 		matchIDs, err := s.createMatchesInGroup(ctx, matchesNum, roundID, tournamentID, sport)
 		if err != nil {
-			return customerrors.HandleErrMsg(err, "tournament", "error when creating matches")
+			return nil, customerrors.HandleErrMsg(err, "tournament", "error when creating matches")
 		}
 
 		// Add matches in tournament
 		if err := s.addMatchesInTournament(ctx, tournamentID, competitorDTO.GroupID, matchIDs); err != nil {
-			return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
+			return nil, customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 		}
 
-		matchIndex := 0
-		for i := 0; i < n-1; i++ {
-			for j := i + 1; j < n; j++ {
-				if matchIndex >= len(matchIDs) {
-					break
-				}
-				matchID := matchIDs[matchIndex]
-
-				// Competitor objects
-				competitorMatchDTO[matchIndex*2] = &dto.UpdateCompetitorMatchDTOReq{
-					MatchID:      &matchID,
-					CompetitorID: &competitors[i],
-					Position:     utils.IntPtr(1),
-				}
-				competitorMatchDTO[matchIndex*2+1] = &dto.UpdateCompetitorMatchDTOReq{
-					MatchID:      &matchID,
-					CompetitorID: &competitors[j],
-					Position:     utils.IntPtr(2),
-				}
-
-				// Add competitors to stats
-				if err := s.tournamentQueryer.AddMatchInCompetitorStats(ctx, competitors[i], matchID); err != nil {
-					return customerrors.HandleErrMsg(err, "tournament", "error when adding match competitor stats")
-				}
-				if err := s.tournamentQueryer.AddMatchInCompetitorStats(ctx, competitors[j], matchID); err != nil {
-					return customerrors.HandleErrMsg(err, "tournament", "error when adding match competitor stats")
-				}
-
-				matchIndex++
-			}
+		competitorsInMatchMap, err = s.addMatchInStats(ctx, matchIDs, competitorMatchDTO, competitors)
+		if err != nil {
+			return nil, err
 		}
 
 		// Update competitorMatches with the new info
-		if err := s.tournamentQueryer.UpdateMultipleCompetitorMatches(ctx, competitorMatchDTO); err != nil {
-			return customerrors.HandleErrMsg(err, "tournament", "error when updating competitorMatches")
+		if err := s.tournamentQuerier.UpdateMultipleCompetitorMatches(ctx, competitorMatchDTO); err != nil {
+			return nil, customerrors.HandleErrMsg(err, "tournament", "error when updating competitorMatches")
 		}
 	}
 
-	return nil
+	return competitorsInMatchMap, nil
+
+}
+
+func (s *TournamentService) addMatchInStats(
+	ctx context.Context,
+	matchIDs []string,
+	competitorMatchDTO []*dto.UpdateCompetitorMatchDTOReq,
+	competitors []string,
+) (map[string][]string, error) {
+	competitorsInMatchMap := make(map[string][]string)
+
+	n := len(competitors)
+
+	matchIndex := 0
+	for i := 0; i < n-1; i++ {
+		for j := i + 1; j < n; j++ {
+			if matchIndex >= len(matchIDs) {
+				break
+			}
+			matchID := matchIDs[matchIndex]
+
+			// Competitor objects
+			competitorMatchDTO[matchIndex*2] = &dto.UpdateCompetitorMatchDTOReq{
+				MatchID:      matchID,
+				CompetitorID: competitors[i],
+				Position:     *utils.IntPtr(1),
+			}
+			competitorMatchDTO[matchIndex*2+1] = &dto.UpdateCompetitorMatchDTOReq{
+				MatchID:      matchID,
+				CompetitorID: competitors[j],
+				Position:     *utils.IntPtr(2),
+			}
+
+			// Add competitors to stats
+			if err := s.tournamentQuerier.AddMatchInCompetitorStats(ctx, competitors[i], matchID); err != nil {
+				return nil, customerrors.HandleErrMsg(err, "tournament", "error when adding match competitor stats")
+			}
+			if err := s.tournamentQuerier.AddMatchInCompetitorStats(ctx, competitors[j], matchID); err != nil {
+				return nil, customerrors.HandleErrMsg(err, "tournament", "error when adding match competitor stats")
+			}
+
+			competitorsInMatchMap[matchID] = append(competitorsInMatchMap[matchID], competitors[i], competitors[j])
+
+			matchIndex++
+		}
+	}
+
+	return competitorsInMatchMap, nil
 }
 
 func (s *TournamentService) createMatchesInGroup(ctx context.Context, matchesNumber int, roundID, tournamentID string, sport models.SPORT) ([]string, error) {
@@ -107,7 +156,7 @@ func (s *TournamentService) createMatchesInGroup(ctx context.Context, matchesNum
 		}
 
 		// Create match
-		matchID, err := s.tournamentQueryer.CreateMatch(ctx, matchDTO)
+		matchID, err := s.tournamentQuerier.CreateMatch(ctx, matchDTO)
 		if err != nil {
 			return []string{}, customerrors.HandleErrMsg(err, "tournament", "error when creating matches")
 		}
@@ -141,17 +190,17 @@ func (s *TournamentService) verificationsOrganizeTournamentGroups(ctx context.Co
 	}
 
 	// Verify if group is on tournament
-	if err := s.tournamentQueryer.VerifyMultipleGroupsInTournament(ctx, tournamentID, groupIDs); err != nil {
+	if err := s.tournamentQuerier.VerifyMultipleGroupsInTournament(ctx, tournamentID, groupIDs); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
 
 	// Verify if round is on tournament
-	if err := s.tournamentQueryer.VerifyRoundInTournament(ctx, roundID, tournamentID); err != nil {
+	if err := s.tournamentQuerier.VerifyRoundInTournament(ctx, roundID, tournamentID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
 
 	// Verify if tournament contain all competitors
-	if err := s.tournamentQueryer.VerifyMultipleCompetitorsExistsInTournament(ctx, tournamentID, competitorIDs); err != nil {
+	if err := s.tournamentQuerier.VerifyMultipleCompetitorsExistsInTournament(ctx, tournamentID, competitorIDs); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when verifying competitors")
 	}
 
@@ -160,12 +209,12 @@ func (s *TournamentService) verificationsOrganizeTournamentGroups(ctx context.Co
 
 func (s *TournamentService) addMatchesInTournament(ctx context.Context, tournamentID, groupID string, matchIDs []string) error {
 	// Add matches in tournament
-	if err := s.tournamentQueryer.AddMultipleMatchesInTournament(ctx, tournamentID, matchIDs); err != nil {
+	if err := s.tournamentQuerier.AddMultipleMatchesInTournament(ctx, tournamentID, matchIDs); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding matches in tournament")
 	}
 
 	// Add matches in group
-	if err := s.tournamentQueryer.AddMultipleMatchesInTournamentGroup(ctx, groupID, tournamentID, matchIDs); err != nil {
+	if err := s.tournamentQuerier.AddMultipleMatchesInTournamentGroup(ctx, groupID, tournamentID, matchIDs); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding matches in group")
 	}
 

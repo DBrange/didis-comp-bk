@@ -10,7 +10,7 @@ import (
 )
 
 func (d *LocationService) GetLocationByID(ctx context.Context, id string) (*location_dto.GetLocationByIDDTORes, error) {
-	locationDTO, err := d.locationQueryer.GetLocationByID(ctx, id)
+	locationDTO, err := d.locationQuerier.GetLocationByID(ctx, id)
 	if err != nil {
 		return nil, getLocationByIDHandleError(err)
 	}

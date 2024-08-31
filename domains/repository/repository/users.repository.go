@@ -263,8 +263,23 @@ func (r *Repository) GetUserRoles(ctx context.Context, userID string) ([]string,
 	return rolesStr, nil
 }
 
-func (r *Repository) GetUserForListOfTournament(ctx context.Context, userOID *primitive.ObjectID) (any, error) {
-	return nil, nil
+func (r *Repository) VerifyUserExists(ctx context.Context, userOID *primitive.ObjectID) error {
+	var result struct{}
+
+	filter := bson.M{"_id": userOID}
+
+	opts := options.FindOne().SetProjection(bson.M{"_id": 1})
+
+	err := r.userColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		fmt.Printf("por aca %v", err)
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("%w: error when searching for user: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return fmt.Errorf("error when searching for the user: %w", err)
+	}
+
+	return nil
 }
 
 // func (r *Repository) GetUserByName(ctx context.Context, name string, limit, page int) ([]*user_dao.GetUserByNameDAORes, error) {

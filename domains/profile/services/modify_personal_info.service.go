@@ -11,7 +11,7 @@ import (
 )
 
 func (s *ProfileService) ModifyPersonalInfo(ctx context.Context, userID string, userInfoDTO *profile_dto.ModifyPersonalInfoDTOReq) error {
-	err := s.profileQueryer.WithTransaction(ctx, func(sessCtx mongo.SessionContext) error {
+	err := s.profileQuerier.WithTransaction(ctx, func(sessCtx mongo.SessionContext) error {
 		userDTO, locationDTO := mappers.ModifyPersonalInfoMapper(userInfoDTO)
 		wg := &sync.WaitGroup{}
 
@@ -50,14 +50,14 @@ func (s *ProfileService) ModifyPersonalInfo(ctx context.Context, userID string, 
 
 func (s *ProfileService) updateUserConcurrently(sessCtx mongo.SessionContext, userID string, userInfoDAO *profile_dto.UpdateUserDTOReq, wg *sync.WaitGroup, errCh chan<- error) {
 	defer wg.Done()
-	if err := s.profileQueryer.UpdateUser(sessCtx, userID, userInfoDAO); err != nil {
+	if err := s.profileQuerier.UpdateUser(sessCtx, userID, userInfoDAO); err != nil {
 		errCh <- err
 	}
 }
 
 func (s *ProfileService) updateLocationConcurrently(sessCtx mongo.SessionContext, locationID string, locationInfoDAO *profile_dto.UpdateLocationDTOReq, wg *sync.WaitGroup, errCh chan<- error) {
 	defer wg.Done()
-	if err := s.profileQueryer.UpdateLocation(sessCtx, locationID, locationInfoDAO); err != nil {
+	if err := s.profileQuerier.UpdateLocation(sessCtx, locationID, locationInfoDAO); err != nil {
 		errCh <- err
 	}
 }

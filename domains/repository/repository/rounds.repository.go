@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/round/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -361,11 +360,11 @@ func (r *Repository) GetRoundsWithCompetitors(ctx context.Context, tournamentOID
 
 	// Iterar sobre los resultados y decodificarlos en una estructura
 	for cursor.Next(ctx) {
-		var result dao.GetRoundWithCompetitorsDAORes
+		var result *dao.GetRoundWithCompetitorsDAORes
 		if err := cursor.Decode(&result); err != nil {
 			return nil, fmt.Errorf("error al decodificar el resultado: %v", err)
 		}
-		roundsWithCompetitors = append(roundsWithCompetitors, &result)
+		roundsWithCompetitors = append(roundsWithCompetitors, result)
 	}
 
 	if err := cursor.Err(); err != nil {
@@ -374,6 +373,66 @@ func (r *Repository) GetRoundsWithCompetitors(ctx context.Context, tournamentOID
 
 	return roundsWithCompetitors, nil
 }
+
+// func (r *Repository) GetDoubleElimMatches(ctx context.Context, tournamentOID *primitive.ObjectID) ([]*dao.GetRoundWithCompetitorsDAORes, error) {
+// 	pipeline := mongo.Pipeline{
+// 		// Filtrar por el torneo
+// 		bson.D{{Key: "$match", Value: bson.M{"_id": tournamentOID}}},
+// 		// Buscar el double_elimination_id
+// 		bson.D{{Key: "$lookup", Value: bson.M{
+// 			"from":         "double_eliminations",
+// 			"localField":   "double_elimination_id",
+// 			"foreignField": "_id",
+// 			"as":           "double_elim",
+// 		}}},
+// 		bson.D{{Key: "$unwind", Value: bson.M{
+// 			"path":                       "$double_elim",
+// 			"preserveNullAndEmptyArrays": true,
+// 		}}},
+// 		// Buscar los matches en double_eliminations
+// 		bson.D{{Key: "$lookup", Value: bson.M{
+// 			"from":         "matches",
+// 			"localField":   "double_elim.rounds",
+// 			"foreignField": "_id",
+// 			"as":           "double_elim_matches",
+// 		}}},
+// 		bson.D{{Key: "$unwind", Value: bson.M{
+// 			"path":                       "$double_elim_matches",
+// 			"preserveNullAndEmptyArrays": true,
+// 		}}},
+// 		// Agrupar para obtener la lista de matches
+// 		bson.D{{Key: "$group", Value: bson.M{
+// 			"_id":                   "$double_elim._id",
+// 			"double_elim_matches":  bson.M{"$addToSet": "$double_elim_matches"},
+// 		}}},
+// 	}
+
+// 	cursor, err := r.tournamentColl.Aggregate(ctx, pipeline)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error al ejecutar el pipeline de agregación: %v", err)
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var matches []*dao.GetRoundWithCompetitorsDAORes
+
+// 	// Iterar sobre los resultados y decodificarlos en una estructura
+// 	for cursor.Next(ctx) {
+// 		var result struct {
+// 			DoubleElimMatches []*dao.GetRoundWithCompetitorsDAORes `bson:"double_elim_matches"`
+// 		}
+// 		if err := cursor.Decode(&result); err != nil {
+// 			return nil, fmt.Errorf("error al decodificar el resultado: %v", err)
+// 		}
+// 		matches = append(matches, result.DoubleElimMatches...)
+// 	}
+
+// 	if err := cursor.Err(); err != nil {
+// 		return nil, fmt.Errorf("error al iterar sobre los resultados: %v", err)
+// 	}
+
+// 	return matches, nil
+// }
+
 
 func (r *Repository) VerifyRoundInTournament(ctx context.Context, roundOID, tournamentOID *primitive.ObjectID) error {
 	var result struct{}
@@ -515,26 +574,3 @@ func (r *Repository) VerifyRoundInTournament(ctx context.Context, roundOID, tour
 
 // 	return nil
 // }
-
-func (r *Repository) GetRoundID(ctx context.Context, tournamentOID *primitive.ObjectID, round models.ROUND) (string, error) {
-	var result struct {
-		ID *primitive.ObjectID `bson:"_id"`
-	}
-
-	filter := bson.M{"tournament_id": tournamentOID, "round": round}
-
-	opts := options.FindOne().SetProjection(bson.M{"_id": 1})
-
-	err := r.roundColl.FindOne(ctx, filter, opts).Decode(&result)
-	if err != nil {
-		fmt.Printf("por aca %v", err)
-		if err == mongo.ErrNoDocuments {
-			return "", fmt.Errorf("%w: error when searching for round: %s", customerrors.ErrNotFound, err.Error())
-		}
-		return "", fmt.Errorf("error when searching for the round: %w", err)
-	}
-
-	id := result.ID.Hex()
-
-	return id, nil
-}

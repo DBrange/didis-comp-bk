@@ -16,7 +16,7 @@ func tournamentRoutes(router *gin.Engine, handler *handlers.Handler) {
 
 	tournamnetsRouter.PUT("/register-guest-competitor/:tournamentID", handler.AddGuestUserInTournament)
 
-	tournamnetsRouter.PUT("/modify-bracket-match/:matchID", handler.ModifyBracketMatch)
+	tournamnetsRouter.PUT("/modify-bracket-match/:tournamentID/:userID", handler.ModifyBracketMatch)
 
 	tournamnetsRouter.POST("/organize-bracket/:tournamentID", handler.OrganizeBracket)
 

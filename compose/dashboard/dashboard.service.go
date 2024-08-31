@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	category_ports "github.com/DBrange/didis-comp-bk/domains/category/ports/drivers"
+	chat_ports "github.com/DBrange/didis-comp-bk/domains/chat/ports/drivers"
 	control_plane_ports "github.com/DBrange/didis-comp-bk/domains/control_plane/ports/drivers"
 	location_ports "github.com/DBrange/didis-comp-bk/domains/location/ports/drivers"
 	profile_ports "github.com/DBrange/didis-comp-bk/domains/profile/ports/drivers"
@@ -14,6 +15,7 @@ type DashboardService struct {
 	forLocation     location_ports.ForLocation
 	forTournament   tournament_ports.ForTournament
 	forCategory     category_ports.ForCategory
+	forChat         chat_ports.ForChat
 }
 
 func NewDashboardService(
@@ -22,6 +24,7 @@ func NewDashboardService(
 	locationAdapter location_ports.ForLocation,
 	tournamentAdapter tournament_ports.ForTournament,
 	categoryAdapter category_ports.ForCategory,
+	chatAdapter chat_ports.ForChat,
 ) *DashboardService {
 	return &DashboardService{
 		forControlPlane: controlPlaneAdapter,
@@ -29,6 +32,7 @@ func NewDashboardService(
 		forLocation:     locationAdapter,
 		forTournament:   tournamentAdapter,
 		forCategory:     categoryAdapter,
+		forChat:         chatAdapter,
 	}
 }
 
@@ -50,4 +54,8 @@ func (d *DashboardService) Tournament() tournament_ports.ForTournament {
 
 func (d *DashboardService) Category() category_ports.ForCategory {
 	return d.forCategory
+}
+
+func (d *DashboardService) Chat() chat_ports.ForChat {
+	return d.forChat
 }

@@ -23,16 +23,16 @@ func (s *TournamentService) UpdateQuantityGroupsInTournament(ctx context.Context
 }
 
 func (s *TournamentService) addGroupInTournament(ctx context.Context, tournamentID string, position int) error {
-	if err := s.tournamentQueryer.VerifyNumberGroupsInTournament(ctx, tournamentID, position); err != nil {
+	if err := s.tournamentQuerier.VerifyNumberGroupsInTournament(ctx, tournamentID, position); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 	}
 
-	potID, err := s.tournamentQueryer.CreateTournamentGroup(ctx, tournamentID, position)
+	potID, err := s.tournamentQuerier.CreateTournamentGroup(ctx, tournamentID, position)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 	}
 
-	if err := s.tournamentQueryer.AddGroupInTournament(ctx, tournamentID, potID); err != nil {
+	if err := s.tournamentQuerier.AddGroupInTournament(ctx, tournamentID, potID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 	}
 
@@ -42,7 +42,7 @@ func (s *TournamentService) addGroupInTournament(ctx context.Context, tournament
 func (s *TournamentService) removeGroupToTournament(ctx context.Context, tournamentID string, position int) error {
 	// Get matches of the groups
 
-	matchesToRemove, competitorIDs, err := s.tournamentQueryer.GetTournamentGroupMatchesByPosition(ctx, position, tournamentID)
+	matchesToRemove, competitorIDs, err := s.tournamentQuerier.GetTournamentGroupMatchesByPosition(ctx, position, tournamentID)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
@@ -52,37 +52,34 @@ func (s *TournamentService) removeGroupToTournament(ctx context.Context, tournam
 		return customerrors.HandleErrMsg(err, "tournament", "error when eliminate group")
 	}
 
-	if len(matchesToRemove) > 0{
-	if err := s.tournamentQueryer.DeleteMultipleMatches(ctx, matchesToRemove); err != nil {
-		return customerrors.HandleErrMsg(err, "tournament", "error when creating competitorMatches")
-	}
+	if len(matchesToRemove) > 0 {
+		if err := s.tournamentQuerier.DeleteMultipleMatches(ctx, matchesToRemove); err != nil {
+			return customerrors.HandleErrMsg(err, "tournament", "error when creating competitorMatches")
+		}
 
-		if err := s.tournamentQueryer.DeleteMultipleCompetitorMatches(ctx, matchesToRemove); err != nil {
+		if err := s.tournamentQuerier.DeleteMultipleCompetitorMatches(ctx, matchesToRemove); err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when creating competitorMatches")
 		}
 	}
 
-	if err := s.tournamentQueryer.RemoveGroupToTournament(ctx, tournamentID, position); err != nil {
+	if err := s.tournamentQuerier.RemoveGroupToTournament(ctx, tournamentID, position); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 	}
 
-
-	if err := s.tournamentQueryer.DeleteGroupByPosition(ctx, position, tournamentID); err != nil {
+	if err := s.tournamentQuerier.DeleteGroupByPosition(ctx, position, tournamentID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 	}
-
 
 	// Get pots to update their position
-	groupPositions, err := s.tournamentQueryer.GetTournamentGroupPositions(ctx, tournamentID)
+	groupPositions, err := s.tournamentQuerier.GetTournamentGroupPositions(ctx, tournamentID)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when getting pot positions in tournament")
 	}
 
 	newPotPostions := s.calculateNewPositions(groupPositions, position)
 
-
 	for _, pp := range newPotPostions {
-		if err := s.tournamentQueryer.UpdateGroupPositions(ctx, pp.ID, pp.Position); err != nil {
+		if err := s.tournamentQuerier.UpdateGroupPositions(ctx, pp.ID, pp.Position); err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 		}
 	}

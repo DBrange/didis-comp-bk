@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	category_ports "github.com/DBrange/didis-comp-bk/domains/category/ports/drivers"
+	chat_ports "github.com/DBrange/didis-comp-bk/domains/chat/ports/drivers"
 	control_plane_ports "github.com/DBrange/didis-comp-bk/domains/control_plane/ports/drivers"
 	location_ports "github.com/DBrange/didis-comp-bk/domains/location/ports/drivers"
 	profile_ports "github.com/DBrange/didis-comp-bk/domains/profile/ports/drivers"
@@ -14,4 +15,5 @@ type Dashboard interface {
 	Location() location_ports.ForLocation
 	Tournament() tournament_ports.ForTournament
 	Category() category_ports.ForCategory
+	Chat() chat_ports.ForChat
 }

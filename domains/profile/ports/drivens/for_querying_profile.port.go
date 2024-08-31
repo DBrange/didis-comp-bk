@@ -19,7 +19,7 @@ type ForQueryingProfile interface {
 	CreateLocation(ctx context.Context, locationInfoDAO *profile_dto.CreateLocationDTOReq) (string, error)
 	GetRoleByNameAndType(ctx context.Context, roleName, roleType string) (*profile_dto.GetRoleDTOByID, error)
 	CreateOrganizer(ctx context.Context, userID string) error
-	CreateAvailability(ctx context.Context, userID, competitorID *string) error
+	CreateAvailability(ctx context.Context, userID, competitorID,tournamentOID *string) error
 	UpdateAvailability(ctx context.Context, availabilityID string, availabilityInfoDAO *profile_dto.UpdateDailyAvailabilityDTOReq) error
 	UpdateUser(ctx context.Context, userID string, userInfoDAO *profile_dto.UpdateUserDTOReq) error
 	UpdateLocation(ctx context.Context, locationID string, locationDAO *profile_dto.UpdateLocationDTOReq) error

@@ -8,17 +8,17 @@ import (
 	ports "github.com/DBrange/didis-comp-bk/domains/repository/ports/drivers"
 )
 
-type LocationQueryerAdapter struct {
+type LocationQuerierAdapter struct {
 	drivers ports.ForManagingLocation
 }
 
-func NewLocationQueryerAdapter(drivers ports.ForManagingLocation) *LocationQueryerAdapter {
-	return &LocationQueryerAdapter{
+func NewLocationQuerierAdapter(drivers ports.ForManagingLocation) *LocationQuerierAdapter {
+	return &LocationQuerierAdapter{
 		drivers: drivers,
 	}
 }
 
-func (a *LocationQueryerAdapter) CreateLocation(ctx context.Context, locationDTO *location_dto.CreateLocationDTOReq) (string, error) {
+func (a *LocationQuerierAdapter) CreateLocation(ctx context.Context, locationDTO *location_dto.CreateLocationDTOReq) (string, error) {
 	locationToDAO := mappers.CreateLocationDTOtoDAO(locationDTO)
 
 	id, err := a.drivers.CreateLocation(ctx, locationToDAO)
@@ -29,7 +29,7 @@ func (a *LocationQueryerAdapter) CreateLocation(ctx context.Context, locationDTO
 	return id, nil
 }
 
-func (a *LocationQueryerAdapter) GetLocationByID(ctx context.Context, id string) (*location_dto.GetLocationByIDDTORes, error) {
+func (a *LocationQuerierAdapter) GetLocationByID(ctx context.Context, id string) (*location_dto.GetLocationByIDDTORes, error) {
 	locationDTO, err := a.drivers.GetLocationByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -39,12 +39,12 @@ func (a *LocationQueryerAdapter) GetLocationByID(ctx context.Context, id string)
 	return mappedLocation, nil
 }
 
-func (a *LocationQueryerAdapter) UpdateLocation(ctx context.Context, locationID string, newLocationInfoDTO *location_dto.UpdateLocationDTOReq) error {
+func (a *LocationQuerierAdapter) UpdateLocation(ctx context.Context, locationID string, newLocationInfoDTO *location_dto.UpdateLocationDTOReq) error {
 	newLocationInfoDAO := mappers.UpdateLocationDTOtoDAO(newLocationInfoDTO)
 
 	return a.drivers.UpdateLocation(ctx, locationID, newLocationInfoDAO)
 }
 
-func (a *LocationQueryerAdapter) DeleteLocation(ctx context.Context, locationID string) error {
+func (a *LocationQuerierAdapter) DeleteLocation(ctx context.Context, locationID string) error {
 	return a.drivers.DeleteLocation(ctx, locationID)
 }

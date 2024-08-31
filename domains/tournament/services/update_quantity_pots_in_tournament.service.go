@@ -24,16 +24,16 @@ func (s *TournamentService) UpdateQuantityPotsInTournament(ctx context.Context, 
 }
 
 func (s *TournamentService) addPotInTournament(ctx context.Context, tournamentID string, position int) error {
-	if err := s.tournamentQueryer.VerifyNumberPotsInTournament(ctx, tournamentID, position); err != nil {
+	if err := s.tournamentQuerier.VerifyNumberPotsInTournament(ctx, tournamentID, position); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 	}
 
-	potID, err := s.tournamentQueryer.CreatePot(ctx, tournamentID, position)
+	potID, err := s.tournamentQuerier.CreatePot(ctx, tournamentID, position)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 	}
 
-	if err := s.tournamentQueryer.AddPotInTournament(ctx, tournamentID, potID); err != nil {
+	if err := s.tournamentQuerier.AddPotInTournament(ctx, tournamentID, potID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 	}
 
@@ -41,16 +41,16 @@ func (s *TournamentService) addPotInTournament(ctx context.Context, tournamentID
 }
 
 func (s *TournamentService) removePotToTournament(ctx context.Context, tournamentID string, position int) error {
-	if err := s.tournamentQueryer.RemovePotToTournament(ctx, tournamentID, position); err != nil {
+	if err := s.tournamentQuerier.RemovePotToTournament(ctx, tournamentID, position); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 	}
 
-	if err := s.tournamentQueryer.DeletePotByPosition(ctx, position, tournamentID); err != nil {
+	if err := s.tournamentQuerier.DeletePotByPosition(ctx, position, tournamentID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 	}
 
 	// Get pots to update their position
-	potPositions, err := s.tournamentQueryer.GetTournamentPotPositions(ctx, tournamentID)
+	potPositions, err := s.tournamentQuerier.GetTournamentPotPositions(ctx, tournamentID)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when getting pot positions in tournament")
 	}
@@ -58,7 +58,7 @@ func (s *TournamentService) removePotToTournament(ctx context.Context, tournamen
 	newPotPostions := s.calculateNewPositions(potPositions, position)
 
 	for _, pp := range newPotPostions {
-		if err := s.tournamentQueryer.UpdatePotPositions(ctx, pp.ID, pp.Position); err != nil {
+		if err := s.tournamentQuerier.UpdatePotPositions(ctx, pp.ID, pp.Position); err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when set pot to tournament")
 		}
 	}

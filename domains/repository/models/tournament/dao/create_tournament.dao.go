@@ -13,9 +13,10 @@ type CreateTournamentDAOReq struct {
 	StartDate           *time.Time                 `bson:"start_date"`
 	Points              *int                       `bson:"points"`
 	TotalPrize          float64                    `bson:"total_prize"`
-	TotalCompetitors    int `bson:"total_competitors"`
+	TotalCompetitors    int                        `bson:"total_competitors"`
 	MaxCapacity         models.TOURNAMENT_CAPACITY `bson:"max_capacity"`
 	AverageScore        *float32                   `bson:"average_score"`
+	Availability        TournamentAvailabilityDAO  `bson:"availability"`
 	Genre               models.GENRE               `bson:"genre"`
 	Sport               models.SPORT               `bson:"sport"`
 	Surface             models.TENNIS_SURFACE      `bson:"surface"`
@@ -31,6 +32,12 @@ type CreateTournamentDAOReq struct {
 	CreatedAt           time.Time                  `bson:"created_at"`
 	UpdatedAt           time.Time                  `bson:"updated_at"`
 	DeletedAt           *time.Time                 `bson:"deleted_at,omitempty"`
+}
+
+type TournamentAvailabilityDAO struct {
+	AvailableCourts int `bson:"available_courts"`
+	AverageHours    int `bson:"average_hours"`
+	// DailyAvailabilities []*dao.GetDailyAvailabilityByIDDAORes `bson:"daily_availabilities"`
 }
 
 func (u *CreateTournamentDAOReq) SetTimeStamp() {

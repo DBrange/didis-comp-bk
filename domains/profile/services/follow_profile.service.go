@@ -13,11 +13,11 @@ func (s *ProfileService) FollowProfile(ctx context.Context, fromUserID, toUserID
 		ToUser: &toUserID,
 	}
 
-	if err := s.profileQueryer.VerifyFollowerExistsRelation(ctx, followerDTO); err != nil {
+	if err := s.profileQuerier.VerifyFollowerExistsRelation(ctx, followerDTO); err != nil {
 		return customerrors.HandleErrMsg(err, "profile", "error you were already following him")
 	}
 
-	if err := s.profileQueryer.CreateFollower(ctx, followerDTO); err != nil {
+	if err := s.profileQuerier.CreateFollower(ctx, followerDTO); err != nil {
 		return customerrors.HandleErrMsg(err, "profile", "error creating new follower")
 	}
 

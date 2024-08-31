@@ -4,7 +4,7 @@ import "github.com/DBrange/didis-comp-bk/cmd/api/utils"
 
 type COMPETITOR_TYPE string
 
-const (
+const ( 
 	COMPETITOR_TYPE_SINGLE COMPETITOR_TYPE = "S"
 	COMPETITOR_TYPE_DOUBLE COMPETITOR_TYPE = "D"
 	COMPETITOR_TYPE_TEAM   COMPETITOR_TYPE = "T"

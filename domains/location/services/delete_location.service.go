@@ -9,7 +9,7 @@ import (
 )
 
 func (driver *LocationService) DeleteLocation(ctx context.Context, locationID string) error {
-	err := driver.locationQueryer.DeleteLocation(ctx, locationID)
+	err := driver.locationQuerier.DeleteLocation(ctx, locationID)
 
 	if err != nil {
 		if errors.Is(err, customerrors.ErrInsertionFailed) {

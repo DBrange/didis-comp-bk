@@ -2,10 +2,12 @@ package adapters
 
 import (
 	"context"
+	"time"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	option_models "github.com/DBrange/didis-comp-bk/cmd/api/models/options/tournament"
 	"github.com/DBrange/didis-comp-bk/cmd/api/utils"
+	availability_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/avaliability/dao"
 	double_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/double/dao"
 	double_elimination_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/double_elimination/dao"
 	guest_user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/guest_user/dao"
@@ -181,8 +183,8 @@ func (a *TournamentManagerProxyAdapter) VerifyCompetitorExists(ctx context.Conte
 	return a.repository.VerifyCompetitorExists(ctx, competitorOID)
 }
 
-func (a *TournamentManagerProxyAdapter) VerifyTournamentsExists(ctx context.Context, tournamentOID *primitive.ObjectID) error {
-	return a.repository.VerifyTournamentsExists(ctx, tournamentOID)
+func (a *TournamentManagerProxyAdapter) VerifyTournamentExists(ctx context.Context, tournamentOID *primitive.ObjectID) error {
+	return a.repository.VerifyTournamentExists(ctx, tournamentOID)
 }
 
 func (a *TournamentManagerProxyAdapter) CreateCompetitorStats(ctx context.Context, competitorOID *primitive.ObjectID) error {
@@ -522,18 +524,23 @@ func (a *TournamentManagerProxyAdapter) DeletePotByPosition(ctx context.Context,
 func (a *TournamentManagerProxyAdapter) VerifyNumberPotsInTournament(ctx context.Context, tournamentOID *primitive.ObjectID, position int) error {
 	return a.repository.VerifyNumberPotsInTournament(ctx, tournamentOID, position)
 }
+
 func (a *TournamentManagerProxyAdapter) VerifyNumberGroupsInTournament(ctx context.Context, tournamentOID *primitive.ObjectID, position int) error {
 	return a.repository.VerifyNumberGroupsInTournament(ctx, tournamentOID, position)
 }
+
 func (a *TournamentManagerProxyAdapter) UpdateGroupPositions(ctx context.Context, groupOID *primitive.ObjectID, position int) error {
 	return a.repository.UpdateGroupPositions(ctx, groupOID, position)
 }
+
 func (a *TournamentManagerProxyAdapter) AddGroupInTournament(ctx context.Context, tournamentOID, groupOID *primitive.ObjectID) error {
 	return a.repository.AddGroupInTournament(ctx, tournamentOID, groupOID)
 }
+
 func (a *TournamentManagerProxyAdapter) RemoveGroupToTournament(ctx context.Context, tournamentOID *primitive.ObjectID, position int) error {
 	return a.repository.RemoveGroupToTournament(ctx, tournamentOID, position)
 }
+
 func (a *TournamentManagerProxyAdapter) DeleteGroupByPosition(ctx context.Context, position int, tournamentOID *primitive.ObjectID) error {
 	return a.repository.DeleteGroupByPosition(ctx, position, tournamentOID)
 }
@@ -556,3 +563,121 @@ func (a *TournamentManagerProxyAdapter) GetTournamentGroupMatchesByPosition(ctx 
 	return a.repository.GetTournamentGroupMatchesByPosition(ctx, position, tournamentOID)
 }
 
+func (a *TournamentManagerProxyAdapter) GetDoubleElimRoundID(ctx context.Context, tournamentID string, round models.ROUND) (string, error) {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return "", err
+	}
+
+	return a.repository.GetDoubleElimRoundID(ctx, tournamentOID, round)
+}
+
+func (a *TournamentManagerProxyAdapter) AddMatchInDoubleElim(ctx context.Context, doubleElimOID, matchOID *primitive.ObjectID) error {
+	return a.repository.AddMatchInDoubleElim(ctx, doubleElimOID, matchOID)
+}
+
+func (a *TournamentManagerProxyAdapter) GetDoubleElimID(ctx context.Context, tournamentID string) (string, error) {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return "", err
+	}
+
+	return a.repository.GetDoubleElimID(ctx, tournamentOID)
+}
+
+func (a *TournamentManagerProxyAdapter) GetTournamentRoundNames(ctx context.Context, tournamentID string) ([]models.ROUND, error) {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.repository.GetTournamentRoundNames(ctx, tournamentOID)
+}
+
+func (a *TournamentManagerProxyAdapter) GetAllDoubleElimRoundIDs(ctx context.Context, doubleEliminationID string) ([]string, error) {
+	doubleEliminationOID, err := a.ConvertToObjectID(doubleEliminationID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.repository.GetAllDoubleElimRoundIDs(ctx, doubleEliminationOID)
+}
+
+func (a *TournamentManagerProxyAdapter) GetDoubleElimInfoToFinaliseIt(ctx context.Context, doubleElimID string) (*double_elimination_dao.GetDoubleElimInfoToFinaliseItDAORes, error) {
+	doubleElimOID, err := a.ConvertToObjectID(doubleElimID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.repository.GetDoubleElimInfoToFinaliseIt(ctx, doubleElimOID)
+}
+
+func (a *TournamentManagerProxyAdapter) GetDoubleElimCompetitorChampion(ctx context.Context, doubleElimID string) (string, error) {
+	doubleElimOID, err := a.ConvertToObjectID(doubleElimID)
+	if err != nil {
+		return "", err
+	}
+
+	return a.repository.GetDoubleElimCompetitorChampion(ctx, doubleElimOID)
+}
+
+func (a *TournamentManagerProxyAdapter) GetCompetitorChampion(ctx context.Context, tournamentID string) (string, error) {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return "", err
+	}
+
+	return a.repository.GetCompetitorChampion(ctx, tournamentOID)
+}
+
+func (a *TournamentManagerProxyAdapter) GetMultipleAvailabilitiesByCompetitor(ctx context.Context, competitorIDs []string) ([][]*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
+	competitorOIDs, err := utils.ConvertToObjectIDs(&competitorIDs, a.ConvertToObjectID)
+	if err != nil {
+		return [][]*availability_dao.GetDailyAvailabilityByIDDAORes{}, err
+	}
+
+	return a.repository.GetMultipleAvailabilitiesByCompetitor(ctx, *competitorOIDs)
+}
+
+func (a *TournamentManagerProxyAdapter) UpdateMultipleMatchesDate(ctx context.Context, matchDates []*match_dao.MatchDateDAOReq) error {
+	return a.repository.UpdateMultipleMatchesDate(ctx, matchDates)
+}
+
+func (a *TournamentManagerProxyAdapter) GetAvailabilityByTournamentID(ctx context.Context, tournamentID string) ([]*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.repository.GetAvailabilityByTournamentID(ctx, tournamentOID)
+}
+
+func (a *TournamentManagerProxyAdapter) GetTournamentAvailavility(ctx context.Context, tournamentID string) (*tournament_dao.TournamentAvailabilityDAO, error) {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.repository.GetTournamentAvailavility(ctx, tournamentOID)
+}
+
+func (a *TournamentManagerProxyAdapter) CreateAvailability(ctx context.Context, userOID, competitorOID, tournamentOID *primitive.ObjectID) error {
+	return a.repository.CreateAvailability(ctx, userOID, competitorOID, tournamentOID)
+}
+
+func (a *TournamentManagerProxyAdapter) GetAllDatesMatchesFromTournament(ctx context.Context, tournamentID string) ([]time.Time, error) {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.repository.GetAllDatesMatchesFromTournament(ctx, tournamentOID)
+}
+
+func (a *TournamentManagerProxyAdapter) UpdateMatchDate(ctx context.Context, matchID *primitive.ObjectID, date *time.Time) error {
+	return a.repository.UpdateMatchDate(ctx, matchID, date)
+}
+
+func (a *TournamentManagerProxyAdapter) VerifyCompetitorIDInCompetitorUser(ctx context.Context, competitorIDs []*primitive.ObjectID) (bool, error) {
+	return a.repository.VerifyCompetitorIDInCompetitorUser(ctx, competitorIDs)
+}

@@ -7,7 +7,8 @@ import (
 
 	"github.com/DBrange/didis-comp-bk/domains/tournament/models/dto"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
-	"github.com/DBrange/didis-comp-bk/pkg/utils"
+
+	validate_utils "github.com/DBrange/didis-comp-bk/pkg/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +17,7 @@ func (h *Handler) EndMatch(c *gin.Context) {
 	defer cancel()
 
 	match, err := endMatchBodyData(c)
-	if err != nil{
+	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
@@ -41,7 +42,7 @@ func endMatchBodyData(c *gin.Context) (*dto.EndMatchDTOReq, error) {
 	}
 
 	// Validar la estructura excepto el campo Location
-	err := utils.Validate.Struct(match)
+	err := validate_utils.Validate.Struct(match)
 	if err != nil {
 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
 		tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")

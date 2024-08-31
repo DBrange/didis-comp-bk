@@ -7,7 +7,7 @@ import (
 )
 
 func (s *CategoryService) RemoveCompetitorFromCategory(ctx context.Context, categoryRegistrationID string) error {
-	if err := s.categoryQueryer.PermaDeleteCategoryRegistration(ctx, s.categoryQueryer.CategoryRegistrationColl(), categoryRegistrationID); err != nil {
+	if err := s.categoryQuerier.PermaDeleteCategoryRegistration(ctx, s.categoryQuerier.CategoryRegistrationColl(), categoryRegistrationID); err != nil {
 		return customerrors.HandleErrMsg(err, "category", "error when deleting categoryRegistration")
 	}
 

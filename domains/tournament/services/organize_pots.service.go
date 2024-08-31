@@ -19,17 +19,17 @@ func (s *TournamentService) OrganizePots(ctx context.Context, tournamentID strin
 	}
 
 	// Verify if pots is in tournament
-	if err := s.tournamentQueryer.VerifyMultipleTournamentPot(ctx, tournamentID, potIDs); err != nil {
+	if err := s.tournamentQuerier.VerifyMultipleTournamentPot(ctx, tournamentID, potIDs); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when add competitor in pot")
 	}
 
 	// Verify if competitors is in tournament
-	if err := s.tournamentQueryer.VerifyMultipleCompetitorsExistsInTournament(ctx, tournamentID, competitorIDs); err != nil {
+	if err := s.tournamentQuerier.VerifyMultipleCompetitorsExistsInTournament(ctx, tournamentID, competitorIDs); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when add competitor in pot")
 	}
 
 	// set competitors in pot
-	if err := s.tournamentQueryer.SetCompetitorsInPots(ctx, tournamentID, potDTOs); err != nil {
+	if err := s.tournamentQuerier.SetCompetitorsInPots(ctx, tournamentID, potDTOs); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when add competitor in pot")
 	}
 

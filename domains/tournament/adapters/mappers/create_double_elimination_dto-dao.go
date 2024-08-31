@@ -27,5 +27,8 @@ func CreateDoubleEliminationDTOtoDAO(doubleEliminationDTO *dto.CreateDoubleElimi
 		doubleEliminationDAO.Rounds = *roundsOID
 	}
 
+	doubleEliminationDAO.TotalPrize = doubleEliminationDTO.TotalPrize
+	doubleEliminationDAO.Points = doubleEliminationDTO.Points
+
 	return &doubleEliminationDAO,nil
 }

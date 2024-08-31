@@ -10,7 +10,7 @@ import (
 )
 
 func (driver *LocationService) UpdateLocation(ctx context.Context, locationID string, newLocationInfoDTO *dto.UpdateLocationDTOReq) error {
-	err := driver.locationQueryer.UpdateLocation(ctx, locationID, newLocationInfoDTO)
+	err := driver.locationQuerier.UpdateLocation(ctx, locationID, newLocationInfoDTO)
 
 	if err != nil {
 		if errors.Is(err, customerrors.ErrInsertionFailed) {

@@ -8,7 +8,7 @@ import (
 )
 
 func (s *CategoryService) ModifyCategoryInfo(ctx context.Context, categoryID string, categoryInfoDTO *dto.UpdateCategoryDTOReq) error {
-	if err := s.categoryQueryer.UpdateCategory(ctx, categoryID, categoryInfoDTO); err != nil {
+	if err := s.categoryQuerier.UpdateCategory(ctx, categoryID, categoryInfoDTO); err != nil {
 		return customerrors.HandleErrMsg(err, "category", "error when modifing category info")
 	}
 

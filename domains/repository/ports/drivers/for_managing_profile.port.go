@@ -28,7 +28,7 @@ type ForManagingProfile interface {
 	CreateLocation(ctx context.Context, locationInfoDAO *location_dao.CreateLocationDAOReq) (string, error)
 	GetRoleByNameAndType(ctx context.Context, roleName, roleType string) (*role_dao.GetRoleDAOByID, error)
 	CreateOrganizer(ctx context.Context, userID string) error
-	CreateAvailability(ctx context.Context, userID, competitorID *string) error
+	CreateAvailability(ctx context.Context, userOID, competitorOID, tournamentOID *primitive.ObjectID) error
 	UpdateUser(ctx context.Context, userID string, userDAO *user_dao.UpdateUserDAOReq) error
 	UpdateLocation(ctx context.Context, locationID string, locationDAO *location_dao.UpdateLocationDAOReq) error
 	GetUserByID(ctx context.Context, userID string) (*user_dao.GetUserByIDDAORes, error)

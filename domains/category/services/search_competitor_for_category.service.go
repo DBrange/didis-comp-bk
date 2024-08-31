@@ -8,5 +8,5 @@ import (
 )
 
 func (s *CategoryService) SearchCompetitorForCategory(ctx context.Context, userID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorFollowedDTORes, error) {
-	return s.categoryQueryer.GetCompetitorsFollowed(ctx,userID,name,sport,competitorType)
+	return s.categoryQuerier.GetCompetitorsFollowed(ctx, userID, name, sport, competitorType)
 }

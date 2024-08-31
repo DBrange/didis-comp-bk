@@ -48,7 +48,7 @@ func organizeTournamentBodyData(c *gin.Context) (*dto.OrganizeTournamentDTOReq, 
 	}
 
 	// Validar la estructura excepto el campo Location
-	err := validate_util.Validate.StructExcept(tournamentDTO, "Location")
+	err := validate_util.Validate.StructExcept(tournamentDTO, "location", "double_elimination")
 	if err != nil {
 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
 		tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")
@@ -57,25 +57,31 @@ func organizeTournamentBodyData(c *gin.Context) (*dto.OrganizeTournamentDTOReq, 
 	}
 
 	// Validar el campo Location si no es nil
-	// if tournamentDTO.Location != nil {
+	if tournamentDTO.Location != nil {
 		err = validate_util.Validate.Struct(tournamentDTO.Location)
 		if err != nil {
 			err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
 			tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")
 			errMsgTemplate := "error validation tournament"
 			return nil, customerrors.HandleError(err, tournamentErrorHandlers, errMsgTemplate)
-		// }
+		}
 	}
 
+	// Validar el campo double_elimination si no es nil
+	if tournamentDTO.DoubleElim != nil {
+		err = validate_util.Validate.Struct(tournamentDTO.DoubleElim)
+		if err != nil {
+			err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
+			tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")
+			errMsgTemplate := "error validation tournament"
+			return nil, customerrors.HandleError(err, tournamentErrorHandlers, errMsgTemplate)
+		}
+	}
+fmt.Printf("rrrrr %+v", tournamentDTO)
 	return &tournamentDTO, nil
 }
 
 func organizeTournamentValidateQueries(c *gin.Context) (*models.OrganizeTournamentOptions, error) {
-	doubleElimination, err := utils.ParseToBool(c, "double_elimination")
-	if err != nil {
-		return nil, err
-	}
-
 	pots, err := utils.ParseToInt(c, "quantity_pots")
 	if err != nil {
 		return nil, err
@@ -86,7 +92,7 @@ func organizeTournamentValidateQueries(c *gin.Context) (*models.OrganizeTourname
 		return nil, err
 	}
 
-	validateQueries := &models.OrganizeTournamentOptions{DoubleElimination: doubleElimination, QuantityPots: pots, QuantityGroups: groups}
+	validateQueries := &models.OrganizeTournamentOptions{ QuantityPots: pots, QuantityGroups: groups}
 
 	err = validate_util.Validate.Struct(validateQueries)
 	if err != nil {

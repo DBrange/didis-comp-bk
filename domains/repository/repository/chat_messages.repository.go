@@ -12,10 +12,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (r *Repository) CreateChatMessage(ctx context.Context, chatMessageInfoDAO *dao.CreateChatMessageDAOReq) (string, error) {
-	chatMessageInfoDAO.SetTimeStamp()
+func (r *Repository) CreateChatMessage(ctx context.Context, chatMessageDAO *dao.CreateChatMessageDAOReq) (string, error) {
+	chatMessageDAO.SetTimeStamp()
 
-	result, err := r.chatMessageColl.InsertOne(ctx, chatMessageInfoDAO)
+	result, err := r.chatMessageColl.InsertOne(ctx, chatMessageDAO)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
 			return "", fmt.Errorf("%w: error duplicate key for chatMessage: %s", customerrors.ErrDuplicateKey, err.Error())
@@ -58,16 +58,16 @@ func (r *Repository) GetChatMessageByID(ctx context.Context, chatMessageID strin
 	return &chatMessage, nil
 }
 
-func (r *Repository) UpdateChatMessage(ctx context.Context, chatMessageID string, chatMessageInfoDAO *dao.UpdateChatMessageDAOReq) error {
+func (r *Repository) UpdateChatMessage(ctx context.Context, chatMessageID string, chatMessageDAO *dao.UpdateChatMessageDAOReq) error {
 	chatMessageOID, err := r.ConvertToObjectID(chatMessageID)
 	if err != nil {
 		return err
 	}
 
-	chatMessageInfoDAO.RenewUpdate()
+	chatMessageDAO.RenewUpdate()
 
 	filter := bson.M{"_id": *chatMessageOID}
-	update, err := api_assets.StructToBsonMap(chatMessageInfoDAO)
+	update, err := api_assets.StructToBsonMap(chatMessageDAO)
 	if err != nil {
 		return err
 	}

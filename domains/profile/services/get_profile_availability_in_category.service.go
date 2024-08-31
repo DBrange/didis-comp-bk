@@ -8,7 +8,7 @@ import (
 )
 
 func (s *ProfileService) GetProfileAvailabilityInCategory(ctx context.Context, competitorID, day string) (*dto.GetDailyAvailabilityByIDDTORes, error) {
-	profileInfoDTO, err := s.profileQueryer.GetDailyAvailabilityCompetitorID(ctx, competitorID, day)
+	profileInfoDTO, err := s.profileQuerier.GetDailyAvailabilityCompetitorID(ctx, competitorID, day)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "profile", "error getting profile info from category")
 	}

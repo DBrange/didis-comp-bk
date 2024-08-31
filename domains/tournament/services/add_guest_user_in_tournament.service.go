@@ -12,7 +12,7 @@ import (
 func (s *TournamentService) AddGuestUserInTournament(ctx context.Context, tournamentID string, guestUsersDTO []*dto.CreateGuestUserDTOReq, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error {
 	var guestUserIDs []string
 
-	available, err := s.tournamentQueryer.VerifyTournamentsCapacity(ctx, tournamentID)
+	available, err := s.tournamentQuerier.VerifyTournamentsCapacity(ctx, tournamentID)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when verify if tournament exits")
 	}
@@ -22,7 +22,7 @@ func (s *TournamentService) AddGuestUserInTournament(ctx context.Context, tourna
 
 	for _, guestUserDTO := range guestUsersDTO {
 		// Create guest user
-		guestUserID, err := s.tournamentQueryer.CreateGuestUser(ctx, guestUserDTO)
+		guestUserID, err := s.tournamentQuerier.CreateGuestUser(ctx, guestUserDTO)
 		if err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when creating a guest user")
 		}
@@ -37,12 +37,12 @@ func (s *TournamentService) AddGuestUserInTournament(ctx context.Context, tourna
 	}
 
 	// Create competitor
-	competitorID, err := s.tournamentQueryer.CreateCompetitor(ctx, sport, competitorType, competiorTypeID)
+	competitorID, err := s.tournamentQuerier.CreateCompetitor(ctx, sport, competitorType, competiorTypeID)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when creating a competitor")
 	}
 
-	if err := s.tournamentQueryer.CreateCompetitorStats(ctx, competitorID); err != nil {
+	if err := s.tournamentQuerier.CreateCompetitorStats(ctx, competitorID); err != nil {
 		return err
 	}
 
@@ -52,7 +52,7 @@ func (s *TournamentService) AddGuestUserInTournament(ctx context.Context, tourna
 			GuestUserID:  guestUserID,
 			CompetitorID: competitorID,
 		}
-		s.tournamentQueryer.CreateGuestCompetitor(ctx, guestCompetitorDTO)
+		s.tournamentQuerier.CreateGuestCompetitor(ctx, guestCompetitorDTO)
 	}
 
 	// Add competitor in tournament
@@ -60,11 +60,11 @@ func (s *TournamentService) AddGuestUserInTournament(ctx context.Context, tourna
 		TournamentID: tournamentID,
 		CompetitorID: competitorID,
 	}
-	if err := s.tournamentQueryer.CreateTournamentRegistration(ctx, tournamentRegistrationDTO); err != nil {
+	if err := s.tournamentQuerier.CreateTournamentRegistration(ctx, tournamentRegistrationDTO); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when creating a tournament registration")
 	}
 
-	if err := s.tournamentQueryer.IncrementTotalCompetitorsInTournament(ctx, tournamentID); err != nil {
+	if err := s.tournamentQuerier.IncrementTotalCompetitorsInTournament(ctx, tournamentID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when creating a tournament registration")
 	}
 
@@ -77,16 +77,16 @@ func (r *TournamentService) CreateCompetitorType(ctx context.Context, competitor
 	createMap := map[models.COMPETITOR_TYPE]createTypeCompetitor{
 		models.COMPETITOR_TYPE_SINGLE: func(ctx context.Context) (string, error) {
 			singleDTO := &dto.CreateSingleDTOReq{}
-			return r.tournamentQueryer.CreateSingle(ctx, singleDTO)
+			return r.tournamentQuerier.CreateSingle(ctx, singleDTO)
 		},
 		models.COMPETITOR_TYPE_DOUBLE: func(ctx context.Context) (string, error) {
 			doubleDTO := &dto.CreateDoubleDTOReq{}
-			return r.tournamentQueryer.CreateDouble(ctx, doubleDTO)
+			return r.tournamentQuerier.CreateDouble(ctx, doubleDTO)
 		},
 		models.COMPETITOR_TYPE_TEAM: func(ctx context.Context) (string, error) {
 			teamDTO := &dto.CreateTeamDTOReq{}
 			teamDTO.Admins = []string{}
-			return r.tournamentQueryer.CreateTeam(ctx, teamDTO)
+			return r.tournamentQuerier.CreateTeam(ctx, teamDTO)
 		},
 	}
 

@@ -16,82 +16,82 @@ async function run() {
     // Insertar datos de prueba
     await collection.insertMany([
       {
-        _id: new ObjectId("66b82572625966db1dc69b0d"),
+        _id: new ObjectId("66c27fdacd58ba6c51446dbf"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66b82567625966db1dc69b03"),
+        _id: new ObjectId("66c27fddcd58ba6c51446dc4"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66b8257a625966db1dc69b17"),
+        _id: new ObjectId("66c27fe2cd58ba6c51446dc9"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66b8257e625966db1dc69b1c"),
+        _id: new ObjectId("66c27fe6cd58ba6c51446dce"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66b82564625966db1dc69afe"),
+        _id: new ObjectId("66c27fe9cd58ba6c51446dd3"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66b8256c625966db1dc69b08"),
+        _id: new ObjectId("66c27feccd58ba6c51446dd8"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66b82581625966db1dc69b21"),
+        _id: new ObjectId("66c27fefcd58ba6c51446ddd"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66b82576625966db1dc69b12"),
+        _id: new ObjectId("66c27ff3cd58ba6c51446de2"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66bfda60b2afd1e71e652ff4"),
+        _id: new ObjectId("66c60bd4e6ed976cbb93596b"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66bfda62b2afd1e71e652ffa"),
+        _id: new ObjectId("66c60bd5e6ed976cbb935970"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66bfda65b2afd1e71e653000"),
+        _id: new ObjectId("66c60bd5e6ed976cbb935975"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66bfda67b2afd1e71e653006"),
+        _id: new ObjectId("66c60bd6e6ed976cbb93597a"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66bfda6ab2afd1e71e65300c"),
+        _id: new ObjectId("66c60bd7e6ed976cbb93597f"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66c2170ad9b18faf967efbdf"),
+        _id: new ObjectId("66c60bd7e6ed976cbb935984"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66bfda6fb2afd1e71e653018"),
+        _id: new ObjectId("66c60bd8e6ed976cbb935989"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
       {
-        _id: new ObjectId("66bfda72b2afd1e71e65301e"),
+        _id: new ObjectId("66c60bd9e6ed976cbb93598e"),
         created_at: new Date("1990-01-01T00:00:00Z"),
         updated_at: new Date("1990-01-01T00:00:00Z"),
       },
@@ -104,4 +104,3 @@ async function run() {
 }
 
 run().catch(console.dir);
-

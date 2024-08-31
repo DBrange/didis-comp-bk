@@ -53,8 +53,8 @@ func (a *ProfileManagerProxyAdapter) CreateOrganizer(ctx context.Context, userID
 	return a.repository.CreateOrganizer(ctx, userID)
 }
 
-func (a *ProfileManagerProxyAdapter) CreateAvailability(ctx context.Context, userID, competitorID *string) error {
-	return a.repository.CreateAvailability(ctx, userID, competitorID)
+func (a *ProfileManagerProxyAdapter) CreateAvailability(ctx context.Context, userOID, competitorOID, tournamentOID *primitive.ObjectID) error {
+	return a.repository.CreateAvailability(ctx, userOID, competitorOID, tournamentOID)
 }
 
 func (a *ProfileManagerProxyAdapter) ConvertToObjectID(ID string) (*primitive.ObjectID, error) {
