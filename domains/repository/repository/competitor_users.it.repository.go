@@ -89,14 +89,14 @@ func (r *Repository) GetCompetitorUserByID(ctx context.Context, competitorUserID
 // 	return nil
 // }
 
-func (r *Repository) DeleteCompetitorUser(ctx context.Context, competitorUserID string) error {
-	err := r.SetDeletedAt(ctx, r.competitorUserColl, competitorUserID, "competitorUser")
-	if err != nil {
-		return err
-	}
+// func (r *Repository) DeleteCompetitorUser(ctx context.Context, competitorUserID string) error {
+// 	err := r.SetDeletedAt(ctx, r.competitorUserColl, competitorUserID, "competitorUser")
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func (r *Repository) VerifyCompetitorIDInCompetitorUser(ctx context.Context, competitorIDs []*primitive.ObjectID) (bool, error) {
 	// Crear el filtro para buscar ambos IDs en la colección

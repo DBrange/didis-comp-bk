@@ -681,3 +681,7 @@ func (a *TournamentManagerProxyAdapter) UpdateMatchDate(ctx context.Context, mat
 func (a *TournamentManagerProxyAdapter) VerifyCompetitorIDInCompetitorUser(ctx context.Context, competitorIDs []*primitive.ObjectID) (bool, error) {
 	return a.repository.VerifyCompetitorIDInCompetitorUser(ctx, competitorIDs)
 }
+
+func (a *TournamentManagerProxyAdapter) UpdateTournamentStartDate(ctx context.Context, tournamentOID *primitive.ObjectID) error {
+	return a.repository.UpdateTournamentStartDate(ctx, tournamentOID)
+}
