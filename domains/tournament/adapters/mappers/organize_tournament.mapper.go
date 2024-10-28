@@ -9,6 +9,7 @@ func OrganizeTournamentMapper(organizerTournamentDTO *tournament_dto.OrganizeTou
 	tournamentInfoDTO := &tournament_dto.CreateTournamentDTOReq{
 		Name:           organizerTournamentDTO.Name,
 		Points:         organizerTournamentDTO.Points,
+		Image:         organizerTournamentDTO.Image,
 		TotalPrize:     organizerTournamentDTO.TotalPrize,
 		MaxCapacity:    organizerTournamentDTO.MaxCapacity,
 		Genre:          organizerTournamentDTO.Genre,

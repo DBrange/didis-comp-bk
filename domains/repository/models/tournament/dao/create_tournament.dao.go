@@ -12,10 +12,11 @@ type CreateTournamentDAOReq struct {
 	FinishDate          *time.Time                 `bson:"finish_date"`
 	StartDate           *time.Time                 `bson:"start_date"`
 	Points              *int                       `bson:"points"`
+	Image              *string                       `bson:"image"`
 	TotalPrize          float64                    `bson:"total_prize"`
 	TotalCompetitors    int                        `bson:"total_competitors"`
 	MaxCapacity         models.TOURNAMENT_CAPACITY `bson:"max_capacity"`
-	AverageScore        *float32                   `bson:"average_score"`
+	AverageScore        float32                   `bson:"average_score"`
 	Availability        TournamentAvailabilityDAO  `bson:"availability"`
 	Genre               models.GENRE               `bson:"genre"`
 	Sport               models.SPORT               `bson:"sport"`

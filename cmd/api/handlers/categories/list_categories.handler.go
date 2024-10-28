@@ -34,7 +34,7 @@ func (h *Handler) ListCategories(c *gin.Context) {
 func listCategoriesValidateQueries(c *gin.Context) (*model_utils.SPORT, *model_utils.COMPETITOR_TYPE, error) {
 	sport := c.Query("sport")
 	competitorType := c.Query("competitor_type")
-fmt.Printf(" asadasd %s %s", sport, competitorType)
+
 	type validateSearchCompetitorForCategoryQueries struct {
 		Sport          string `json:"sport" validate:"sport,required"`
 		CompetitorType string `json:"competitor_type" validate:"competitorType,required"`

@@ -69,8 +69,8 @@ func (a *CategoryQuerierAdapter) VerifyCategoryExistsRelation(ctx context.Contex
 	return a.adapter.VerifyCategoryExistsRelation(ctx, categoryRegistrationDAO)
 }
 
-func (a *CategoryQuerierAdapter) GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetCompetitorsOfCategoryDTORes, error) {
-	categoryRegistrationDAO, err := a.adapter.GetCompetitorsOfCategoryByName(ctx, categoryID, name, sport, competitorType, limit, lastID)
+func (a *CategoryQuerierAdapter) GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE,) ([]*dto.GetCompetitorsOfCategoryDTORes, error) {
+	categoryRegistrationDAO, err := a.adapter.GetCompetitorsOfCategoryByName(ctx, categoryID, name, sport, competitorType, )
 	if err != nil {
 		return nil, err
 	}

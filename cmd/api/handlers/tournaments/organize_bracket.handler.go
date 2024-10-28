@@ -17,27 +17,27 @@ func (h *Handler) OrganizeBracket(c *gin.Context) {
 
 	tournamentID := c.Param("tournamentID")
 
-	competitors, err := organizeBracketBodyData(c)
+	competitorMatch, err := organizeBracketBodyData(c)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	if err := h.tournament.OrganizeBracket(ctx,tournamentID, competitors); err != nil {
+	if err := h.tournament.OrganizeBracket(ctx,tournamentID, competitorMatch); err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Matches succsessfully updated!"})
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Bracket succsessfully updated!"})
 
 }
 
 func organizeBracketBodyData(c *gin.Context) ([]*dto.UpdateCompetitorMatchDTOReq, error) {
-	var competitors struct {
-		Competitors []*dto.UpdateCompetitorMatchDTOReq `json:"competitors"`
+	var competitorMatch struct {
+		CompetitorMatch []*dto.UpdateCompetitorMatchDTOReq `json:"competitor_match"`
 	}
 
-	if err := c.ShouldBindJSON(&competitors); err != nil {
+	if err := c.ShouldBindJSON(&competitorMatch); err != nil {
 		err = fmt.Errorf("%w: error binding json: %v", customerrors.ErrGetJSON, err.Error())
 		tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")
 		errMsgTemplate := "error getting tournament"
@@ -45,7 +45,7 @@ func organizeBracketBodyData(c *gin.Context) ([]*dto.UpdateCompetitorMatchDTOReq
 	}
 
 	// Validar la estructura excepto el campo Location
-	err := validate_util.Validate.Struct(competitors)
+	err := validate_util.Validate.Struct(competitorMatch)
 	if err != nil {
 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
 		tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")
@@ -53,5 +53,5 @@ func organizeBracketBodyData(c *gin.Context) ([]*dto.UpdateCompetitorMatchDTOReq
 		return nil, customerrors.HandleError(err, tournamentErrorHandlers, errMsgTemplate)
 	}
 
-	return competitors.Competitors, nil
+	return competitorMatch.CompetitorMatch, nil
 }

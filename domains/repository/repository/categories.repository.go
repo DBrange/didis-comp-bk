@@ -144,7 +144,6 @@ func (r *Repository) AddTournamentInCategory(ctx context.Context, categoryID str
 		},
 	)
 	if err != nil {
-		fmt.Printf("esto pasa %v", err)
 		return fmt.Errorf("error updating category: %w", err)
 	}
 

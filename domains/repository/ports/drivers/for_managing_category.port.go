@@ -27,7 +27,7 @@ type ForManagingCategory interface {
 	VerifyCategoryExists(ctx context.Context, categoryID string) error
 	VerifyCompetitorExists(ctx context.Context, competitorID string) error
 	VerifyCategoryExistsRelation(ctx context.Context, categoryRegistrationDAO *category_registration_dao.CreateCategoryRegistrationDAOReq) error
-	GetCompetitorsOfCategoryByName(ctx context.Context, categoryOID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastOID string) ([]*category_registration_dao.GetCompetitorsOfCategoryDAORes, error)
+	GetCompetitorsOfCategoryByName(ctx context.Context, categoryOID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*category_registration_dao.GetCompetitorsOfCategoryDAORes, error)
 	GetCompetitorsFollowed(ctx context.Context, userID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*follower_dao.GetCompetitorFollowedDAORes, error)
 	UpdateCategory(ctx context.Context, categoryID *primitive.ObjectID, categoryInfoDAO *category_dao.UpdateCategoryDAOReq) error
 	GetCategoryInfoByID(ctx context.Context, categoryOID string) (*category_dao.GetCategoryInfoByIDDAORes, error)

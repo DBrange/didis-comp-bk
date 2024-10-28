@@ -22,8 +22,14 @@ func (r *Repository) CreateTournamentGroup(ctx context.Context, tournamentOID *p
 	tournamentGroupDAO := dao.CreateTournamentGroupDAOReq{
 		TournamentID: *tournamentOID,
 		Matches:      []*primitive.ObjectID{},
-		Competitors:  []*dao.TournamentGroupCompetitorDAOReq{},
-		Position:     position,
+		Competitors: []*dao.TournamentGroupCompetitorDAOReq{
+			{
+				Stats: dao.TournamentGroupCompetitorStatsDAOReq{
+					LastFiveMatches: []int{},
+				},
+			},
+		},
+		Position: position,
 	}
 
 	tournamentGroupDAO.SetTimeStamp()
@@ -109,6 +115,10 @@ func (r *Repository) AddCompetitorInGroup(ctx context.Context, groupOID, competi
 	filter := bson.M{"_id": groupOID}
 	competitor := &dao.TournamentGroupCompetitorDAOReq{
 		CompetitorID: competitorOID,
+		Stats: dao.TournamentGroupCompetitorStatsDAOReq{
+					LastFiveMatches: []int{},
+				},
+		
 	}
 
 	update := bson.M{"$push": bson.M{"competitors": competitor}}
@@ -137,6 +147,9 @@ func (r *Repository) AddCompetitorsToTournamentGroups(ctx context.Context, tourn
 		for i, competitorID := range group.Competitors {
 			competitors[i] = &dao.TournamentGroupCompetitorDAOReq{
 				CompetitorID: competitorID,
+				Stats: dao.TournamentGroupCompetitorStatsDAOReq{
+					LastFiveMatches: []int{},
+				},
 			}
 		}
 

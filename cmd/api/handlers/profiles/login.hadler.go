@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"github.com/DBrange/didis-comp-bk/pkg/utils"
@@ -21,20 +22,39 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	token, refreshToken, err := h.profile.Login(ctx, loginDTO)
+	user, token, refreshToken, err := h.profile.Login(ctx, loginDTO)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	type Data struct{
-		Token string `json:"token"`
-		RefreshToken string `json:"refresh_token"`
+	type Data struct {
+		ID           string         `json:"id"`
+		FirstName    string         `json:"first_name"`
+		LastName     string         `json:"last_name"`
+		Username     string         `json:"username"`
+		Image        string         `json:"image"`
+		Roles        []string       `json:"roles"`
+		Sports       []models.SPORT `json:"sports"`
+		OrganizerID  *string        `json:"organizer_id"`
+		Token        string         `json:"token"`
+		RefreshToken string         `json:"refresh_token"`
 	}
 
-	data := Data{Token: token, RefreshToken: refreshToken}
+	data := Data{
+		ID:           user.ID,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Username:     user.Username,
+		Image:        user.Image,
+		Roles:        user.Roles,
+		Sports:       user.Sports,
+		OrganizerID:  user.OrganizerID,
+		Token:        token,
+		RefreshToken: refreshToken,
+	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": data,"status": http.StatusOK, "message": "You have successfully logged in!"})
+	c.JSON(http.StatusCreated, gin.H{"data": data, "status": http.StatusOK, "message": "You have successfully logged in!"})
 
 }
 

@@ -16,7 +16,7 @@ type Tournament struct {
 	TotalPrize          float64                    `bson:"total_prize"`
 	TotalCompetitors    int                        `bson:"total_competitors"`
 	MaxCapacity         models.TOURNAMENT_CAPACITY `bson:"max_capacity"`
-	AverageScore        *float32                   `bson:"average_score"`
+	AverageScore        float32                   `bson:"average_score"`
 	Genre               models.GENRE               `bson:"genre"`
 	Sport               models.SPORT               `bson:"sport"`
 	Surface             models.TENNIS_SURFACE      `bson:"surface"`

@@ -116,10 +116,10 @@ func (mr *MockForQueryingProfileMockRecorder) CreateUser(arg0, arg1 any) *gomock
 }
 
 // GetDailyAvailabilityByID mocks base method.
-func (m *MockForQueryingProfile) GetDailyAvailabilityByID(arg0 context.Context, arg1, arg2 string) (*dto.GetDailyAvailabilityByIDDTORes, error) {
+func (m *MockForQueryingProfile) GetDailyAvailabilityByID(arg0 context.Context, arg1, arg2 string) (*models.GetDailyAvailabilityByIDDTORes, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDailyAvailabilityByID", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*dto.GetDailyAvailabilityByIDDTORes)
+	ret0, _ := ret[0].(*models.GetDailyAvailabilityByIDDTORes)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

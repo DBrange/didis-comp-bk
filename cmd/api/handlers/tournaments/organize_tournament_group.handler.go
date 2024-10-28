@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
+	"github.com/DBrange/didis-comp-bk/cmd/api/utils"
 	"github.com/DBrange/didis-comp-bk/domains/tournament/models/dto"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	validate_util "github.com/DBrange/didis-comp-bk/pkg/utils"
@@ -19,6 +20,18 @@ func (h *Handler) OrganizeTournamentGroups(c *gin.Context) {
 	tournamentID := c.Param("tournamentID")
 	roundID := c.Param("roundID")
 
+	orderType, err := utils.ParseToInt(c, "order_type")
+	if err != nil {
+		customerrors.ErrorResponse(err, c)
+		return
+	}
+
+	top, err := utils.ParseToInt(c, "top")
+	if err != nil {
+		customerrors.ErrorResponse(err, c)
+		return
+	}
+
 	competitorDTOs, err := organizeTournamentGroupsBodyData(c)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
@@ -31,7 +44,7 @@ func (h *Handler) OrganizeTournamentGroups(c *gin.Context) {
 		return
 	}
 
-	if err := h.tournament.OrganizeTournamentGroups(ctx, tournamentID, roundID, competitorDTOs, *sport); err != nil {
+	if err := h.tournament.OrganizeTournamentGroups(ctx, tournamentID, roundID, competitorDTOs, *sport, orderType, top); err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}

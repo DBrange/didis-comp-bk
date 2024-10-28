@@ -3,9 +3,9 @@ package interfaces
 import (
 	"context"
 
-	"github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 )
 
 type GetProfileAvailabilityInCategory interface {
-	GetProfileAvailabilityInCategory(ctx context.Context, competitorID, day string) (*dto.GetDailyAvailabilityByIDDTORes, error)
+	GetProfileAvailabilityInCategory(ctx context.Context, competitorID, day string) (*models.GetDailyAvailabilityByIDDTORes,string, error)
 }

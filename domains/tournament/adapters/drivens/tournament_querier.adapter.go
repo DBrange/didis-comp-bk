@@ -208,8 +208,9 @@ func (a *TournamentQuerierAdapter) GetCompetitorsInTournament(
 	ctx context.Context,
 	tournamentID, categoryID,
 	lastID string, limit int,
-) ([]*tournament_dto.GetCompetitorsInTournamentDTORes, error) {
-	competitorsDAO, err := a.repo_adapter.ListCompetitorsInTournament(ctx, tournamentID, categoryID, lastID, limit)
+	getAll bool,
+) ([]*tournament_dto.GetCompetitorsInTournamentCompetitorDTORes, error) {
+	competitorsDAO, err := a.repo_adapter.ListCompetitorsInTournament(ctx, tournamentID, categoryID, lastID, limit, getAll)
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +318,6 @@ func (a *TournamentQuerierAdapter) UpdateMultipleCompetitorMatches(ctx context.C
 	if err != nil {
 		return err
 	}
-
 	return a.repo_adapter.UpdateMultipleCompetitorMatches(ctx, competitorsDAOs)
 }
 
@@ -1026,7 +1026,7 @@ func (a *TournamentQuerierAdapter) GetCompetitorChampion(ctx context.Context, to
 	return a.repo_adapter.GetCompetitorChampion(ctx, tournamentOID)
 }
 
-func (a *TournamentQuerierAdapter) GetMultipleAvailabilitiesByCompetitor(ctx context.Context, competitorIDs []string) ([][]*tournament_dto.GetDailyAvailabilityByIDDTORes, error) {
+func (a *TournamentQuerierAdapter) GetMultipleAvailabilitiesByCompetitor(ctx context.Context, competitorIDs []string) ([][]*models.GetDailyAvailabilityByIDDTORes, error) {
 	availabilityDAOs, err := a.repo_adapter.GetMultipleAvailabilitiesByCompetitor(ctx, competitorIDs)
 	if err != nil {
 		return nil, err
@@ -1046,7 +1046,7 @@ func (a *TournamentQuerierAdapter) UpdateMultipleMatchesDate(ctx context.Context
 	return a.repo_adapter.UpdateMultipleMatchesDate(ctx, matchesDateDAO)
 }
 
-func (a *TournamentQuerierAdapter) GetAvailabilityByTournamentID(ctx context.Context, tournamentID string) ([]*tournament_dto.GetDailyAvailabilityByIDDTORes, error) {
+func (a *TournamentQuerierAdapter) GetAvailabilityByTournamentID(ctx context.Context, tournamentID string) ([]*models.GetDailyAvailabilityByIDDTORes, error) {
 	dailyAvailabilityDAO, err := a.repo_adapter.GetAvailabilityByTournamentID(ctx, tournamentID)
 	if err != nil {
 		return nil, err
@@ -1110,9 +1110,274 @@ func (a *TournamentQuerierAdapter) VerifyCompetitorIDInCompetitorUser(ctx contex
 
 func (a *TournamentQuerierAdapter) UpdateTournamentStartDate(ctx context.Context, tournamentID string) error {
 	tournamentOID, err := a.ConvertToObjectID(tournamentID)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
 	return a.repo_adapter.UpdateTournamentStartDate(ctx, tournamentOID)
+}
+
+func (a *TournamentQuerierAdapter) GetUserTournaments(
+	ctx context.Context,
+	userID string,
+	sport models.SPORT,
+	limit int,
+	lastID string,
+) (*tournament_dto.GetUserTournamentsDTORes, error) {
+	userTournamentsDAO, err := a.repo_adapter.GetUserTournaments(ctx, userID, sport, limit, lastID)
+	if err != nil {
+		return nil, err
+	}
+
+	userTournamentsDTO := mappers.GetUserTournamentsDAOtoDTO(userTournamentsDAO)
+
+	return userTournamentsDTO, nil
+}
+
+func (a *TournamentQuerierAdapter) GetTournamentPrimaryInfo(ctx context.Context, tournamentID string) (*tournament_dto.GetTournamentPrimaryInfoDTORes, error) {
+	tournamentDAO, err := a.repo_adapter.GetTournamentPrimaryInfo(ctx, tournamentID)
+	if err != nil {
+		return nil, err
+	}
+
+	tournamentDTO := mappers.GetTournamentPrimaryInfoDAOtoDTO(tournamentDAO)
+
+	return tournamentDTO, nil
+}
+
+func (a *TournamentQuerierAdapter) GetCompetitorsByNameInTournament(
+	ctx context.Context,
+	tournamentID, categoryID string,
+	name string,
+	limit int,
+) ([]*tournament_dto.GetCompetitorsInTournamentCompetitorDTORes, error) {
+
+	competitorsDAO, err := a.repo_adapter.GetCompetitorsByNameInTournament(ctx, tournamentID, categoryID, name, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	competitorsDTO := mappers.GetCompetitorsInTournamentDAOtoDTO(competitorsDAO)
+
+	return competitorsDTO, nil
+}
+
+func (a *TournamentQuerierAdapter) GetTournamentTotalCompetitors(ctx context.Context, tournamentID string) (int, error) {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return 0, err
+	}
+
+	return a.repo_adapter.GetTournamentTotalCompetitors(ctx, tournamentOID)
+}
+
+func (a *TournamentQuerierAdapter) GetCategoryIDOfTournament(ctx context.Context, tournamentID string) (string, error) {
+	categoryOID, err := a.repo_adapter.GetCategoryIDOfTournament(ctx, tournamentID)
+	if err != nil {
+		return "", err
+	}
+
+	if categoryOID == nil {
+		return "", nil
+	}
+
+	return categoryOID.Hex(), nil
+}
+
+func (a *TournamentQuerierAdapter) GetCompetitorsFollowed(ctx context.Context, userID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*tournament_dto.GetCompetitorFollowedDTORes, error) {
+	competitorsDAO, err := a.repo_adapter.GetCompetitorsFollowed(ctx, userID, name, sport, competitorType)
+	if err != nil {
+		return nil, err
+	}
+
+	competitorsDTO := mappers.GetCompetitorsFollowedDAOtoDTO(competitorsDAO)
+
+	return competitorsDTO, nil
+}
+
+func (a *TournamentQuerierAdapter) VerifyUserExists(ctx context.Context, userID string) error {
+	userOID, err := a.ConvertToObjectID(userID)
+	if err != nil {
+		return err
+	}
+
+	return a.repo_adapter.VerifyUserExists(ctx, userOID)
+}
+
+func (a *TournamentQuerierAdapter) CreateCompetitorUser(ctx context.Context, userID, competitorID string) error {
+	userOID, err := a.ConvertToObjectID(userID)
+	if err != nil {
+		return err
+	}
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return err
+	}
+
+	return a.repo_adapter.CreateCompetitorUser(ctx, userOID, competitorOID)
+}
+
+func (a *TournamentQuerierAdapter) CreateAvailabilityForCompetitor(ctx context.Context, competitorID string, dailyAvailabilityDTO []*models.GetDailyAvailabilityByIDDTORes) error {
+	dailyAvailabilityDAO := mappers.CreateAvailabilityDailySliceDTOtoDAO(dailyAvailabilityDTO)
+
+	return a.repo_adapter.CreateAvailabilityForCompetitor(ctx, competitorID, dailyAvailabilityDAO)
+}
+
+func (a *TournamentQuerierAdapter) GetAvailabilityDailySlice(ctx context.Context, userID, competitorID string) ([]*models.GetDailyAvailabilityByIDDTORes, error) {
+	dailyAvailabilityDAO, err := a.repo_adapter.GetAvailabilityDailySlice(ctx, userID, competitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	dailyAvailabilitiesDTO := mappers.GetAvailabilityDailySliceDTOtoDAO(dailyAvailabilityDAO)
+
+	return dailyAvailabilitiesDTO, nil
+}
+
+func (a *TournamentQuerierAdapter) GetTournamentFilters(ctx context.Context, tournamentID string) (*tournament_dto.GetTournamentFiltersDTORes, error) {
+	filtersDAO, err := a.repo_adapter.GetTournamentFilters(ctx, tournamentID)
+	if err != nil {
+		return nil, err
+	}
+
+	filtersDTO := mappers.GetTournamentFiltersDTOtoDAO(filtersDAO)
+
+	return filtersDTO, nil
+}
+
+func (a *TournamentQuerierAdapter) AddTournamentInOrganizer(ctx context.Context, organizerID, tournamentID string) error {
+	organizerOID, err := a.ConvertToObjectID(organizerID)
+	if err != nil {
+		return err
+	}
+
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return err
+	}
+
+	return a.repo_adapter.AddTournamentInOrganizer(ctx, organizerOID, tournamentOID)
+}
+
+func (a *TournamentQuerierAdapter) GetTournamentsInOrganizer(
+	ctx context.Context,
+	organizerID string,
+	sport models.SPORT,
+	limit int,
+	lastID string,
+) (*tournament_dto.GetUserTournamentsDTORes, error) {
+	dailyAvailabilityDAO, err := a.repo_adapter.GetTournamentsInOrganizer(ctx, organizerID, sport, limit, lastID)
+	if err != nil {
+		return nil, err
+	}
+
+	dailyAvailabilitiesDTO := mappers.GetUserTournamentsDAOtoDTO(dailyAvailabilityDAO)
+	return dailyAvailabilitiesDTO, nil
+}
+
+func (a *TournamentQuerierAdapter) DeleteTournamentRegistration(ctx context.Context, tournamentRegistrationID string) error {
+	return a.repo_adapter.DeleteTournamentRegistration(ctx, tournamentRegistrationID)
+}
+
+func (a *TournamentQuerierAdapter) DecrementTotalCompetitorsInTournament(ctx context.Context, tournamentID string) error {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return err
+	}
+
+	return a.repo_adapter.DecrementTotalCompetitorsInTournament(ctx, tournamentOID)
+}
+
+func (a *TournamentQuerierAdapter) GetTournamentRegistrationByCompetitorAndTournamentID(ctx context.Context, tournamentID, competitorID string) (string, error) {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return "", err
+	}
+
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return "", err
+	}
+
+	return a.repo_adapter.GetTournamentRegistrationByCompetitorAndTournamentID(ctx, tournamentOID, competitorOID)
+}
+
+func (a *TournamentQuerierAdapter) GetTournamentMatchesByID(ctx context.Context, tournamentID string) ([]string, error) {
+	matchesDAOs, err := a.repo_adapter.GetTournamentMatchesByID(ctx, tournamentID)
+	if err != nil {
+		return []string{}, err
+	}
+
+	matchesDTOs := make([]string, len(matchesDAOs))
+
+	for i, matchesDAO := range matchesDAOs {
+		matchesDTOs[i] = matchesDAO.Hex()
+	}
+
+	return matchesDTOs, nil
+}
+
+func (a *TournamentQuerierAdapter) GetCompetitorIDsFromMatches(ctx context.Context, matchIDs []string) ([]string, error) {
+	competitorOIDs, err := a.repo_adapter.GetCompetitorIDsFromMatches(ctx, matchIDs)
+	if err != nil {
+		return []string{}, err
+	}
+
+	competitorIDs := make([]string, len(competitorOIDs))
+
+	for i, competitorDAO := range competitorOIDs {
+		competitorIDs[i] = competitorDAO.Hex()
+	}
+
+	return competitorIDs, nil
+}
+func (a *TournamentQuerierAdapter) GetCompetitorIDByMatchAndPosition(ctx context.Context, matchID string, position int) (string, error) {
+	competitorOID, err := a.repo_adapter.GetCompetitorIDByMatchAndPosition(ctx, matchID, position)
+	if err != nil {
+		return "", err
+	}
+
+	return competitorOID.Hex(), nil
+}
+
+func (a *TournamentQuerierAdapter) GetRoundGroups(ctx context.Context, roundID, categoryID string) (*tournament_dto.GetRoundGroupsDTORes, error) {
+	roundDAO, err := a.repo_adapter.GetRoundGroups(ctx, roundID, categoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	roundDTO := mappers.GetRoundGroupsDAOtoDTO(roundDAO)
+	return roundDTO, nil
+}
+
+func (a *TournamentQuerierAdapter) GetDailyAvailabilityTournamentID(ctx context.Context, userID, day string) (*models.GetDailyAvailabilityByIDDTORes, string, error) {
+	availabilityDAO, availabilityOID, err := a.repo_adapter.GetDailyAvailabilityTournamentID(ctx, userID, day)
+	if err != nil {
+		return nil, "", err
+	}
+
+	availabilityDTO := mappers.GetDailyAvailabilityByIDDAOtoDTO(availabilityDAO)
+
+	return availabilityDTO, availabilityOID.Hex(), nil
+}
+
+func (a *TournamentQuerierAdapter) UpdateAvailability(ctx context.Context, availabilityID string, availabilityDTO *models.UpdateDailyAvailabilityDTOReq) error {
+	availabilityDAO := mappers.UpdateDailyAvailabilityDTOtoDAO(availabilityDTO)
+
+	return a.repo_adapter.UpdateAvailability(ctx, availabilityID, availabilityDAO)
+}
+
+func (a *TournamentQuerierAdapter) GetTournamentGroupsIDs(ctx context.Context, tournamentID string) ([]string, error) {
+	groupOIDs, err := a.repo_adapter.GetTournamentGroupsIDs(ctx, tournamentID)
+	if err != nil {
+		return nil, err
+	}
+
+	groupIDs := make([]string, len(groupOIDs))
+
+	for i, groupOID := range groupOIDs {
+		groupIDs[i] = groupOID.Hex()
+	}
+
+	return groupIDs, nil
 }

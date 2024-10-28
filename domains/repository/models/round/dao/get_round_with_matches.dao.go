@@ -1,6 +1,8 @@
 package dao
 
 import (
+	"time"
+
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -15,8 +17,10 @@ type GetRoundWithMatchesDAORes struct {
 
 type GetRoundWithMatchesMatchDAORes struct {
 	ID             *primitive.ObjectID                    `bson:"_id"`
+	Date           *time.Time                             `bson:"date"`
 	Result         string                                 `bson:"result"`
 	Winner         *primitive.ObjectID                    `bson:"winner"`
+	Position       int                                    `bson:"position"`
 	PositionWinner *int                                   `bson:"position_winner"`
 	Competitors    []*GetRoundWithMatchesCompetitorDAORes `bson:"competitors"`
 }
@@ -28,6 +32,7 @@ type GetRoundWithMatchesCompetitorDAORes struct {
 	Users           []*GetRoundWithMatchesUserDAORes `bson:"users"`
 	GuestUsers      []*GetRoundWithMatchesUserDAORes `bson:"guest_users"`
 }
+
 
 type GetRoundWithMatchesUserDAORes struct {
 	ID        *primitive.ObjectID `bson:"_id"`

@@ -2,15 +2,18 @@ package ports
 
 import (
 	"context"
+	"time"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	availability_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/avaliability/dao"
 	category_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/category/dao"
 	double_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/double/dao"
 	category_registration_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/category_registration/dao"
+	competitor_user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/competitor_user/dao"
 	follower_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/follower/dao"
 	location_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
 	role_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/role/dao"
+	organizer_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/organizer/dao"
 	single_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/single/dao"
 	team_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/team/dao"
 	user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/user/dao"
@@ -39,11 +42,12 @@ type ForManagingProfile interface {
 	CreateCompetitorStats(ctx context.Context, competitorOID *primitive.ObjectID) error
 	CreateCompetitorUser(ctx context.Context, userOID *primitive.ObjectID, competitorOID *primitive.ObjectID) error
 	DeleteUser(ctx context.Context, userID string) (*user_dao.UserRelationsToDeleteDAOReq, error)
-	GetDailyAvailabilityUserID(ctx context.Context, userID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error)
+	GetDailyAvailabilityUserID(ctx context.Context, userID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, *primitive.ObjectID, error)
 	SetDeletedAt(ctx context.Context, mc *mongo.Collection, ID string, name string) error
 	AvailabilityColl() *mongo.Collection
 	LocationColl() *mongo.Collection
-	GetUserPasswordForLogin(ctx context.Context, username string) (string, string, error)
+	GetUserForLogin(ctx context.Context, username string) (*user_dao.GetUserForLoginDAO, error)
+	GetUserForRefreshToken(ctx context.Context, userID string) (*user_dao.GetUserForRefreshTokenDAO, error)
 	GetUserRoles(ctx context.Context, userID string) ([]string, error)
 	ActivateUserNotification(ctx context.Context)
 	GetAvailabilityIDByUserID(ctx context.Context, userID string) (string, error)
@@ -54,7 +58,18 @@ type ForManagingProfile interface {
 	GetProfileInfoInCategory(ctx context.Context, categoryID, competitorID string) (*category_registration_dao.GetProfileInfoInCategoryDAORes, error)
 	GetAvailabilityDailySlice(ctx context.Context, userID, competitorID string) ([]*availability_dao.GetDailyAvailabilityByIDDAORes, error)
 	CreateAvailabilityForCompetitor(ctx context.Context, competitorID string, dailyAvailability []*availability_dao.CreateDailyAvailability) error
-	GetDailyAvailabilityCompetitorID(ctx context.Context, competitorID string, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error)
+	GetDailyAvailabilityCompetitorID(ctx context.Context, competitorID string, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, *primitive.ObjectID, error)
 	GetCompetitorTournamentsInCategory(ctx context.Context, categoryID, competitorID, lastID string, limit int) ([]*category_dao.GetTournamentsFromCategoryDAORes, error)
 	VerifyFollowerExistsRelation(ctx context.Context, followerDAO *follower_dao.CreateFollowerDAOReq) error
+	GetUserCategories(ctx context.Context, userID string, sport models.SPORT, limit int, lastID string) ([]*competitor_user_dao.GetUserCategoriesCategoryDAO, error)
+	GetNumberFollowers(ctx context.Context, userOID *primitive.ObjectID) (int, error)
+	GetUserFollowers(ctx context.Context, userID string, name string, limit int, lastCreatedAt *time.Time) (*follower_dao.GetUserFollowersDAORes, error)
+	GetUserPrimaryData(ctx context.Context, userID string) (*user_dao.GetUserPrimaryDataDAORes, error)
+	IsFollowing(ctx context.Context, fromOID, userToOID *primitive.ObjectID) (bool, error)
+	FollowOrUnfollow(ctx context.Context, followerDAO *follower_dao.CreateFollowerDAOReq) error
+	VerifyUserExists(ctx context.Context, userOID *primitive.ObjectID) error
+	GetRoleString(ctx context.Context, roleID string) (models.ROLE, error)
+	GetOrganizerIDByUserID(ctx context.Context, userID string) (*string, error)
+	GetUserAllCompetitorSports(ctx context.Context, userID string) ([]models.SPORT, error)
+	GetOrganizerData(ctx context.Context, userID string) (*organizer_dao.GetOrganizerDataDAORes, error)
 }

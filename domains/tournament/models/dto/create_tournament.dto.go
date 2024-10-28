@@ -5,6 +5,7 @@ import "github.com/DBrange/didis-comp-bk/cmd/api/models"
 type CreateTournamentDTOReq struct {
 	Name             string                     `json:"name"`
 	Points           *int                       `json:"points"`
+	Image        *string                       `json:"image"`
 	TotalPrize       float64                    `json:"total_prize"`
 	TotalCompetitors int                        `json:"total_competitors"`
 	MaxCapacity      models.TOURNAMENT_CAPACITY `json:"max_capacity"`

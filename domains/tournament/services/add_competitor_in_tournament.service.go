@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 
 	tournament_registration_dto "github.com/DBrange/didis-comp-bk/domains/tournament/models/dto"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
@@ -16,21 +15,18 @@ func (s *TournamentService) AddCompetitorInTournament(ctx context.Context, tourn
 	if !available {
 		return customerrors.HandleErrMsg(err, "tournament", "tournament max capacity")
 	}
-	fmt.Println(1)
+
 	if err := s.tournamentQuerier.VerifyCompetitorExists(ctx, tournamentRegistrationDTO.CompetitorID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when verify if competitor exits")
 	}
-	fmt.Println(2)
 
 	if err := s.tournamentQuerier.CreateTournamentRegistration(ctx, tournamentRegistrationDTO); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when registering a competitor")
 	}
-	fmt.Println(3)
+
 	if err := s.tournamentQuerier.IncrementTotalCompetitorsInTournament(ctx, tournamentRegistrationDTO.TournamentID); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when creating a tournament registration")
 	}
-
-	fmt.Println(4)
 
 	return nil
 }

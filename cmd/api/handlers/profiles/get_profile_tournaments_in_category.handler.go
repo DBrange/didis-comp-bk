@@ -15,7 +15,7 @@ func (h *Handler) GetProfileTournamentsInCategory(c *gin.Context) {
 
 	categoryID := c.Param("categoryID")
 	competitorID := c.Param("competitorID")
-	lastID := c.Query("lastID")
+	lastID := c.Query("last_id")
 
 	limit, err := utils.ParseToInt(c, "limit")
 	if err != nil {

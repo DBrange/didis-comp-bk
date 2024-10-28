@@ -7,5 +7,5 @@ import (
 )
 
 type OrganizeBracket interface {
-	OrganizeBracket(ctx context.Context,tournamentID string, competitorsDTOs []*dto.UpdateCompetitorMatchDTOReq) error
+	OrganizeBracket(ctx context.Context,tournamentID string, competitorMatchDTO []*dto.UpdateCompetitorMatchDTOReq) error
 }

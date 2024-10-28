@@ -1,7 +1,7 @@
 package dto
 
 type GetLocationByIDDTORes struct {
-	ID      string  `json:"_id"`
+	ID      string  `json:"id"`
 	State   *string `json:"state"`
 	Country *string `json:"country"`
 	City    *string `json:"city"`

@@ -368,7 +368,7 @@ func (r *Repository) VerifyTournamentsCapacity(ctx context.Context, tournamentOI
 		}
 		return false, err
 	}
-	fmt.Printf("totales %d y maximo %d", result.TotalCompetitors, result.MaxCapacity)
+
 	available := result.TotalCompetitors < result.MaxCapacity
 
 	return available, nil
@@ -400,6 +400,31 @@ func (r *Repository) IncrementTotalCompetitorsInTournament(ctx context.Context, 
 	return nil
 }
 
+func (r *Repository) DecrementTotalCompetitorsInTournament(ctx context.Context, tournamentOID *primitive.ObjectID) error {
+	filter := bson.M{"_id": tournamentOID}
+
+	update := bson.M{
+		"$inc": bson.M{
+			"total_competitors": -1,
+		},
+	}
+
+	result, err := r.tournamentColl.UpdateOne(
+		ctx,
+		filter,
+		update,
+	)
+	if err != nil {
+		return fmt.Errorf("error updating tournament: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: no tournament found with id: %s", customerrors.ErrNotFound, tournamentOID.Hex())
+	}
+
+	return nil
+}
+
 func (r *Repository) GetTournamentInfoToFinaliseIt(ctx context.Context, tournamentOID *primitive.ObjectID) (*tournament_dao.GetTournamentInfoToFinaliseItDAORes, error) {
 	var tournamentInfo *tournament_dao.GetTournamentInfoToFinaliseItDAORes
 
@@ -416,6 +441,26 @@ func (r *Repository) GetTournamentInfoToFinaliseIt(ctx context.Context, tourname
 	}
 
 	return tournamentInfo, nil
+}
+
+func (r *Repository) GetTournamentTotalCompetitors(ctx context.Context, tournamentOID *primitive.ObjectID) (int, error) {
+	var result struct {
+		TotalCompetitors int `bson:"total_competitors"`
+	}
+
+	filter := bson.M{"_id": tournamentOID}
+
+	opts := options.FindOne().SetProjection(bson.M{"total_competitors": 1})
+
+	err := r.tournamentColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return 0, fmt.Errorf("%w: error when searching for tournament: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return 0, fmt.Errorf("error when searching for the tournament: %w", err)
+	}
+
+	return result.TotalCompetitors, nil
 }
 
 func (r *Repository) VerifyTournamentsAlreadyFinished(ctx context.Context, tournamentOID *primitive.ObjectID) error {
@@ -447,7 +492,6 @@ func (r *Repository) VerifyMultipleGroupsInTournament(ctx context.Context, tourn
 	if len(groupOIDs) == 0 {
 		return nil // No hay grupos para verificar
 	}
-	fmt.Printf("el id es %v", groupOIDs)
 	// Ajustar el filtro para que se asegure de que todos los groupOIDs estén en el array groups
 	filter := bson.M{
 		"_id":    tournamentOID,
@@ -588,6 +632,29 @@ func (r *Repository) VerifyTournamentPot(ctx context.Context, tournamentOID, pot
 
 	// Si llegaste aquí, significa que al menos uno de los groupOIDs está en el documento
 	return nil
+}
+func (r *Repository) GetTournamentGroupsIDs(ctx context.Context, tournamentOID *primitive.ObjectID) ([]*primitive.ObjectID, error) {
+
+	filter := bson.M{
+		"_id": tournamentOID,
+	}
+
+	opts := options.FindOne().SetProjection(bson.M{"groups": 1})
+
+	// Buscar el documento que coincida con el filtro
+	var result struct {
+		Groups []*primitive.ObjectID `bson:"groups"`
+	}
+	err := r.tournamentColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for tournament: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for the tournament: %w", err)
+	}
+
+	// Si llegaste aquí, significa que al menos uno de los groupOIDs está en el documento
+	return result.Groups, nil
 }
 
 func (r *Repository) AddPotInTournament(ctx context.Context, tournamentOID, potOID *primitive.ObjectID) error {
@@ -921,7 +988,6 @@ func (r *Repository) GetRoundID(ctx context.Context, tournamentOID *primitive.Ob
 		return "", fmt.Errorf("%w: no round found with name: %s", customerrors.ErrNotFound, roundName)
 	}
 
-	fmt.Printf("este rseria el obj %v", result.ID)
 	// Convertimos el ObjectID a string
 	return result.ID.Hex(), nil
 }
@@ -1054,7 +1120,7 @@ func (r *Repository) GetAllDatesMatchesFromTournament(ctx context.Context, tourn
 			"as":           "match",
 		}}},
 		bson.D{{Key: "$unwind", Value: "$match"}},
-		bson.D{{Key: "$match", Value: bson.M{"match.date": bson.M{"$ne": nil}}}}, // Este filtro excluye los null
+		bson.D{{Key: "$match", Value: bson.M{"match.date": bson.M{"$ne": nil}}}}, // Exclude null dates
 		bson.D{{Key: "$group", Value: bson.M{
 			"_id":   nil,
 			"dates": bson.M{"$addToSet": "$match.date"},
@@ -1080,6 +1146,7 @@ func (r *Repository) GetAllDatesMatchesFromTournament(ctx context.Context, tourn
 			return nil, fmt.Errorf("error when decoding match dates: %w", err)
 		}
 
+		// Return the dates if found
 		return result.Dates, nil
 	}
 
@@ -1087,5 +1154,228 @@ func (r *Repository) GetAllDatesMatchesFromTournament(ctx context.Context, tourn
 		return nil, fmt.Errorf("cursor error: %w", err)
 	}
 
-	return nil, fmt.Errorf("no rounds found for tournament ID: %s", tournamentOID.Hex())
+	// If no dates found, return an empty array instead of an error
+	return []time.Time{}, nil
+}
+
+func (r *Repository) GetTournamentPrimaryInfo(ctx context.Context, tournamentOID *primitive.ObjectID) (*tournament_dao.GetTournamentPrimaryInfoDAORes, error) {
+	// Define el pipeline de agregación
+	pipeline := mongo.Pipeline{
+		// Filtro inicial para encontrar el torneo por su ID
+		bson.D{
+			{Key: "$match", Value: bson.M{"_id": tournamentOID}},
+		},
+		// Lookup para obtener la ubicación (location)
+		bson.D{
+			{Key: "$lookup", Value: bson.M{
+				"from":         "locations",
+				"localField":   "location_id",
+				"foreignField": "_id",
+				"as":           "location",
+			}},
+		},
+		// Unwind de location (permitiendo valores nulos)
+		bson.D{
+			{Key: "$unwind", Value: bson.M{
+				"path":                       "$location",
+				"preserveNullAndEmptyArrays": true,
+			}},
+		},
+		// Lookup para obtener la ronda (category)
+		bson.D{
+			{Key: "$lookup", Value: bson.M{
+				"from":         "rounds",
+				"localField":   "rounds",
+				"foreignField": "_id",
+				"as":           "rounds",
+			}},
+		},
+		// Unwind de round (permitiendo valores nulos)
+		bson.D{
+			{Key: "$unwind", Value: bson.M{
+				"path":                       "$round",
+				"preserveNullAndEmptyArrays": true,
+			}},
+		},
+		// Lookup para obtener la categoría (category)
+		bson.D{
+			{Key: "$lookup", Value: bson.M{
+				"from":         "categories",
+				"localField":   "category_id",
+				"foreignField": "_id",
+				"as":           "category",
+			}},
+		},
+		// Unwind de category (permitiendo valores nulos)
+		bson.D{
+			{Key: "$unwind", Value: bson.M{
+				"path":                       "$category",
+				"preserveNullAndEmptyArrays": true,
+			}},
+		},
+		// Lookup para obtener el organizador (organizer)
+		bson.D{
+			{Key: "$lookup", Value: bson.M{
+				"from":         "organizers",
+				"localField":   "organizer_id",
+				"foreignField": "_id",
+				"as":           "organizer",
+			}},
+		},
+		// Unwind de organizer (permitiendo valores nulos)
+		bson.D{
+			{Key: "$unwind", Value: bson.M{
+				"path":                       "$organizer",
+				"preserveNullAndEmptyArrays": true,
+			}},
+		},
+		// Lookup para obtener el usuario asociado al organizador
+		bson.D{
+			{Key: "$lookup", Value: bson.M{
+				"from":         "users",
+				"localField":   "organizer.user_id",
+				"foreignField": "_id",
+				"as":           "user",
+			}},
+		},
+		// Unwind de user (permitiendo valores nulos)
+		bson.D{
+			{Key: "$unwind", Value: bson.M{
+				"path":                       "$user",
+				"preserveNullAndEmptyArrays": true,
+			}},
+		},
+		// Proyección de los campos que quieres devolver
+		bson.D{
+			{Key: "$project", Value: bson.M{
+				"_id":               "$_id",
+				"name":              "$name",
+				"finish_date":       "$finish_date",
+				"start_date":        "$start_date",
+				"points":            "$points",
+				"image":             "$image",
+				"total_prize":       "$total_prize",
+				"total_competitors": "$total_competitors",
+				"max_capacity":      "$max_capacity",
+				"average_score":     "$average_score",
+				"genre":             "$genre",
+				"sport":             "$sport",
+				"competitor_type":   "$competitor_type",
+				"surface":           "$surface",
+				"rounds": bson.M{
+					"$map": bson.M{
+						"input": "$rounds",
+						"as":    "round",
+						"in": bson.M{
+							"_id":   "$$round._id",
+							"round": "$$round.round",
+						},
+					},
+				},
+				"location": bson.M{
+					"_id":     "$location._id",
+					"state":   "$location.state",
+					"country": "$location.country",
+					"city":    "$location.city",
+					"lat":     "$location.lat",
+					"long":    "$location.long",
+				},
+				"organizer": bson.M{
+					"_id":        "$user._id",
+					"first_name": "$user.first_name",
+					"last_name":  "$user.last_name",
+				},
+				"category": bson.M{
+					"$cond": bson.M{
+						"if":   bson.M{"$eq": bson.A{"$category_id", nil}},
+						"then": nil,
+						"else": bson.M{
+							"_id":  "$category._id",
+							"name": "$category.name",
+						},
+					},
+				},
+			}},
+		},
+	}
+
+	// Ejecuta el pipeline de agregación
+	cursor, err := r.tournamentColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error during aggregation: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	// Decode el primer resultado
+	var result tournament_dao.GetTournamentPrimaryInfoDAORes
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("error decoding cursor result: %w", err)
+		}
+	}
+
+	// Maneja errores de cursor
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	return &result, nil
+}
+
+func (r *Repository) GetCategoryIDOfTournament(ctx context.Context, tournamentOID *primitive.ObjectID) (*primitive.ObjectID, error) {
+	filter := bson.M{"_id": tournamentOID}
+
+	opts := options.FindOne().SetProjection(bson.M{"category_id": 1})
+
+	var result struct {
+		CategoryID *primitive.ObjectID `bson:"category_id"`
+	}
+
+	err := r.tournamentColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// Retorna nil sin un error si no se encuentra el torneo
+			return nil, nil
+		}
+		return nil, fmt.Errorf("error when searching for the tournament: %w", err)
+	}
+
+	return result.CategoryID, nil
+}
+
+func (r *Repository) GetTournamentFilters(ctx context.Context, tournamentOID *primitive.ObjectID) (*tournament_dao.GetTournamentFiltersDAORes, error) {
+	filter := bson.M{"_id": tournamentOID}
+
+	opts := options.FindOne().SetProjection(bson.M{"surface": 1, "sport": 1, "competitor_type": 1, "max_capacity": 1, "total_competitors": 1})
+
+	var result tournament_dao.GetTournamentFiltersDAORes
+
+	err := r.tournamentColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for tournament: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for the tournament: %w", err)
+	}
+
+	return &result, nil
+}
+func (r *Repository) GetTournamentMatchesByID(ctx context.Context, tournamentOID *primitive.ObjectID) ([]*primitive.ObjectID, error) {
+	filter := bson.M{"_id": tournamentOID}
+
+	opts := options.FindOne().SetProjection(bson.M{"matches": 1})
+
+	var result struct {
+		Matches []*primitive.ObjectID `bson:"matches"`
+	}
+
+	err := r.tournamentColl.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for tournament: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for the tournament: %w", err)
+	}
+
+	return result.Matches, nil
 }

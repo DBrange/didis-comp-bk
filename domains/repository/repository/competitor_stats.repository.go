@@ -92,7 +92,7 @@ func (r *Repository) AddMatchInCompetitorStats(ctx context.Context, competitorOI
 	if competitorOID == nil{
 		return nil
 	}
-	
+
 	filter := bson.M{"competitor_id": competitorOID}
 	update := bson.M{
 		"$push": bson.M{"matches": matchOID},

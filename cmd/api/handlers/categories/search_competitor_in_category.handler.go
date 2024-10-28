@@ -6,8 +6,6 @@ import (
 	"net/http"
 
 	model_utils "github.com/DBrange/didis-comp-bk/cmd/api/models"
-
-	"github.com/DBrange/didis-comp-bk/cmd/api/utils"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	validate_utils "github.com/DBrange/didis-comp-bk/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -18,15 +16,14 @@ func (h *Handler) SearchCompetitorInCategory(c *gin.Context) {
 	defer cancel()
 
 	name := c.Query("name")
-	lastID := c.Query("lastID")
 	categoryID := c.Param("categoryID")
-	sport, competitorType, limit, err := searchCompetitorInCategoryValidateQueries(c)
+	sport, competitorType, err := searchCompetitorInCategoryValidateQueries(c)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	competitors, err := h.category.SearchCompetitorInCategory(ctx, categoryID, name, *sport, *competitorType, limit, lastID)
+	competitors, err := h.category.SearchCompetitorInCategory(ctx, categoryID, name, *sport, *competitorType)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
@@ -35,37 +32,31 @@ func (h *Handler) SearchCompetitorInCategory(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"data": competitors, "status": http.StatusOK, "message": "Competitor finded!"})
 }
 
-func searchCompetitorInCategoryValidateQueries(c *gin.Context) (*model_utils.SPORT, *model_utils.COMPETITOR_TYPE, int, error) {
-	limit, err := utils.ParseToInt(c, "limit")
-	if err != nil {
-		return nil, nil, 0, err
-	}
-
+func searchCompetitorInCategoryValidateQueries(c *gin.Context) (*model_utils.SPORT, *model_utils.COMPETITOR_TYPE, error) {
 	sport := c.Query("sport")
 	competitorType := c.Query("competitor_type")
 
 	type validateSearchCompetitorForCategoryQueries struct {
-		Limit          int    `json:"limit"`
 		Sport          string `json:"sport" validate:"sport,required"`
 		CompetitorType string `json:"competitor_type" validate:"competitorType,required"`
 	}
 
-	validateQueries := &validateSearchCompetitorForCategoryQueries{Sport: sport, CompetitorType: competitorType, Limit: limit}
+	validateQueries := &validateSearchCompetitorForCategoryQueries{Sport: sport, CompetitorType: competitorType}
 
-	err = validate_utils.Validate.Struct(validateQueries)
+	err := validate_utils.Validate.Struct(validateQueries)
 	if err != nil {
 		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
 		categoryErrorHandlers := customerrors.CreateErrorHandlers("category")
 		errMsgTemplate := "error validation category"
-		return nil, nil, 0, customerrors.HandleError(err, categoryErrorHandlers, errMsgTemplate)
+		return nil, nil, customerrors.HandleError(err, categoryErrorHandlers, errMsgTemplate)
 	}
 
 	sportParsed, competcompetitorTypeParsed, err := searchCompetitorInCategoryQueriesParser(sport, competitorType)
 	if err != nil {
-		return nil, nil, 0, err
+		return nil, nil, err
 	}
 
-	return &sportParsed, &competcompetitorTypeParsed, validateQueries.Limit, nil
+	return &sportParsed, &competcompetitorTypeParsed, nil
 }
 
 func searchCompetitorInCategoryQueriesParser(sport, competitorType string) (model_utils.SPORT, model_utils.COMPETITOR_TYPE, error) {

@@ -27,7 +27,7 @@ func (h *Handler) EndMatch(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Match succsessfully ended!"})
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Match succsessfully ended!"})
 
 }
 

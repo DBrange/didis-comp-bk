@@ -69,22 +69,14 @@ func (a *CategoryManagerProxyAdapter) VerifyCategoryExistsRelation(ctx context.C
 	return a.repository.VerifyCategoryExistsRelation(ctx, categoryRegistrationDAO)
 }
 
-func (a *CategoryManagerProxyAdapter) GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*category_registration_dao.GetCompetitorsOfCategoryDAORes, error) {
+func (a *CategoryManagerProxyAdapter) GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*category_registration_dao.GetCompetitorsOfCategoryDAORes, error) {
 	categoryOID, err := a.ConvertToObjectID(categoryID)
 	if err != nil {
 		return nil, err
 	}
 
-	var lastOID *primitive.ObjectID
-	if lastID != "" {
-		lastOID, err = a.ConvertToObjectID(lastID)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		lastOID = nil
-	}
-	return a.repository.GetCompetitorsOfCategoryByName(ctx, categoryOID, sport, competitorType, limit, lastOID, name)
+
+	return a.repository.GetCompetitorsOfCategoryByName(ctx, categoryOID, sport, competitorType, name)
 }
 
 func (a *CategoryManagerProxyAdapter) GetCompetitorsFollowed(

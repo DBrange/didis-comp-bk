@@ -9,13 +9,28 @@ import (
 
 func (s *TournamentService) ListCompetitorsInTournament(
 	ctx context.Context,
-	tournamentID, categoryID,
+	tournamentID,
 	lastID string, limit int,
-) ([]*dto.GetCompetitorsInTournamentDTORes, error) {
-	competitorsDTO, err := s.tournamentQuerier.GetCompetitorsInTournament(ctx, tournamentID, categoryID, lastID, limit)
+) (*dto.GetCompetitorsInTournamentDTORes, error) {
+	categoryID, err := s.tournamentQuerier.GetCategoryIDOfTournament(ctx, tournamentID)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "tournament", "error when getting tournament competitors")
 	}
 
-	return competitorsDTO, nil
+	competitorsDTO, err := s.tournamentQuerier.GetCompetitorsInTournament(ctx, tournamentID, categoryID, lastID, limit, false)
+	if err != nil {
+		return nil, customerrors.HandleErrMsg(err, "tournament", "error when getting tournament competitors")
+	}
+
+	TotalCompetitors, err := s.tournamentQuerier.GetTournamentTotalCompetitors(ctx, tournamentID)
+	if err != nil {
+		return nil, customerrors.HandleErrMsg(err, "tournament", "error when getting tournament competitors")
+	}
+
+	competitors := &dto.GetCompetitorsInTournamentDTORes{
+		Competitors: competitorsDTO,
+		Total:       TotalCompetitors,
+	}
+
+	return competitors, nil
 }

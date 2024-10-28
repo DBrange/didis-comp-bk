@@ -34,11 +34,10 @@ func (a *TournamentProxyAdapter) AddGuestUserInTournament(ctx context.Context, t
 func (a *TournamentProxyAdapter) ListCompetitorsInTournament(
 	ctx context.Context,
 	tournamentID,
-	categoryID,
 	lastID string,
 	limit int,
-) ([]*dto.GetCompetitorsInTournamentDTORes, error) {
-	return a.tournamentService.ListCompetitorsInTournament(ctx, tournamentID, categoryID, lastID, limit)
+) (*dto.GetCompetitorsInTournamentDTORes, error) {
+	return a.tournamentService.ListCompetitorsInTournament(ctx, tournamentID, lastID, limit)
 }
 
 func (a *TournamentProxyAdapter) ModifyBracketMatch(ctx context.Context, tournamentID, userID string, competitors []*dto.UpdateCompetitorMatchDTOReq) error {
@@ -53,8 +52,8 @@ func (a *TournamentProxyAdapter) GetRoundWithMatches(ctx context.Context, roundI
 	return a.tournamentService.GetRoundWithMatches(ctx, roundID, categoryID)
 }
 
-func (a *TournamentProxyAdapter) OrganizeBracket(ctx context.Context, tournamentID string, competitorsDTOs []*dto.UpdateCompetitorMatchDTOReq) error {
-	return a.tournamentService.OrganizeBracket(ctx, tournamentID, competitorsDTOs)
+func (a *TournamentProxyAdapter) OrganizeBracket(ctx context.Context, tournamentID string, competitorMatchDTOs []*dto.UpdateCompetitorMatchDTOReq) error {
+	return a.tournamentService.OrganizeBracket(ctx, tournamentID, competitorMatchDTOs)
 }
 
 func (a *TournamentProxyAdapter) EndMatch(ctx context.Context, match *dto.EndMatchDTOReq) error {
@@ -73,8 +72,8 @@ func (a *TournamentProxyAdapter) AddCompetitorInTournamentGroup(ctx context.Cont
 	return a.tournamentService.AddCompetitorInTournamentGroup(ctx, groupID, tournamentID, competitorID)
 }
 
-func (a *TournamentProxyAdapter) OrganizeTournamentGroups(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT) error {
-	return a.tournamentService.OrganizeTournamentGroups(ctx, tournamentID, roundID, competitorDTOs, sport)
+func (a *TournamentProxyAdapter) OrganizeTournamentGroups(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT, orderType, top int) error {
+	return a.tournamentService.OrganizeTournamentGroups(ctx, tournamentID, roundID, competitorDTOs, sport, orderType, top)
 }
 
 func (a *TournamentProxyAdapter) ModifyTournamentGroups(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT) error {
@@ -95,4 +94,65 @@ func (a *TournamentProxyAdapter) UpdateQuantityPotsInTournament(ctx context.Cont
 
 func (a *TournamentProxyAdapter) UpdateQuantityGroupsInTournament(ctx context.Context, tournamentID string, position int, add bool) error {
 	return a.tournamentService.UpdateQuantityGroupsInTournament(ctx, tournamentID, position, add)
+}
+
+func (a *TournamentProxyAdapter) GetUserTournaments(
+	ctx context.Context,
+	userID string,
+	sport models.SPORT,
+	limit int,
+	lastID string,
+) (*dto.GetUserTournamentsDTORes, error) {
+	return a.tournamentService.GetUserTournaments(ctx, userID, sport, limit, lastID)
+}
+
+func (a *TournamentProxyAdapter) GetTournamentPrimaryInfo(ctx context.Context, tournamentID string) (*dto.GetTournamentPrimaryInfoDTORes, error) {
+	return a.tournamentService.GetTournamentPrimaryInfo(ctx, tournamentID)
+}
+
+func (a *TournamentProxyAdapter) ListCompetitorsByNameInTournament(
+	ctx context.Context,
+	tournamentID string,
+	name string,
+	limit int,
+) ([]*dto.GetCompetitorsInTournamentCompetitorDTORes, error) {
+	return a.tournamentService.ListCompetitorsByNameInTournament(ctx, tournamentID, name, limit)
+}
+
+func (a *TournamentProxyAdapter) SearchCompetitorForTournament(ctx context.Context, userID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorFollowedDTORes, error) {
+	return a.tournamentService.SearchCompetitorForTournament(ctx, userID, name, sport, competitorType)
+}
+
+func (a *TournamentProxyAdapter) RegisterDoubleCompetitorInTournament(ctx context.Context, tournamentID string, userIDs []string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error {
+	return a.tournamentService.RegisterDoubleCompetitorInTournament(ctx, tournamentID, userIDs, sport, competitorType)
+}
+
+func (a *TournamentProxyAdapter) GetTournamentFilters(ctx context.Context, tournamentID string) (*dto.GetTournamentFiltersDTORes, error) {
+	return a.tournamentService.GetTournamentFilters(ctx, tournamentID)
+}
+
+func (a *TournamentProxyAdapter) GetTournamentsInOrganizer(
+	ctx context.Context,
+	organizerID string,
+	sport models.SPORT,
+	limit int,
+	lastID string,
+) (*dto.GetUserTournamentsDTORes, error) {
+	return a.tournamentService.GetTournamentsInOrganizer(ctx, organizerID, sport, limit, lastID)
+}
+
+func (a *TournamentProxyAdapter) GetTournamentCompetitorIDs(ctx context.Context, tournamentID string) ([]string, error) {
+	return a.tournamentService.GetTournamentCompetitorIDs(ctx, tournamentID)
+}
+
+func (a *TournamentProxyAdapter) RemoveCompetitorFromTournament(ctx context.Context, tournamentID, competitorID string) error {
+	return a.tournamentService.RemoveCompetitorFromTournament(ctx, tournamentID, competitorID)
+}
+
+func (a *TournamentProxyAdapter) GetRoundGroups(ctx context.Context, roundID, categoryID string) (*dto.GetRoundGroupsDTORes, error) {
+	return a.tournamentService.GetRoundGroups(ctx, roundID, categoryID)
+}
+
+func (a *TournamentProxyAdapter) GetTournamentAvailability(ctx context.Context, tournamentID string, day string) (*models.GetDailyAvailabilityByIDDTORes, string, error) {
+	return a.tournamentService.GetTournamentAvailability(ctx, tournamentID, day)
 }

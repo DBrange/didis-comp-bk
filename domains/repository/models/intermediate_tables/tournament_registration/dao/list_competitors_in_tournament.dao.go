@@ -1,7 +1,6 @@
 package dao
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
-
 type GetCompetitorsInTournamentDAORes struct {
 	CompetitorID    *primitive.ObjectID                     `bson:"_id"`
 	CurrentPosition *int                                    `bson:"current_position"`
@@ -14,4 +13,5 @@ type GetCompetitorsInTournamentUserDAORes struct {
 	FirstName string              `bson:"first_name"`
 	LastName  string              `bson:"last_name"`
 	Image     string              `bson:"image"`
+	Username     *string              `bson:"username"`
 }

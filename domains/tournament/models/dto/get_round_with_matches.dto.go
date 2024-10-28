@@ -1,17 +1,24 @@
 package dto
 
-import "github.com/DBrange/didis-comp-bk/cmd/api/models"
+import (
+	"time"
+
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
+)
 
 type GetRoundWithMatchesDTORes struct {
 	ID         *string                           `json:"id"`
 	Round      models.ROUND                      `json:"round"`
 	TotalPrize float64                           `json:"total_prize"`
+	Points     int                               `json:"points"`
 	Matches    []*GetRoundWithMatchesMatchDTORes `json:"matches"`
 }
 
 type GetRoundWithMatchesMatchDTORes struct {
 	ID             *string                                `json:"id"`
+	Date           *time.Time                             `json:"date"`
 	Result         string                                 `json:"result"`
+	Position       int                                    `json:"position"`
 	PositionWinner *int                                   `json:"position_winner"`
 	Competitors    []*GetRoundWithMatchesCompetitorDTORes `json:"competitors"`
 }

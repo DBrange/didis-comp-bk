@@ -12,6 +12,8 @@ import (
 	guest_user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/guest_user/dao"
 	category_registration_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/category_registration/dao"
 	competitor_match_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/competitor_match/dao"
+	competitor_user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/competitor_user/dao"
+	follower_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/follower/dao"
 	guest_competitor_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/guest_competitor/dao"
 	tournament_registration_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/tournament_registration/dao"
 	location_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
@@ -59,7 +61,7 @@ type ForManagingTournament interface {
 	CreateSingle(ctx context.Context, singleInfoDAO *single_dao.CreateSingleDAOReq) (string, error)
 	CreateDouble(ctx context.Context, doubleInfoDAO *double_dao.CreateDoubleDAOReq) (string, error)
 	CreateTeam(ctx context.Context, teamInfoDAO *team_dao.CreateTeamDAOReq) (string, error)
-	ListCompetitorsInTournament(ctx context.Context, tournamentID, categoryID, lastID string, limit int) ([]*tournament_registration_dao.GetCompetitorsInTournamentDAORes, error)
+	ListCompetitorsInTournament(ctx context.Context, tournamentID, categoryID, lastID string, limit int,getAll bool) ([]*tournament_registration_dao.GetCompetitorsInTournamentDAORes, error)
 	VerifyCompetitorExists(ctx context.Context, competitorOID *primitive.ObjectID) error
 	VerifyTournamentExists(ctx context.Context, tournamentOID *primitive.ObjectID) error
 	CreateCompetitorStats(ctx context.Context, competitorOID *primitive.ObjectID) error
@@ -152,4 +154,44 @@ type ForManagingTournament interface {
 	UpdateMatchDate(ctx context.Context, matchID *primitive.ObjectID, date *time.Time) error
 	VerifyCompetitorIDInCompetitorUser(ctx context.Context, competitorIDs []*primitive.ObjectID) (bool, error)
 	UpdateTournamentStartDate(ctx context.Context, tournamentOID *primitive.ObjectID) error
+	GetUserTournaments(
+		ctx context.Context,
+		userID string,
+		sport models.SPORT,
+		limit int,
+		lastID string,
+	) (*competitor_user_dao.GetUserTournamentsDAORes, error)
+	GetTournamentPrimaryInfo(ctx context.Context, tournamentID string) (*tournament_dao.GetTournamentPrimaryInfoDAORes, error)
+	GetCompetitorsByNameInTournament(
+		ctx context.Context,
+		tournamentOID, categoryOID string,
+		name string,
+		limit int,
+	) ([]*tournament_registration_dao.GetCompetitorsInTournamentDAORes, error)
+	GetTournamentTotalCompetitors(ctx context.Context, tournamentOID *primitive.ObjectID) (int, error)
+	GetCategoryIDOfTournament(ctx context.Context, tournamentID string) (*primitive.ObjectID, error)
+	GetCompetitorsFollowed(ctx context.Context, userOID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*follower_dao.GetCompetitorFollowedDAORes, error)
+	VerifyUserExists(ctx context.Context, userOID *primitive.ObjectID) error
+	GetAvailabilityDailySlice(ctx context.Context, userID, competitorID string) ([]*availability_dao.GetDailyAvailabilityByIDDAORes, error)
+	CreateAvailabilityForCompetitor(ctx context.Context, competitorID string, dailyAvailability []*availability_dao.CreateDailyAvailability) error
+	CreateCompetitorUser(ctx context.Context, userOID *primitive.ObjectID, competitorOID *primitive.ObjectID) error
+	GetTournamentFilters(ctx context.Context, tournamentID string) (*tournament_dao.GetTournamentFiltersDAORes, error)
+	GetTournamentsInOrganizer(
+		ctx context.Context,
+		organizerID string,
+		sport models.SPORT,
+		limit int,
+		lastID string, // El último ID desde el que comenzar la siguiente página
+	) (*competitor_user_dao.GetUserTournamentsDAORes, error)
+	AddTournamentInOrganizer(ctx context.Context, organizerOID, tournamentOID *primitive.ObjectID) error
+	DeleteTournamentRegistration(ctx context.Context, tournamentRegistrationID string) error
+	DecrementTotalCompetitorsInTournament(ctx context.Context, tournamentOID *primitive.ObjectID) error
+	GetTournamentRegistrationByCompetitorAndTournamentID(ctx context.Context, tournamentOID, competitorOID *primitive.ObjectID) (string, error)
+	GetTournamentMatchesByID(ctx context.Context, tournamentID string) ([]*primitive.ObjectID, error)
+	GetCompetitorIDsFromMatches(ctx context.Context, matches []string) ([]*primitive.ObjectID, error)
+	GetCompetitorIDByMatchAndPosition(ctx context.Context, matchID string, position int) (*primitive.ObjectID, error)
+	GetRoundGroups(ctx context.Context, roundID, categoryID string) (*round_dao.GetRoundGroupsDAORes, error)
+	GetDailyAvailabilityTournamentID(ctx context.Context, tournamentID string, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, *primitive.ObjectID, error)
+	UpdateAvailability(ctx context.Context, availabilityID string, availabilityInfoDAO *availability_dao.UpdateDailyAvailabilityDAOReq) error
+	GetTournamentGroupsIDs(ctx context.Context, tournamentID string) ([]*primitive.ObjectID, error)
 }

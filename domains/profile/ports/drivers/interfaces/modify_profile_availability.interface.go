@@ -3,9 +3,9 @@ package interfaces
 import (
 	"context"
 
-	"github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 )
 
 type ModifyProfileAvailability interface {
-	ModifyProfileAvailability(ctx context.Context, availabilityID string, availabilityInfoDTO *dto.UpdateDailyAvailabilityDTOReq) error
+	ModifyProfileAvailability(ctx context.Context, availabilityID string, availabilityInfoDTO *models.UpdateDailyAvailabilityDTOReq) error
 }

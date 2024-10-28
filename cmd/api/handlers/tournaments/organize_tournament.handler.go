@@ -77,7 +77,7 @@ func organizeTournamentBodyData(c *gin.Context) (*dto.OrganizeTournamentDTOReq, 
 			return nil, customerrors.HandleError(err, tournamentErrorHandlers, errMsgTemplate)
 		}
 	}
-fmt.Printf("rrrrr %+v", tournamentDTO)
+
 	return &tournamentDTO, nil
 }
 

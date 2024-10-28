@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	profile_dto "github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"github.com/DBrange/didis-comp-bk/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -33,8 +33,8 @@ func (h *Handler) ModifyProfileAvailability(c *gin.Context) {
 
 }
 
-func modifyProfileAvailabilityBody(c *gin.Context) (*profile_dto.UpdateDailyAvailabilityDTOReq, error) {
-	var availabilityInfo profile_dto.UpdateDailyAvailabilityDTOReq
+func modifyProfileAvailabilityBody(c *gin.Context) (*models.UpdateDailyAvailabilityDTOReq, error) {
+	var availabilityInfo models.UpdateDailyAvailabilityDTOReq
 	if err := c.ShouldBindJSON(&availabilityInfo); err != nil {
 		err = fmt.Errorf("%w: error getting the json: %v", customerrors.ErrGetJSON, err.Error())
 		if errors.Is(err, customerrors.ErrValidationFailed) {

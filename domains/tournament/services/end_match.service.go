@@ -165,7 +165,7 @@ func (s *TournamentService) calculateNextPosition(num int) int {
 }
 
 func (s *TournamentService) updateCompetitorMatch(ctx context.Context, nextMatchID, competitorID string, nextPosition int) error {
-	competitorMatchDTO := &dto.UpdateCompetitorMatchDTOReq{CompetitorID: competitorID, Position: nextPosition}
+	competitorMatchDTO := &dto.UpdateCompetitorMatchDTOReq{CompetitorID: &competitorID, Position: nextPosition}
 
 	if err := s.tournamentQuerier.UpdateCompetitorMatch(ctx, nextMatchID, competitorMatchDTO); err != nil {
 		return err

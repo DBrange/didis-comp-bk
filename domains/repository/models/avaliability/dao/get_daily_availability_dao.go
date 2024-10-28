@@ -1,8 +1,12 @@
 package dao
 
-import "github.com/DBrange/didis-comp-bk/cmd/api/models"
+import (
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type GetAvailabilityByIDDAORes struct {
+	ID *primitive.ObjectID `bson:"_id"`
 	DailyAvailabilities []*GetDailyAvailabilityByIDDAORes `bson:"daily_availabilities"`
 }
 

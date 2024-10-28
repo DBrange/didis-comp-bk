@@ -21,4 +21,15 @@ type ForTournament interface {
 	interfaces.ModifyPots
 	interfaces.UpdateQuantityPotsInTournament
 	interfaces.UpdateQuantityGroupsInTournament
+	interfaces.GetUserTournaments
+	interfaces.GetTournamentPrimaryInfo
+	interfaces.ListCompetitorsByNameInTournament
+	interfaces.SearchCompetitorForTournament
+	interfaces.RegisterDoubleCompetitorInTournament
+	interfaces.GetTournamentFilters
+	interfaces.GetTournamentsInOrganizer
+	interfaces.GetTournamentCompetitorIDs
+	interfaces.RemoveCompetitorFromTournament
+	interfaces.GetRoundGroups
+	interfaces.GetTournamentAvailability
 }

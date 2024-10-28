@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"context"
+	"time"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/DBrange/didis-comp-bk/domains/profile/adapters/mappers"
@@ -69,7 +70,7 @@ func (a *ProfileQuerierAdapter) CreateAvailability(ctx context.Context, userID, 
 	return a.adapter.CreateAvailability(ctx, userOID, competitorOID, tournamentOID)
 }
 
-func (a *ProfileQuerierAdapter) UpdateAvailability(ctx context.Context, availabilityID string, availabilityDTO *profile_dto.UpdateDailyAvailabilityDTOReq) error {
+func (a *ProfileQuerierAdapter) UpdateAvailability(ctx context.Context, availabilityID string, availabilityDTO *models.UpdateDailyAvailabilityDTOReq) error {
 	availabilityDAO := mappers.UpdateDailyAvailabilityDTOtoDAO(availabilityDTO)
 
 	return a.adapter.UpdateAvailability(ctx, availabilityID, availabilityDAO)
@@ -109,7 +110,7 @@ func (a *ProfileQuerierAdapter) GetLocationByID(ctx context.Context, locationID 
 	return locationDTO, nil
 }
 
-func (a *ProfileQuerierAdapter) GetDailyAvailabilityByID(ctx context.Context, availabilityID string, day string) (*profile_dto.GetDailyAvailabilityByIDDTORes, error) {
+func (a *ProfileQuerierAdapter) GetDailyAvailabilityByID(ctx context.Context, availabilityID string, day string) (*models.GetDailyAvailabilityByIDDTORes, error) {
 	availabilityDAO, err := a.adapter.GetDailyAvailabilityByID(ctx, availabilityID, day)
 	if err != nil {
 		return nil, err
@@ -159,15 +160,15 @@ func (a *ProfileQuerierAdapter) DeleteUser(ctx context.Context, userID string) (
 	return a.adapter.DeleteUser(ctx, userID)
 }
 
-func (a *ProfileQuerierAdapter) GetDailyAvailabilityUserID(ctx context.Context, userID, day string) (*profile_dto.GetDailyAvailabilityByIDDTORes, error) {
-	availabilityDAO, err := a.adapter.GetDailyAvailabilityUserID(ctx, userID, day)
+func (a *ProfileQuerierAdapter) GetDailyAvailabilityUserID(ctx context.Context, userID, day string) (*models.GetDailyAvailabilityByIDDTORes, string, error) {
+	availabilityDAO, availabilityOID, err := a.adapter.GetDailyAvailabilityUserID(ctx, userID, day)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	availabilityDTO := mappers.GetDailyAvailabilityByIDDAOtoDTO(availabilityDAO)
 
-	return availabilityDTO, nil
+	return availabilityDTO, availabilityOID.Hex(), nil
 }
 
 func (a *ProfileQuerierAdapter) SetDeletedAt(ctx context.Context, mc *mongo.Collection, ID string, name string) error {
@@ -190,8 +191,28 @@ func (a *ProfileQuerierAdapter) GetUserPasswordByID(ctx context.Context, userID 
 	return a.adapter.GetUserPasswordByID(ctx, userID)
 }
 
-func (a *ProfileQuerierAdapter) GetUserPasswordForLogin(ctx context.Context, username string) (string, string, error) {
-	return a.adapter.GetUserPasswordForLogin(ctx, username)
+func (a *ProfileQuerierAdapter) GetUserForLogin(ctx context.Context, username string) (*profile_dto.GetUserForLoginDTO, error) {
+	userDAO, err := a.adapter.GetUserForLogin(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+
+	userDTO := mappers.GetUserForLoginDAOtoDTO(userDAO)
+
+	return userDTO, nil
+
+}
+
+func (a *ProfileQuerierAdapter) GetUserForRefreshToken(ctx context.Context, refreshToken string) (*profile_dto.GetUserForRefreshTokenDTO, error) {
+	userDAO, err := a.adapter.GetUserForRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	userDTO := mappers.GetUserForRefreshTokenDAOtoDTO(userDAO)
+
+	return userDTO, nil
+
 }
 
 func (a *ProfileQuerierAdapter) GetUserRoles(ctx context.Context, userID string) ([]string, error) {
@@ -247,7 +268,7 @@ func (a *ProfileQuerierAdapter) GetProfileInfoInCategory(ctx context.Context, ca
 	return profileDTO, nil
 }
 
-func (a *ProfileQuerierAdapter) GetAvailabilityDailySlice(ctx context.Context, userID, competitorID string) ([]*profile_dto.GetDailyAvailabilityByIDDTORes, error) {
+func (a *ProfileQuerierAdapter) GetAvailabilityDailySlice(ctx context.Context, userID, competitorID string) ([]*models.GetDailyAvailabilityByIDDTORes, error) {
 	dailyAvailabilityDAO, err := a.adapter.GetAvailabilityDailySlice(ctx, userID, competitorID)
 	if err != nil {
 		return nil, err
@@ -258,21 +279,21 @@ func (a *ProfileQuerierAdapter) GetAvailabilityDailySlice(ctx context.Context, u
 	return dailyAvailabilitiesDTO, nil
 }
 
-func (a *ProfileQuerierAdapter) CreateAvailabilityForCompetitor(ctx context.Context, competitorID string, dailyAvailabilityDTO []*profile_dto.GetDailyAvailabilityByIDDTORes) error {
+func (a *ProfileQuerierAdapter) CreateAvailabilityForCompetitor(ctx context.Context, competitorID string, dailyAvailabilityDTO []*models.GetDailyAvailabilityByIDDTORes) error {
 	dailyAvailabilityDAO := mappers.CreateAvailabilityDailySliceDTOtoDAO(dailyAvailabilityDTO)
 
 	return a.adapter.CreateAvailabilityForCompetitor(ctx, competitorID, dailyAvailabilityDAO)
 }
 
-func (a *ProfileQuerierAdapter) GetDailyAvailabilityCompetitorID(ctx context.Context, competitorID string, day string) (*profile_dto.GetDailyAvailabilityByIDDTORes, error) {
-	availabilityDAO, err := a.adapter.GetDailyAvailabilityCompetitorID(ctx, competitorID, day)
+func (a *ProfileQuerierAdapter) GetDailyAvailabilityCompetitorID(ctx context.Context, competitorID string, day string) (*models.GetDailyAvailabilityByIDDTORes, string, error) {
+	availabilityDAO, availabilityID, err := a.adapter.GetDailyAvailabilityCompetitorID(ctx, competitorID, day)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	availabilityDTO := mappers.GetDailyAvailabilityCompetitorIDDAOtoDTO(availabilityDAO)
 
-	return availabilityDTO, nil
+	return availabilityDTO, availabilityID.Hex(), nil
 }
 
 func (a *ProfileQuerierAdapter) GetCompetitorTournamentsInCategory(ctx context.Context, categoryID, competitorID, lastID string, limit int) ([]*profile_dto.GetTournamentsFromCategoryDTORes, error) {
@@ -293,4 +314,100 @@ func (a *ProfileQuerierAdapter) VerifyFollowerExistsRelation(ctx context.Context
 	}
 
 	return a.adapter.VerifyFollowerExistsRelation(ctx, followerDAO)
+}
+
+func (a *ProfileQuerierAdapter) GetUserCategories(ctx context.Context, userID string, sport models.SPORT, limit int, lastID string) ([]*profile_dto.GetUserCategoriesCategoryDTO, error) {
+	categoriesDAO, err := a.adapter.GetUserCategories(ctx, userID, sport, limit, lastID)
+	if err != nil {
+		return nil, err
+	}
+
+	tournamentsDTO := mappers.GetUserCategoriesDAOtoDTO(categoriesDAO)
+
+	return tournamentsDTO, nil
+}
+
+func (a *ProfileQuerierAdapter) GetNumberFollowers(ctx context.Context, userID string) (int, error) {
+	userOID, err := a.ConvertToObjectID(userID)
+	if err != nil {
+		return 0, err
+	}
+
+	return a.adapter.GetNumberFollowers(ctx, userOID)
+}
+
+func (a *ProfileQuerierAdapter) GetUserFollowers(ctx context.Context, userID string, name string, limit int, lastCreatedAt *time.Time) (*profile_dto.GetUserFollowersDTORes, error) {
+	userFollowersDAO, err := a.adapter.GetUserFollowers(ctx, userID, name, limit, lastCreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	userFollowersDTO := mappers.GetUserFollowersDAOtoDTO(userFollowersDAO)
+
+	return userFollowersDTO, nil
+}
+
+func (a *ProfileQuerierAdapter) GetUserPrimaryData(ctx context.Context, userID string) (*profile_dto.GetUserPrimaryDataDTORes, error) {
+	userDAO, err := a.adapter.GetUserPrimaryData(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	userDTO := mappers.GetUserPrimaryDataDAOtoDTO(userDAO)
+
+	return userDTO, nil
+}
+
+func (a *ProfileQuerierAdapter) IsFollowing(ctx context.Context, fromID, userToID string) (bool, error) {
+	fromOID, err := a.ConvertToObjectID(fromID)
+	if err != nil {
+		return false, err
+	}
+
+	userToOID, err := a.ConvertToObjectID(userToID)
+	if err != nil {
+		return false, err
+	}
+
+	return a.adapter.IsFollowing(ctx, fromOID, userToOID)
+}
+
+func (a *ProfileQuerierAdapter) FollowOrUnfollow(ctx context.Context, followerDTO *profile_dto.CreateFollowerDTOReq) error {
+	followerDAO, err := mappers.CreateFollowerDTOtoDAO(followerDTO, a.ConvertToObjectID)
+	if err != nil {
+		return nil
+	}
+
+	return a.adapter.FollowOrUnfollow(ctx, followerDAO)
+}
+
+func (a *ProfileQuerierAdapter) VerifyUserExists(ctx context.Context, userID string) error {
+	userOID, err := a.ConvertToObjectID(userID)
+	if err != nil {
+		return err
+	}
+
+	return a.adapter.VerifyUserExists(ctx, userOID)
+}
+
+func (a *ProfileQuerierAdapter) GetRoleString(ctx context.Context, roleID string) (models.ROLE, error) {
+	return a.adapter.GetRoleString(ctx, roleID)
+}
+
+func (a *ProfileQuerierAdapter) GetOrganizerIDByUserID(ctx context.Context, userID string) (*string, error) {
+	return a.adapter.GetOrganizerIDByUserID(ctx, userID)
+}
+
+func (a *ProfileQuerierAdapter) GetUserAllCompetitorSports(ctx context.Context, userID string) ([]models.SPORT, error) {
+	return a.adapter.GetUserAllCompetitorSports(ctx, userID)
+}
+
+func (a *ProfileQuerierAdapter) GetOrganizerData(ctx context.Context, userID string) (*profile_dto.GetOrganizerDataDTORes, error) {
+	organizerDAO, err := a.adapter.GetOrganizerData(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	organizerDTO := mappers.GetOrganizerDataDAOtoDTO(organizerDAO)
+
+	return organizerDTO, nil
 }

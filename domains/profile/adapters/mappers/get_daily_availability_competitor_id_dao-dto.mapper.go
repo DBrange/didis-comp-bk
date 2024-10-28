@@ -1,12 +1,12 @@
 package mappers
 
 import (
-	"github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/avaliability/dao"
 )
 
-func GetDailyAvailabilityCompetitorIDDAOtoDTO(dailyAvailabilityDAO *dao.GetDailyAvailabilityByIDDAORes) *dto.GetDailyAvailabilityByIDDTORes {
-	dailyAvailabilityDTO := &dto.GetDailyAvailabilityByIDDTORes{
+func GetDailyAvailabilityCompetitorIDDAOtoDTO(dailyAvailabilityDAO *dao.GetDailyAvailabilityByIDDAORes) *models.GetDailyAvailabilityByIDDTORes {
+	dailyAvailabilityDTO := &models.GetDailyAvailabilityByIDDTORes{
 		Day:       dailyAvailabilityDAO.Day,
 		TimeSlots: getDailyTimeSlotAvailabilityCompetitorIDDAOtoDTO(dailyAvailabilityDAO.TimeSlots),
 	}
@@ -14,11 +14,11 @@ func GetDailyAvailabilityCompetitorIDDAOtoDTO(dailyAvailabilityDAO *dao.GetDaily
 	return dailyAvailabilityDTO
 }
 
-func getDailyTimeSlotAvailabilityCompetitorIDDAOtoDTO(timeSlotsDAO []*dao.GetDailyTimeSlotByIDDAORes) []*dto.GetDailyTimeSlotByIDDTORes {
-	timeSlotsDTO := make([]*dto.GetDailyTimeSlotByIDDTORes, len(timeSlotsDAO))
+func getDailyTimeSlotAvailabilityCompetitorIDDAOtoDTO(timeSlotsDAO []*dao.GetDailyTimeSlotByIDDAORes) []*models.GetDailyTimeSlotByIDDTORes {
+	timeSlotsDTO := make([]*models.GetDailyTimeSlotByIDDTORes, len(timeSlotsDAO))
 
 	for i, ts := range timeSlotsDAO {
-		timeSlotsDTO[i] = &dto.GetDailyTimeSlotByIDDTORes{
+		timeSlotsDTO[i] = &models.GetDailyTimeSlotByIDDTORes{
 			TimeSlot: ts.TimeSlot,
 			Status:   ts.Status,
 		}

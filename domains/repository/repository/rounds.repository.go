@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/round/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
@@ -97,7 +98,6 @@ func (r *Repository) VerifyRoundExists(ctx context.Context, roundOID *primitive.
 
 	err := r.roundColl.FindOne(ctx, filter, opts).Decode(&result)
 	if err != nil {
-		fmt.Printf("por aca %v", err)
 		if err == mongo.ErrNoDocuments {
 			return fmt.Errorf("%w: error when searching for round: %s", customerrors.ErrNotFound, err.Error())
 		}
@@ -151,6 +151,7 @@ func buildProjectStage(categoryOID *primitive.ObjectID) bson.M {
 		"_id":         1,
 		"round":       1,
 		"total_prize": 1,
+		"points":      1,
 		"matches": bson.M{
 			"$map": bson.M{
 				"input": "$matches",
@@ -163,9 +164,11 @@ func buildProjectStage(categoryOID *primitive.ObjectID) bson.M {
 
 func buildMatchProjection(categoryOID *primitive.ObjectID) bson.M {
 	return bson.M{
-		"_id":    "$$match._id",
-		"result": "$$match.result",
-		"winner": "$$match.winner",
+		"_id":      "$$match._id",
+		"result":   "$$match.result",
+		"winner":   "$$match.winner",
+		"date":     "$$match.date",
+		"position": "$$match.position",
 		"competitors": bson.M{
 			"$map": bson.M{
 				"input": bson.M{
@@ -271,6 +274,11 @@ func buildGuestUserIDArray() bson.M {
 
 func processMatches(result dao.GetRoundWithMatchesDAORes) *dao.GetRoundWithMatchesDAORes {
 	for i, match := range result.Matches {
+		// Ordenar los competidores por su campo "position"
+		sort.Slice(result.Matches[i].Competitors, func(a, b int) bool {
+			return result.Matches[i].Competitors[a].Position < result.Matches[i].Competitors[b].Position
+		})
+
 		for j, competitor := range match.Competitors {
 			if len(competitor.Users) > 0 {
 				result.Matches[i].Competitors[j].Users = convertToUserDAORes(competitor.Users)
@@ -433,7 +441,6 @@ func (r *Repository) GetRoundsWithCompetitors(ctx context.Context, tournamentOID
 // 	return matches, nil
 // }
 
-
 func (r *Repository) VerifyRoundInTournament(ctx context.Context, roundOID, tournamentOID *primitive.ObjectID) error {
 	var result struct{}
 
@@ -443,7 +450,6 @@ func (r *Repository) VerifyRoundInTournament(ctx context.Context, roundOID, tour
 
 	err := r.roundColl.FindOne(ctx, filter, opts).Decode(&result)
 	if err != nil {
-		fmt.Printf("por aca %v", err)
 		if err == mongo.ErrNoDocuments {
 			return fmt.Errorf("%w: error when searching for round: %s", customerrors.ErrNotFound, err.Error())
 		}
@@ -453,124 +459,488 @@ func (r *Repository) VerifyRoundInTournament(ctx context.Context, roundOID, tour
 	return nil
 }
 
-// func (r *Repository) UpdateCompetitorsPointsAndMoneyEarned(ctx context.Context, tournamentOID *primitive.ObjectID, tournamentWithCategory bool) error {
-// 	pipeline := mongo.Pipeline{
-// 		// Filtrar por el torneo
-// 		bson.D{{Key: "$match", Value: bson.M{"tournament_id": tournamentOID}}},
-// 		// Buscar las rondas
-// 		bson.D{{Key: "$lookup", Value: bson.M{
-// 			"from":         "matches",
-// 			"localField":   "_id",
-// 			"foreignField": "round_id",
-// 			"as":           "match",
-// 		}}},
-// 		bson.D{{Key: "$unwind", Value: bson.M{
-// 			"path":                       "$match",
-// 			"preserveNullAndEmptyArrays": true, // para manejar documentos que podrían no tener coincidencias
-// 		}}},
-// 		// Buscar los competitor_matches
-// 		bson.D{{Key: "$lookup", Value: bson.M{
-// 			"from":         "competitor_matches",
-// 			"localField":   "match._id",
-// 			"foreignField": "match_id",
-// 			"as":           "competitor_match",
-// 		}}},
-// 		bson.D{{Key: "$unwind", Value: bson.M{
-// 			"path":                       "$competitor_match",
-// 			"preserveNullAndEmptyArrays": true,
-// 		}}},
-// 		// Agrupar por ronda para obtener IDs de competidores, puntos y premios
-// 		bson.D{{Key: "$group", Value: bson.M{
-// 			"_id":            "$_id",
-// 			"competitor_ids": bson.M{"$push": "$competitor_match.competitor_id"},
-// 			"points":         bson.M{"$first": "$points"},
-// 			"total_prize":    bson.M{"$first": "$total_prize"},
-// 		}}},
-// 		// Buscar en competitor_stats
-// 		bson.D{{Key: "$lookup", Value: bson.M{
-// 			"from":         "competitor_stats",
-// 			"localField":   "competitor_ids",
-// 			"foreignField": "competitor_id",
-// 			"as":           "competitor_stats",
-// 		}}},
-// 		bson.D{{Key: "$unwind", Value: bson.M{
-// 			"path":                       "$competitor_stats",
-// 			"preserveNullAndEmptyArrays": true,
-// 		}}},
-// 		// Sumar el total del premio al dinero ganado
-// 		bson.D{{Key: "$set", Value: bson.M{
-// 			"competitor_stats.money_earned": bson.M{"$add": bson.A{"$competitor_stats.money_earned", "$total_prize"}},
-// 		}}},
-// 	}
+func buildCompetitorsPipeline(roundOID, categoryOID *primitive.ObjectID) mongo.Pipeline {
+	return mongo.Pipeline{
+		// Initial match to find the specific round
+		bson.D{{Key: "$match", Value: bson.M{"_id": roundOID}}},
 
-// 	if tournamentWithCategory {
-// 		pipeline = append(pipeline,
-// 			// Buscar en category_registrations
-// 			bson.D{{Key: "$lookup", Value: bson.M{
-// 				"from":         "category_registrations",
-// 				"localField":   "competitor_ids",
-// 				"foreignField": "competitor_id",
-// 				"as":           "category_registration",
-// 			}}},
-// 			bson.D{{Key: "$unwind", Value: bson.M{
-// 				"path":                       "$category_registration",
-// 				"preserveNullAndEmptyArrays": true,
-// 			}}},
-// 			// Sumar los puntos de la categoría
-// 			bson.D{{Key: "$set", Value: bson.M{
-// 				"category_registration.points": bson.M{"$add": bson.A{"$category_registration.points", "$points"}},
-// 			}}})
-// 	}
+		// Lookup competitors directly
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "competitors"},
+			{Key: "localField", Value: "competitor_ids"}, // Cambia esto al campo correcto en tu documento de round
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "competitors"},
+		}}},
 
-// 	cursor, err := r.roundColl.Aggregate(ctx, pipeline)
-// 	if err != nil {
-// 		return fmt.Errorf("error al ejecutar el pipeline de agregación: %v", err)
-// 	}
-// 	defer cursor.Close(ctx)
+		// Unwind competitors array
+		bson.D{{Key: "$unwind", Value: "$competitors"}},
 
-// 	// Iterar sobre los resultados y actualizar las colecciones
-// 	for cursor.Next(ctx) {
-// 		var result struct {
-// 			CompetitorStats struct {
-// 				ID          primitive.ObjectID `bson:"_id"`
-// 				MoneyEarned float64            `bson:"money_earned"`
-// 			} `bson:"competitor_stats"`
-// 			CategoryRegistration struct {
-// 				ID     primitive.ObjectID `bson:"_id"`
-// 				Points int                `bson:"points"`
-// 			} `bson:"category_registration"`
-// 		}
+		// Lookup competitor users
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "competitor_users"},
+			{Key: "localField", Value: "competitors._id"}, // Cambia esto al campo correcto en tus documentos de competidores
+			{Key: "foreignField", Value: "competitor_id"},
+			{Key: "as", Value: "competitor_users"},
+		}}},
 
-// 		if err := cursor.Decode(&result); err != nil {
-// 			return fmt.Errorf("error al decodificar el resultado: %v", err)
-// 		}
+		// Lookup regular users
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "users"},
+			{Key: "localField", Value: "competitor_users.user_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "users"},
+		}}},
 
-// 		// Actualizar competitor_stats
-// 		_, err = r.competitorStatsColl.UpdateOne(
-// 			ctx,
-// 			bson.M{"_id": result.CompetitorStats.ID},
-// 			bson.M{"$set": bson.M{"money_earned": result.CompetitorStats.MoneyEarned}},
-// 		)
-// 		if err != nil {
-// 			return fmt.Errorf("error al actualizar competitor_stats: %v", err)
-// 		}
+		// Lookup guest competitors
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "guest_competitors"},
+			{Key: "localField", Value: "competitors._id"},
+			{Key: "foreignField", Value: "competitor_id"},
+			{Key: "as", Value: "guest_competitors"},
+		}}},
 
-// 		// Actualizar category_registrations si corresponde
-// 		if result.CategoryRegistration.ID != primitive.NilObjectID {
-// 			_, err = r.categoryRegistrationColl.UpdateOne(
-// 				ctx,
-// 				bson.M{"_id": result.CategoryRegistration.ID},
-// 				bson.M{"$set": bson.M{"points": result.CategoryRegistration.Points}},
-// 			)
-// 			if err != nil {
-// 				return fmt.Errorf("error al actualizar category_registrations: %v", err)
-// 			}
-// 		}
-// 	}
+		// Lookup guest users
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "guest_users"},
+			{Key: "localField", Value: "guest_competitors.guest_user_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "guest_users"},
+		}}},
 
-// 	if err := cursor.Err(); err != nil {
-// 		return fmt.Errorf("error al iterar sobre los resultados: %v", err)
-// 	}
+		bson.D{{Key: "$lookup", Value: buildLookupStage("category_registrations", "competitor_users.competitor_id", "competitor_id", "category_registration")}},
 
-// 	return nil
-// }
+		// Project final competitor structure
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":              "$competitors._id",
+			"current_position": nil,
+			"position":         "$competitors.position",
+			"users":            "$users",
+			"guest_users":      "$guest_users",
+		}}},
+	}
+}
+
+func (r *Repository) GetRoundGroups(ctx context.Context, roundOID, categoryOID *primitive.ObjectID) (*dao.GetRoundGroupsDAORes, error) {
+	pipeline := buildRoundGroupsPipeline(roundOID, categoryOID)
+
+	var result dao.GetRoundGroupsDAORes
+	cursor, err := r.roundColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error executing aggregate pipeline: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("error decoding result: %w", err)
+		}
+	} else {
+		return nil, fmt.Errorf("round not found: %s", roundOID.Hex())
+	}
+
+	return processGroups(result), nil
+}
+
+func buildGroupMatchProjection(categoryOID *primitive.ObjectID) bson.M {
+	return bson.M{
+		"_id":      "$$match._id",
+		"result":   "$$match.result",
+		"winner":   "$$match.winner",
+		"date":     "$$match.date",
+		"position": "$$match.position",
+		"competitors": bson.M{
+			"$map": bson.M{
+				"input": bson.M{
+					"$filter": bson.M{
+						"input": "$competitor_matches",
+						"as":    "cm",
+						"cond":  bson.M{"$eq": bson.A{"$$cm.match_id", "$$match._id"}},
+					},
+				},
+				"as": "cm",
+				"in": buildCompetitorProjection(categoryOID),
+			},
+		},
+	}
+}
+
+func processGroups(result dao.GetRoundGroupsDAORes) *dao.GetRoundGroupsDAORes {
+	// Sort groups by position
+	sort.Slice(result.Groups, func(i, j int) bool {
+		return result.Groups[i].Position < result.Groups[j].Position
+	})
+
+	// Process matches and competitors within each group
+	for i, group := range result.Groups {
+		// Sort matches by position
+		sort.Slice(result.Groups[i].Matches, func(a, b int) bool {
+			return result.Groups[i].Matches[a].Position < result.Groups[i].Matches[b].Position
+		})
+
+		// Process matches
+		for j, match := range group.Matches {
+			// Sort competitors by position
+			sort.Slice(result.Groups[i].Matches[j].Competitors, func(a, b int) bool {
+				return result.Groups[i].Matches[j].Competitors[a].Position < result.Groups[i].Matches[j].Competitors[b].Position
+			})
+
+			processCompetitors(result.Groups[i].Matches[j].Competitors)
+
+			if match.Winner != nil {
+				result.Groups[i].Matches[j].PositionWinner = findCompetitorPosition(result.Groups[i].Matches[j].Competitors, *match.Winner)
+			}
+		}
+
+		// Process group competitors
+		processCompetitorsWithStats(result.Groups[i].Competitors)
+	}
+
+	return &result
+}
+
+func processCompetitors(competitors []*dao.GetRoundWithMatchesCompetitorDAORes) {
+	for k, competitor := range competitors {
+		if len(competitor.Users) > 0 {
+			competitors[k].Users = convertToUserDAORes(competitor.Users)
+			competitors[k].GuestUsers = []*dao.GetRoundWithMatchesUserDAORes{}
+		} else if len(competitor.GuestUsers) > 0 {
+			competitors[k].GuestUsers = convertToUserDAORes(competitor.GuestUsers)
+			competitors[k].Users = []*dao.GetRoundWithMatchesUserDAORes{}
+		} else {
+			competitors[k].Users = []*dao.GetRoundWithMatchesUserDAORes{}
+			competitors[k].GuestUsers = []*dao.GetRoundWithMatchesUserDAORes{}
+		}
+	}
+}
+
+func processCompetitorsWithStats(competitors []*dao.GetRoundGroupCompetitorWithStatsDAORes) {
+	for k, competitor := range competitors {
+		if len(competitor.Users) > 0 {
+			competitors[k].Users = convertToUserDAORes(competitor.Users)
+			competitors[k].GuestUsers = []*dao.GetRoundWithMatchesUserDAORes{}
+		} else if len(competitor.GuestUsers) > 0 {
+			competitors[k].GuestUsers = convertToUserDAORes(competitor.GuestUsers)
+			competitors[k].Users = []*dao.GetRoundWithMatchesUserDAORes{}
+		} else {
+			competitors[k].Users = []*dao.GetRoundWithMatchesUserDAORes{}
+			competitors[k].GuestUsers = []*dao.GetRoundWithMatchesUserDAORes{}
+		}
+	}
+}
+
+func buildRoundGroupsPipeline(roundOID, categoryOID *primitive.ObjectID) mongo.Pipeline {
+	return mongo.Pipeline{
+		// Coincidir el ID de la ronda
+		bson.D{{Key: "$match", Value: bson.M{"_id": roundOID}}},
+
+		// Lookup para el torneo
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "tournaments"},
+			{Key: "localField", Value: "tournament_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "tournament"},
+		}}},
+
+		// Desenrollar el torneo ya que solo esperamos uno
+		bson.D{{Key: "$unwind", Value: "$tournament"}},
+
+		// Lookup para los grupos del torneo
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "tournament_groups"},
+			{Key: "localField", Value: "tournament.groups"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "groups"},
+		}}},
+
+		// Lookup para los competidores en los grupos
+		bson.D{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "competitors"},
+				{Key: "let", Value: bson.D{
+					{Key: "groupCompetitors", Value: bson.M{
+						"$reduce": bson.M{
+							"input":        "$groups.competitors",
+							"initialValue": bson.A{},
+							"in": bson.M{
+								"$concatArrays": bson.A{
+									"$$value",
+									bson.M{
+										"$map": bson.M{
+											"input": "$$this",
+											"as":    "comp",
+											"in":    "$$comp.competitor_id", // Assuming this should point to the ID of the competitor
+										},
+									},
+								},
+							},
+						},
+					}},
+				}},
+				{Key: "pipeline", Value: bson.A{
+					bson.D{{Key: "$match", Value: bson.D{
+						{Key: "$expr", Value: bson.D{
+							{Key: "$in", Value: bson.A{"$_id", "$$groupCompetitors"}},
+						}},
+					}}},
+				}},
+				{Key: "as", Value: "all_group_competitors"},
+			}},
+		},
+
+		// Lookup para las partidas de cada grupo
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "matches"},
+			{Key: "localField", Value: "groups.matches"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "all_matches"},
+		}}},
+
+		// Lookup para los competidores en las partidas
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "competitor_matches"},
+			{Key: "localField", Value: "all_matches._id"},
+			{Key: "foreignField", Value: "match_id"},
+			{Key: "as", Value: "competitor_matches"},
+		}}},
+
+		// Lookup para usuarios competidores
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "competitor_users"},
+			{Key: "let", Value: bson.D{
+				{Key: "matchCompetitors", Value: "$competitor_matches.competitor_id"},
+				{Key: "groupCompetitors", Value: "$all_group_competitors._id"},
+			}},
+			{Key: "pipeline", Value: bson.A{
+				bson.D{{Key: "$match", Value: bson.D{
+					{Key: "$expr", Value: bson.D{
+						{Key: "$or", Value: bson.A{
+							bson.D{{Key: "$in", Value: bson.A{"$competitor_id", "$$matchCompetitors"}}},
+							bson.D{{Key: "$in", Value: bson.A{"$competitor_id", "$$groupCompetitors"}}},
+						}},
+					}},
+				}}},
+			}},
+			{Key: "as", Value: "competitor_users"},
+		}}},
+
+		// Lookup para los usuarios regulares
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "users"},
+			{Key: "localField", Value: "competitor_users.user_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "users"},
+		}}},
+
+		// Lookup para los competidores invitados
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "guest_competitors"},
+			{Key: "let", Value: bson.D{
+				{Key: "matchCompetitors", Value: "$competitor_matches.competitor_id"},
+				{Key: "groupCompetitors", Value: "$all_group_competitors._id"},
+			}},
+			{Key: "pipeline", Value: bson.A{
+				bson.D{{Key: "$match", Value: bson.D{
+					{Key: "$expr", Value: bson.D{
+						{Key: "$or", Value: bson.A{
+							bson.D{{Key: "$in", Value: bson.A{"$competitor_id", "$$matchCompetitors"}}},
+							bson.D{{Key: "$in", Value: bson.A{"$competitor_id", "$$groupCompetitors"}}},
+						}},
+					}},
+				}}},
+			}},
+			{Key: "as", Value: "guest_competitors"},
+		}}},
+
+		// Lookup para los usuarios invitados
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "guest_users"},
+			{Key: "localField", Value: "guest_competitors.guest_user_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "guest_users"},
+		}}},
+
+		// Lookup para registros de categorías
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "category_registrations"},
+			{Key: "let", Value: bson.D{
+				{Key: "matchCompetitors", Value: "$competitor_matches.competitor_id"},
+				{Key: "groupCompetitors", Value: "$all_group_competitors._id"},
+			}},
+			{Key: "pipeline", Value: bson.A{
+				bson.D{{Key: "$match", Value: bson.D{
+					{Key: "$expr", Value: bson.D{
+						{Key: "$or", Value: bson.A{
+							bson.D{{Key: "$in", Value: bson.A{"$competitor_id", "$$matchCompetitors"}}},
+							bson.D{{Key: "$in", Value: bson.A{"$competitor_id", "$$groupCompetitors"}}},
+						}},
+					}},
+				}}},
+			}},
+			{Key: "as", Value: "category_registration"},
+		}}},
+
+		// Proyección final de la estructura
+		bson.D{{Key: "$project", Value: buildGroupProjectStage(categoryOID)}},
+	}
+}
+
+func buildGroupProjectStage(categoryOID *primitive.ObjectID) bson.M {
+	return bson.M{
+		"_id":              1,
+		"round":            1,
+		"total_prize":      1,
+		"points":           1,
+		"total_classified": 1,
+		"best_third":       1,
+		"groups": bson.M{
+			"$map": bson.M{
+				"input": "$groups",
+				"as":    "group",
+				"in": bson.M{
+					"_id":      "$$group._id",
+					"position": "$$group.position",
+					"matches": bson.M{
+						"$map": bson.M{
+							"input": bson.M{
+								"$filter": bson.M{
+									"input": "$all_matches",
+									"as":    "match",
+									"cond": bson.M{
+										"$in": bson.A{"$$match._id", "$$group.matches"},
+									},
+								},
+							},
+							"as": "match",
+							"in": buildGroupMatchProjection(categoryOID),
+						},
+					},
+					"competitors": bson.M{
+						"$map": bson.M{
+							"input": bson.M{
+								"$filter": bson.M{
+									"input": "$all_group_competitors",
+									"as":    "competitor",
+									"cond": bson.M{
+										"$in": bson.A{
+											"$$competitor._id",
+											bson.M{
+												"$map": bson.M{
+													"input": "$$group.competitors",
+													"as":    "groupComp",
+													"in":    "$$groupComp.competitor_id",
+												},
+											},
+										},
+									},
+								},
+							},
+							"as": "competitor",
+							"in": bson.M{
+								"_id":              "$$competitor._id",
+								"current_position": buildCurrentPositionProjectiontt(categoryOID),
+								"position":         0,
+								"users":            buildUsersProjectiontt(),
+								"guest_users":      buildGuestUsersProjectiontt(),
+								"stats": bson.M{
+									"$let": bson.M{
+										"vars": bson.M{
+											"competitorStats": bson.M{
+												"$filter": bson.M{
+													"input": "$$group.competitors",
+													"as":    "gc",
+													"cond": bson.M{
+														"$eq": bson.A{"$$gc.competitor_id", "$$competitor._id"},
+													},
+												},
+											},
+										},
+										"in": bson.M{
+											"$arrayElemAt": bson.A{"$$competitorStats.stats", 0},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func buildCurrentPositionProjectiontt(categoryOID *primitive.ObjectID) bson.M {
+	return bson.M{
+		"$let": bson.M{
+			"vars": bson.M{
+				"cr": bson.M{
+					"$filter": bson.M{
+						"input": "$category_registration",
+						"as":    "cr",
+						"cond": bson.M{
+							"$and": bson.A{bson.M{"$eq": bson.A{"$$cr.competitor_id", "$$competitor._id"}},
+								bson.M{"$eq": bson.A{"$$cr.category_id", categoryOID}}}},
+					},
+				},
+			},
+			"in": bson.M{
+				"$cond": bson.A{
+					bson.M{"$gt": bson.A{bson.M{"$size": "$$cr"}, 0}},
+					bson.M{"$arrayElemAt": bson.A{"$$cr.current_position", 0}},
+					nil,
+				},
+			},
+		},
+	}
+}
+
+func buildUsersProjectiontt() bson.M {
+	return bson.M{
+		"$filter": bson.M{
+			"input": "$users",
+			"as":    "user",
+			"cond":  bson.M{"$in": bson.A{"$$user._id", buildUserIDArraytt()}},
+		},
+	}
+}
+
+func buildGuestUsersProjectiontt() bson.M {
+	return bson.M{
+		"$filter": bson.M{
+			"input": "$guest_users",
+			"as":    "guest",
+			"cond":  bson.M{"$in": bson.A{"$$guest._id", buildGuestUserIDArraytt()}},
+		},
+	}
+}
+
+func buildUserIDArraytt() bson.M {
+	return bson.M{
+		"$map": bson.M{
+			"input": bson.M{
+				"$filter": bson.M{
+					"input": "$competitor_users",
+					"as":    "cu",
+					"cond":  bson.M{"$eq": bson.A{"$$cu.competitor_id", "$$competitor._id"}},
+				},
+			},
+			"as": "cu",
+			"in": "$$cu.user_id",
+		},
+	}
+}
+
+func buildGuestUserIDArraytt() bson.M {
+	return bson.M{
+		"$map": bson.M{
+			"input": bson.M{
+				"$filter": bson.M{
+					"input": "$guest_competitors",
+					"as":    "gc",
+					"cond":  bson.M{"$eq": bson.A{"$$gc.competitor_id", "$$competitor._id"}},
+				},
+			},
+			"as": "gc",
+			"in": "$$gc.guest_user_id",
+		},
+	}
+}

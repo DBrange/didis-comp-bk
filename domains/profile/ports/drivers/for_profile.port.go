@@ -14,8 +14,14 @@ type ForProfile interface {
 	interfaces.ModifyPassword
 	interfaces.RegisterCompetitor
 	interfaces.Login
+	interfaces.RefreshToken
 	interfaces.FollowProfile
 	interfaces.GetProfileInfoInCategory
 	interfaces.GetProfileAvailabilityInCategory
 	interfaces.GetProfileTournamentsInCategory
+	interfaces.GetProfileCategories
+	interfaces.GetNumberFollowers
+	interfaces.GetUserFollowers
+	interfaces.GetUserPrimaryInfo
+	interfaces.GetOrganizerData
 }

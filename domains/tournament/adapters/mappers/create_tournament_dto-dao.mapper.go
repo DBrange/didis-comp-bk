@@ -9,6 +9,7 @@ func CreateTournamentDTOtoDAO(tournamentDTO *dto.CreateTournamentDTOReq) *dao.Cr
 	tournamentDAO := &dao.CreateTournamentDAOReq{
 		Name:             tournamentDTO.Name,
 		Points:           tournamentDTO.Points,
+		Image:            tournamentDTO.Image,
 		TotalPrize:       tournamentDTO.TotalPrize,
 		TotalCompetitors: tournamentDTO.TotalCompetitors,
 		MaxCapacity:      tournamentDTO.MaxCapacity,

@@ -19,7 +19,7 @@ type ForQueryingCategory interface {
 	VerifyCategoryExists(ctx context.Context, categoryID string) error
 	VerifyCompetitorExists(ctx context.Context, competitorID string) error
 	VerifyCategoryExistsRelation(ctx context.Context, categoryRegistrationDTO *dto.CreateCategoryRegistrationDTOReq) error
-	GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetCompetitorsOfCategoryDTORes, error)
+	GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorsOfCategoryDTORes, error)
 	GetCompetitorsFollowed(
 		ctx context.Context,
 		userID string,

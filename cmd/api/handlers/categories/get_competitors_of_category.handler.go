@@ -16,7 +16,7 @@ func (h *Handler) GetCompetitorsOfCategory(c *gin.Context) {
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
 
-	lastID := c.Query("lastID")
+	lastID := c.Query("last_id")
 	categoryID := c.Param("categoryID")
 	sport, competitorType, limit, err := getCompetitorsOfCategoryValidateQueries(c)
 	if err != nil {

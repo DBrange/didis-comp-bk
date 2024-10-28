@@ -11,7 +11,7 @@ func main() {
 
 	log.Println("Server listening on 8080")
 
-	if err := router.Run(":8080"); err != nil {
+	if err := router.Run("0.0.0.0:8080"); err != nil {
 		log.Fatal("Server error:", err)
 	}
 }

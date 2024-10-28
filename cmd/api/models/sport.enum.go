@@ -1,6 +1,5 @@
 package models
 
-import "github.com/DBrange/didis-comp-bk/cmd/api/utils"
 
 type SPORT string
 
@@ -24,6 +23,6 @@ func ParseSport(s string) (SPORT, error) {
 	case string(SPORT_TENNIS), string(SPORT_PADDLE), string(SPORT_TABLE_TENNIS), string(SPORT_FOOTBALL):
 		return SPORT(s), nil
 	default:
-		return "", utils.ParseErr("sport")
+		return "", ParseErr("sport")
 	}
 }

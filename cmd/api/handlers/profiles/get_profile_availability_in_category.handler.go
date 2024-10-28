@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"github.com/gin-gonic/gin"
 )
@@ -16,12 +17,22 @@ func (h *Handler) GetProfileAvailabilityInCategory(c *gin.Context) {
 
 	day := c.Query("day")
 
-	availabilityInfo, err := h.profile.GetProfileAvailabilityInCategory(ctx, competitorID, day)
+	availabilityInfo, availabilityID, err := h.profile.GetProfileAvailabilityInCategory(ctx, competitorID, day)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": availabilityInfo, "status": http.StatusOK, "message": "The search for competitor profile availability has been a success"})
+	type Data struct {
+		ID                                     string `json:"id"`
+		*models.GetDailyAvailabilityByIDDTORes `json:",inline"`
+	}
+
+	data := Data{
+		ID:                             availabilityID,
+		GetDailyAvailabilityByIDDTORes: availabilityInfo,
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": data, "status": http.StatusOK, "message": "The search for competitor profile availability has been a success"})
 
 }

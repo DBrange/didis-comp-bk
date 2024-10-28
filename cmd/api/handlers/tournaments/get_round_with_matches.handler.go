@@ -21,6 +21,6 @@ func (h *Handler) GetRoundWithMatches(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": round, "status": http.StatusCreated, "message": "Round successfully found!"})
+	c.JSON(http.StatusOK, gin.H{"data": round, "status": http.StatusOK, "message": "Round successfully found!"})
 
 }

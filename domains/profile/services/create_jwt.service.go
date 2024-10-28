@@ -8,14 +8,15 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func (s *ProfileService) CreateJWT(secret []byte, userID string, roles []string, expirationSec int64) (string, error) {
+func (s *ProfileService) CreateJWT(secret []byte, userID string, roles []string, expirationSec int64) (string,  error) {
 	expiration := time.Second * time.Duration(expirationSec)
+	exp := time.Now().Add(expiration).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":   userID,
 		"roles": roles,
 		"iat":   time.Now().Unix(),
-		"exp":   time.Now().Add(expiration).Unix(),
+		"exp":   exp,
 	})
 
 	tokenString, err := token.SignedString(secret)
@@ -24,5 +25,5 @@ func (s *ProfileService) CreateJWT(secret []byte, userID string, roles []string,
 		return "", customerrors.HandleErrMsg(err, "profile", "error signed token")
 	}
 
-	return tokenString, nil
+	return tokenString,  nil
 }

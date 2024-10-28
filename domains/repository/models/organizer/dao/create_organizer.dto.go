@@ -8,6 +8,7 @@ import (
 
 type CreateOrganizerDAOReq struct {
 	Categories              []primitive.ObjectID `bson:"categories"`
+	Tournaments              []primitive.ObjectID `bson:"tournaments"`
 	AverageScore            float32              `bson:"average_score"`
 	AverageTournamentePrize float32              `bson:"average_tournament_score"`
 	TotalCategories         int                  `bson:"total_categories"`

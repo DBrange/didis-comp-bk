@@ -1,18 +1,13 @@
 package utils
 
 import (
-	"fmt"
-
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
-	"github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
 )
 
-func IntermediateAvailability(usersAvailabilitySliceDTO [][]*dto.GetDailyAvailabilityByIDDTORes) []*dto.GetDailyAvailabilityByIDDTORes {
+func IntermediateAvailability(usersAvailabilitySliceDTO [][]*models.GetDailyAvailabilityByIDDTORes) []*models.GetDailyAvailabilityByIDDTORes {
 	if len(usersAvailabilitySliceDTO) != 2 {
 		return nil // o manejar el error apropiadamente
 	}
-
-	fmt.Printf("aasaaaa %+v", usersAvailabilitySliceDTO)
 
 	daysOrder := []models.DAY{
 		models.DAY_SUNDAY,
@@ -25,8 +20,8 @@ func IntermediateAvailability(usersAvailabilitySliceDTO [][]*dto.GetDailyAvailab
 	}
 
 	// Crear mapas para acceder rápidamente a la disponibilidad por día
-	availabilityOneMap := make(map[models.DAY]*dto.GetDailyAvailabilityByIDDTORes)
-	availabilityTwoMap := make(map[models.DAY]*dto.GetDailyAvailabilityByIDDTORes)
+	availabilityOneMap := make(map[models.DAY]*models.GetDailyAvailabilityByIDDTORes)
+	availabilityTwoMap := make(map[models.DAY]*models.GetDailyAvailabilityByIDDTORes)
 
 	for _, daily := range usersAvailabilitySliceDTO[0] {
 		availabilityOneMap[daily.Day] = daily
@@ -35,7 +30,7 @@ func IntermediateAvailability(usersAvailabilitySliceDTO [][]*dto.GetDailyAvailab
 		availabilityTwoMap[daily.Day] = daily
 	}
 
-	intermediateAvailability := make([]*dto.GetDailyAvailabilityByIDDTORes, 7)
+	intermediateAvailability := make([]*models.GetDailyAvailabilityByIDDTORes, 7)
 
 	for i, day := range daysOrder {
 		dailyOne, existsOne := availabilityOneMap[day]
@@ -43,14 +38,14 @@ func IntermediateAvailability(usersAvailabilitySliceDTO [][]*dto.GetDailyAvailab
 
 		if !existsOne || !existsTwo {
 			// Manejar el caso en que falta información para un día
-			intermediateAvailability[i] = &dto.GetDailyAvailabilityByIDDTORes{
+			intermediateAvailability[i] = &models.GetDailyAvailabilityByIDDTORes{
 				Day:       day,
-				TimeSlots: []*dto.GetDailyTimeSlotByIDDTORes{}, // o algún valor predeterminado
+				TimeSlots: []*models.GetDailyTimeSlotByIDDTORes{}, // o algún valor predeterminado
 			}
 			continue
 		}
 
-		intermediateAvailability[i] = &dto.GetDailyAvailabilityByIDDTORes{
+		intermediateAvailability[i] = &models.GetDailyAvailabilityByIDDTORes{
 			Day:       day,
 			TimeSlots: IntermediateTimeSlots(dailyOne.TimeSlots, dailyTwo.TimeSlots),
 		}
@@ -59,10 +54,10 @@ func IntermediateAvailability(usersAvailabilitySliceDTO [][]*dto.GetDailyAvailab
 	return intermediateAvailability
 }
 
-func IntermediateTimeSlots(timeSlotsOne, timeSlotsTwo []*dto.GetDailyTimeSlotByIDDTORes) []*dto.GetDailyTimeSlotByIDDTORes {
-	intermediateTimeSlots := make([]*dto.GetDailyTimeSlotByIDDTORes, len(timeSlotsOne))
+func IntermediateTimeSlots(timeSlotsOne, timeSlotsTwo []*models.GetDailyTimeSlotByIDDTORes) []*models.GetDailyTimeSlotByIDDTORes {
+	intermediateTimeSlots := make([]*models.GetDailyTimeSlotByIDDTORes, len(timeSlotsOne))
 	for i, slotOne := range timeSlotsOne {
-		intermediateTimeSlots[i] = &dto.GetDailyTimeSlotByIDDTORes{
+		intermediateTimeSlots[i] = &models.GetDailyTimeSlotByIDDTORes{
 			TimeSlot: slotOne.TimeSlot,
 			Status:   CombineAvailabilityStatuses(slotOne.Status, timeSlotsTwo[i].Status),
 		}
@@ -87,7 +82,7 @@ func CombineAvailabilityStatuses(status1, status2 models.AVAILABILITY_STATUS) mo
 	return models.AVAILABILITY_STATUS_POSSIBLY_AVAILABLE
 }
 
-func OrderAvailability(availabilitySlice []*dto.GetDailyAvailabilityByIDDTORes) []*dto.GetDailyAvailabilityByIDDTORes {
+func OrderAvailability(availabilitySlice []*models.GetDailyAvailabilityByIDDTORes) []*models.GetDailyAvailabilityByIDDTORes {
 	daysOrder := []models.DAY{
 		models.DAY_SUNDAY,
 		models.DAY_MONDAY,
@@ -99,21 +94,21 @@ func OrderAvailability(availabilitySlice []*dto.GetDailyAvailabilityByIDDTORes) 
 	}
 
 	// Crear un mapa para acceder rápidamente a la disponibilidad por día
-	availabilityMap := make(map[models.DAY]*dto.GetDailyAvailabilityByIDDTORes)
+	availabilityMap := make(map[models.DAY]*models.GetDailyAvailabilityByIDDTORes)
 	for _, daily := range availabilitySlice {
 		availabilityMap[daily.Day] = daily
 	}
 
-	orderedAvailability := make([]*dto.GetDailyAvailabilityByIDDTORes, 7)
+	orderedAvailability := make([]*models.GetDailyAvailabilityByIDDTORes, 7)
 
 	for i, day := range daysOrder {
 		if daily, exists := availabilityMap[day]; exists {
 			orderedAvailability[i] = daily
 		} else {
 			// Si no existe la disponibilidad para este día, crear una entrada vacía
-			orderedAvailability[i] = &dto.GetDailyAvailabilityByIDDTORes{
+			orderedAvailability[i] = &models.GetDailyAvailabilityByIDDTORes{
 				Day:       day,
-				TimeSlots: []*dto.GetDailyTimeSlotByIDDTORes{},
+				TimeSlots: []*models.GetDailyTimeSlotByIDDTORes{},
 			}
 		}
 	}

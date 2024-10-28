@@ -2,7 +2,6 @@ package routes
 
 import (
 	handlers "github.com/DBrange/didis-comp-bk/cmd/api/handlers/profiles"
-	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	ports "github.com/DBrange/didis-comp-bk/domains/control_plane/ports/drivers"
 
 	"github.com/gin-gonic/gin"
@@ -13,21 +12,36 @@ func profileRoutes(router *gin.Engine, controlPlane ports.ForControlPlane, handl
 
 	profilesRouter.POST("/register", handler.RegisterUser)
 
-	profilesRouter.POST("/login", controlPlane.AuthenticationMiddleware(), controlPlane.AuthorizationMiddleware(models.ROLE_FREE), handler.Login)
+	// profilesRouter.POST("/login", controlPlane.AuthenticationMiddleware(), controlPlane.AuthorizationMiddleware(models.ROLE_FREE), handler.Login)
+	profilesRouter.POST("/login", handler.Login)
+
+	profilesRouter.POST("/refresh-token", handler.RefreshToken)
 
 	profilesRouter.POST("/register-competitor", handler.RegisterCompetitor)
 
 	profilesRouter.POST("/follow-profile/:fromUserID/:toUserID", handler.FollowProfile)
 
+	profilesRouter.GET("/number-followers/:userID", handler.GetNumberFollowers)
+
+	profilesRouter.GET("/user-followers/:userID", handler.GetUserFollowers)
+
 	profilesRouter.GET("/personal-info/:userID", handler.GetPersonalInfo)
-	
+
+	profilesRouter.GET("/primary-info/:fromUserID/:toUserID", handler.GetUserPrimaryInfo)
+
 	profilesRouter.GET("/daily-availability-info/:availabilityID", handler.GetProfileDailyAvailability)
-	
+
 	profilesRouter.GET("/info-category/:categoryID/:competitorID", handler.GetProfileInfoInCategory)
 
 	profilesRouter.GET("/availability-category/:competitorID", handler.GetProfileAvailabilityInCategory)
 
 	profilesRouter.GET("/tournaments-category/:categoryID/:competitorID", handler.GetProfileTournamentsInCategory)
+
+	profilesRouter.GET("/categories/:userID", handler.GetProfileCategories)
+
+	profilesRouter.GET("/tournaments/:userID", handler.GetProfileTournaments)
+
+	profilesRouter.GET("/organizer-data/:userID", handler.GetOrganizerData)
 
 	profilesRouter.PUT("/availability/:availabilityID", handler.ModifyProfileAvailability)
 

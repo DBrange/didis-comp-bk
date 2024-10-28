@@ -7,7 +7,7 @@ import (
 
 func GetLocationByIDDAOtoDTO(locationDAO *dao.GetLocationByIDDAORes) *dto.GetLocationByIDDTORes {
 	locationDTO := &dto.GetLocationByIDDTORes{
-		ID:      locationDAO.ID,
+		ID:      locationDAO.ID.Hex(),
 		State:   locationDAO.State,
 		Country: locationDAO.Country,
 		City:    locationDAO.City,

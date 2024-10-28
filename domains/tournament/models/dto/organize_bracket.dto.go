@@ -1,6 +1,10 @@
 package dto
 
-import "time"
+import (
+	"time"
+
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
+)
 
 type CompetitorsInMatchDTO struct {
 	ID            string   `json:"_id"`
@@ -9,7 +13,7 @@ type CompetitorsInMatchDTO struct {
 
 type CourtsDTO struct {
 	AvailableCourts     int                               `json:"available_courts"`
-	DailyAvailabilities []*GetDailyAvailabilityByIDDTORes `json:"daily_availabilities"`
+	DailyAvailabilities []*models.GetDailyAvailabilityByIDDTORes `json:"daily_availabilities"`
 }
 
 type MatchDateDTOReq struct {

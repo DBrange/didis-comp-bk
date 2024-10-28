@@ -16,11 +16,13 @@ func tournamentRoutes(router *gin.Engine, handler *handlers.Handler) {
 
 	tournamnetsRouter.PUT("/register-guest-competitor/:tournamentID", handler.AddGuestUserInTournament)
 
+	tournamnetsRouter.PUT("/register-double-competitor/:tournamentID", handler.RegisterDoubleCompetitorInTournament)
+
 	tournamnetsRouter.PUT("/modify-bracket-match/:tournamentID/:userID", handler.ModifyBracketMatch)
 
-	tournamnetsRouter.POST("/organize-bracket/:tournamentID", handler.OrganizeBracket)
+	tournamnetsRouter.PUT("/organize-bracket/:tournamentID", handler.OrganizeBracket)
 
-	tournamnetsRouter.POST("/organize-tournament-group/:tournamentID/:roundID", handler.OrganizeTournamentGroups)
+	tournamnetsRouter.PUT("/organize-tournament-groups/:tournamentID/:roundID", handler.OrganizeTournamentGroups)
 
 	tournamnetsRouter.PUT("/modify-tournament-group/:tournamentID/:roundID", handler.ModifyTournamentGroups)
 
@@ -32,15 +34,35 @@ func tournamentRoutes(router *gin.Engine, handler *handlers.Handler) {
 
 	tournamnetsRouter.PUT("/quantity-groups/:tournamentID", handler.UpdateQuantityGroupsInTournament)
 
-	tournamnetsRouter.POST("/end-match", handler.EndMatch)
+	tournamnetsRouter.PUT("/end-match", handler.EndMatch)
 
 	tournamnetsRouter.POST("/end-tournament/:tournamentID", handler.EndTournament)
 
 	tournamnetsRouter.GET("/list-competitors/:tournamentID", handler.ListCompetitorsInTournament)
 
+	tournamnetsRouter.GET("/list-competitors-by-name/:tournamentID", handler.ListCompetitorsByNameInTournament)
+
+	tournamnetsRouter.GET("/search-follower-for-tournament/:userID", handler.SearchCompetitorForTournament)
+
+	tournamnetsRouter.GET("/user-tournaments/:userID", handler.GetUserTournaments)
+
+	tournamnetsRouter.GET("/organizer-tournaments/:organizerID", handler.GetTournamentsInOrganizer)
+
+	tournamnetsRouter.GET("/primary-info/:tournamentID", handler.GetTournamentPrimaryInfo)
+
+	tournamnetsRouter.GET("/round-matches/:roundID", handler.GetRoundWithMatches)
+
+	tournamnetsRouter.GET("/round-groups/:roundID", handler.GetRoundGroups)
+
+	tournamnetsRouter.GET("/filters/:tournamentID", handler.GetTournamentFilters)
+
+	tournamnetsRouter.GET("/competitor-ids/:tournamentID", handler.GetTournamentCompetitorIDs)
+
+	tournamnetsRouter.GET("/availability-tournament/:tournamentID", handler.GetTournamentAvailability)
+
 	tournamnetsRouter.PUT("/round-total-prize/:roundID", handler.ModifyRoundTotalPrize)
 
 	tournamnetsRouter.PUT("/round-points/:roundID", handler.ModifyRoundPoints)
 
-	tournamnetsRouter.GET("/round-matches/:roundID", handler.GetRoundWithMatches)
+	tournamnetsRouter.PUT("/remove-competitor/:tournamentID/:competitorID", handler.RemoveCompetitorFromTournament)
 }

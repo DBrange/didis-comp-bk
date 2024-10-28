@@ -30,8 +30,8 @@ func (a *CategoryProxyAdapter) AddCompetitorInCategory(ctx context.Context, cate
 	return a.categoryService.AddCompetitorInCategory(ctx, categoryID, competitorID)
 }
 
-func (a *CategoryProxyAdapter) SearchCompetitorInCategory(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetCompetitorsOfCategoryDTORes, error) {
-	return a.categoryService.SearchCompetitorInCategory(ctx, categoryID, name, sport, competitorType, limit, lastID)
+func (a *CategoryProxyAdapter) SearchCompetitorInCategory(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorsOfCategoryDTORes, error) {
+	return a.categoryService.SearchCompetitorInCategory(ctx, categoryID, name, sport, competitorType, )
 }
 
 func (a *CategoryProxyAdapter) SearchCompetitorForCategory(ctx context.Context, userID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorFollowedDTORes, error) {

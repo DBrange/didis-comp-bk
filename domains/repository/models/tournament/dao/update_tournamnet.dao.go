@@ -11,6 +11,7 @@ type UpdateTournamentInfoDAOReq struct {
 	Name       *string  `bson:"name,omitempty"`
 	Points     *int     `bson:"points,omitempty"`
 	TotalPrize *float64 `bson:"total_prize,omitempty"`
+	Image *string `bson:"image,omitempty"`
 	// TotalCompetitors     *models.TOURNAMENT_CAPACITY `bson:"total_competitors,omitempty"`
 	AverageScore *float32               `bson:"average_score,omitempty"`
 	Surface      *models.TENNIS_SURFACE `bson:"surface,omitempty"`

@@ -30,7 +30,7 @@ func (s *ControlPlaneService) AuthenticationMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		token, err := s.validateToken(authHeader)
+		token, err := s.validateAccessToken(authHeader)
 		if err != nil || !token.Valid {
 			s.permissionDenied(c, "invalid token")
 			return
@@ -101,7 +101,7 @@ func (s *ControlPlaneService) AuthorizationMiddleware(requiredRole []models.ROLE
 	}
 }
 
-func (s *ControlPlaneService) validateToken(authHeader string) (*jwt.Token, error) {
+func (s *ControlPlaneService) validateAccessToken(authHeader string) (*jwt.Token, error) {
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -113,11 +113,13 @@ func (s *ControlPlaneService) validateToken(authHeader string) (*jwt.Token, erro
 	})
 }
 
+
+
 func (s *ControlPlaneService) permissionDenied(c *gin.Context, text string) {
 	err := fmt.Errorf("error authorization: %w", customerrors.ErrAuthorization)
 	errMsgTemplate := fmt.Sprintf("error %s", text)
-	customerrors.HandleErrMsg(err, "auth", errMsgTemplate)
-	customerrors.ErrorResponse(err, c)
+	errMsg := customerrors.HandleErrMsg(err, "auth", errMsgTemplate)
+	customerrors.ErrorResponse(errMsg, c)
 	// c.JSON(http.StatusInternalServerError, gin.H{"status": customerrors.ErrAuthorization, "error": err})
 	c.Abort()
 }

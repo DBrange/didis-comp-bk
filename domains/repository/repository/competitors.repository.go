@@ -123,7 +123,6 @@ func (r *Repository) VerifyCompetitorExists(ctx context.Context, competitorOID *
 
 	err := r.competitorColl.FindOne(ctx, filter, opts).Decode(&result)
 	if err != nil {
-		fmt.Printf("por aca %v", err)
 		if err == mongo.ErrNoDocuments {
 			return fmt.Errorf("%w: error when searching for competitor: %s", customerrors.ErrNotFound, err.Error())
 		}

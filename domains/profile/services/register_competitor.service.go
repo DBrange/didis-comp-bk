@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
+	"github.com/DBrange/didis-comp-bk/cmd/utils"
 	"github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
-	"github.com/DBrange/didis-comp-bk/domains/profile/utils"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -75,7 +75,7 @@ func (s *ProfileService) registerCompetitorSingle(ctx context.Context, userIDs [
 
 func (s *ProfileService) registerCompetitorDouble(ctx context.Context, userIDs []string, competitorID string) error {
 	// Availability users
-	usersAvailabilitySliceDTO := make([][]*dto.GetDailyAvailabilityByIDDTORes, len(userIDs))
+	usersAvailabilitySliceDTO := make([][]*models.GetDailyAvailabilityByIDDTORes, len(userIDs))
 
 	// Get availability users
 	for i, userID := range userIDs {
@@ -103,6 +103,9 @@ func (s *ProfileService) registerCompetitorDouble(ctx context.Context, userIDs [
 	}
 
 	for _, userID := range userIDs {
+		if err := s.profileQuerier.VerifyUserExists(ctx , userID); err != nil{
+			return err
+		}
 		// Create competitor_user
 		if err := s.profileQuerier.CreateCompetitorUser(ctx, userID, competitorID); err != nil {
 			return err

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/tournament_registration/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
@@ -54,6 +55,24 @@ func (r *Repository) GetTournamentRegistrationByID(ctx context.Context, tourname
 	}
 
 	return &tournamentRegistration, nil
+}
+
+func (r *Repository) GetTournamentRegistrationByCompetitorAndTournamentID(ctx context.Context, tournamentOID, competitorOID *primitive.ObjectID) (string, error) {
+	filter := bson.M{"tournament_id": tournamentOID, "competitor_id": competitorOID,"deleted_at": bson.M{"$exists": false},}
+
+	var result struct{
+		ID *primitive.ObjectID `bson:"_id"`
+	}
+
+	err := r.tournamentRegistrationColl.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return "", fmt.Errorf("%w: error when searching for tournamentRegistration: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return "", fmt.Errorf("error when searching for the tournamentRegistration: %w", err)
+	}
+
+	return result.ID.Hex(), nil
 }
 
 func (r *Repository) DeleteTournamentRegistration(ctx context.Context, tournamentRegistrationID string) error {
@@ -118,7 +137,7 @@ func (r *Repository) GetAllCompetitorInTournament(ctx context.Context, tournamen
 	return tournamentRegistrations, nil
 }
 
-func (r *Repository) GetCompetitorsInTournament(ctx context.Context, tournamentOID, categoryOID, lastOID *primitive.ObjectID, limit int) ([]*dao.GetCompetitorsInTournamentDAORes, error) {
+func (r *Repository) GetCompetitorsInTournament(ctx context.Context, tournamentOID, categoryOID, lastOID *primitive.ObjectID, limit int, getAll bool) ([]*dao.GetCompetitorsInTournamentDAORes, error) {
 	pipeline := r.getCompetitorsInTournamentBuildBasePipeline(tournamentOID)
 
 	if categoryOID != nil {
@@ -126,7 +145,7 @@ func (r *Repository) GetCompetitorsInTournament(ctx context.Context, tournamentO
 	}
 
 	pipeline = r.getCompetitorsInTournamentAppendFinalStages(pipeline, categoryOID != nil)
-	pipeline = r.getCompetitorsInTournamentAppendSortAndPagination(pipeline, lastOID, limit)
+	pipeline = r.getCompetitorsInTournamentAppendSortAndPagination(pipeline, lastOID, limit, getAll)
 
 	return r.getCompetitorsInTournamentExecuteAggregation(ctx, pipeline)
 }
@@ -187,28 +206,6 @@ func (r *Repository) getCompetitorsInTournamentAppendCategoryFilter(pipeline mon
 	)
 }
 
-func (r *Repository) getCompetitorsInTournamentAppendSortAndPagination(pipeline mongo.Pipeline, lastOID *primitive.ObjectID, limit int) mongo.Pipeline {
-	// Agregar etapa de ordenamiento
-	sortStage := bson.D{{Key: "$sort", Value: bson.D{
-		{Key: "_id", Value: 1}, // Siempre ordenar por _id para asegurar un orden consistente
-	}}}
-	pipeline = append(pipeline, sortStage)
-
-	// Aplicar paginación
-	if lastOID != nil {
-		matchStage := bson.D{{Key: "$match", Value: bson.M{
-			"_id": bson.M{"$gt": lastOID},
-		}}}
-		pipeline = append(pipeline, matchStage)
-	}
-
-	// Aplicar límite
-	limitStage := bson.D{{Key: "$limit", Value: limit}}
-	pipeline = append(pipeline, limitStage)
-
-	return pipeline
-}
-
 func (r *Repository) getCompetitorsInTournamentAppendFinalStages(pipeline mongo.Pipeline, includeCurrentPosition bool) mongo.Pipeline {
 	groupStage := bson.D{{Key: "$group", Value: bson.M{
 		"_id":      "$competitor_id",
@@ -263,6 +260,30 @@ func (r *Repository) getCompetitorsInTournamentAppendFinalStages(pipeline mongo.
 	return append(pipeline, groupStage, projectStage)
 }
 
+func (r *Repository) getCompetitorsInTournamentAppendSortAndPagination(pipeline mongo.Pipeline, lastOID *primitive.ObjectID, limit int,  getAll bool) mongo.Pipeline {
+	// Agregar etapa de ordenamiento
+	sortStage := bson.D{{Key: "$sort", Value: bson.D{
+		{Key: "_id", Value: 1}, // Ordenar por _id que representa el competitor_id
+	}}}
+	pipeline = append(pipeline, sortStage)
+
+	// Aplicar paginación basada en _id (competitor_id)
+	if lastOID != nil {
+		matchStage := bson.D{{Key: "$match", Value: bson.M{
+			"_id": bson.M{"$gt": lastOID}, // Usar el campo _id (competitor_id) para la paginación
+		}}}
+		pipeline = append(pipeline, matchStage)
+	}
+
+	// Aplicar límite
+	if !getAll{
+		limitStage := bson.D{{Key: "$limit", Value: limit}}
+		pipeline = append(pipeline, limitStage)
+	}
+
+	return pipeline
+}
+
 func (r *Repository) getCompetitorsInTournamentExecuteAggregation(ctx context.Context, pipeline mongo.Pipeline) ([]*dao.GetCompetitorsInTournamentDAORes, error) {
 	var competitorsDAO []*dao.GetCompetitorsInTournamentDAORes
 
@@ -282,8 +303,103 @@ func (r *Repository) getCompetitorsInTournamentExecuteAggregation(ctx context.Co
 	return competitorsDAO, nil
 }
 
+func (r *Repository) GetCompetitorsByNameInTournament(
+	ctx context.Context,
+	tournamentOID, categoryOID *primitive.ObjectID,
+	name string,
+	limit int,
+) ([]*dao.GetCompetitorsInTournamentDAORes, error) {
+	// Si el nombre está vacío, retornar un array vacío
+	if name == "" {
+		return []*dao.GetCompetitorsInTournamentDAORes{}, nil
+	}
+
+	// Verificar si el tournamentOID es válido
+	if tournamentOID == nil || tournamentOID.IsZero() {
+		return nil, fmt.Errorf("invalid tournament id")
+	}
+
+	pipeline := r.getCompetitorsInTournamentBuildBasePipeline(tournamentOID)
+
+	// Aplicar filtro de categoría si se proporciona categoryOID
+	if categoryOID != nil {
+		pipeline = r.getCompetitorsInTournamentAppendCategoryFilter(pipeline, categoryOID)
+	}
+
+	// Etapas finales y paginación
+	pipeline = r.getCompetitorsInTournamentAppendFinalStages(pipeline, categoryOID != nil)
+	// Aplicar filtro de nombre
+	pipeline = r.agetParticipantsOfCategoryNameFilterr(pipeline, name, true)
+	pipeline = r.getCompetitorsInTournamentAppendSortAndPagination(pipeline, nil, limit, false)
+
+	// Ejecutar la agregación
+	return r.getCompetitorsInTournamentExecuteAggregation(ctx, pipeline)
+}
+
+func (r *Repository) agetParticipantsOfCategoryNameFilterr(pipeline mongo.Pipeline, name string, guest bool) mongo.Pipeline {
+	nameParts := strings.Fields(name)
+	var firstNameQuery, lastNameQuery string
+
+	if len(nameParts) > 0 {
+		firstNameQuery = nameParts[0]
+	}
+	if len(nameParts) > 1 {
+		lastNameQuery = strings.Join(nameParts[1:], " ")
+	}
+
+	// Filtros para usuarios regulares con $elemMatch
+	orConditions := bson.A{
+		bson.M{"users": bson.M{
+			"$elemMatch": bson.M{
+				"first_name": bson.M{"$regex": "^" + firstNameQuery, "$options": "i"},
+				"last_name":  bson.M{"$regex": "^" + lastNameQuery, "$options": "i"},
+			},
+		}},
+		bson.M{"users": bson.M{
+			"$elemMatch": bson.M{
+				"first_name": bson.M{"$regex": "^" + name, "$options": "i"},
+			},
+		}},
+		bson.M{"users": bson.M{
+			"$elemMatch": bson.M{
+				"last_name": bson.M{"$regex": "^" + name, "$options": "i"},
+			},
+		}},
+	}
+
+	// Filtros para usuarios invitados con $elemMatch solo si guest es true
+	if guest {
+		guestConditions := bson.A{
+			bson.M{"guest_users": bson.M{
+				"$elemMatch": bson.M{
+					"first_name": bson.M{"$regex": "^" + firstNameQuery, "$options": "i"},
+					"last_name":  bson.M{"$regex": "^" + lastNameQuery, "$options": "i"},
+				},
+			}},
+			bson.M{"guest_users": bson.M{
+				"$elemMatch": bson.M{
+					"first_name": bson.M{"$regex": "^" + name, "$options": "i"},
+				},
+			}},
+			bson.M{"guest_users": bson.M{
+				"$elemMatch": bson.M{
+					"last_name": bson.M{"$regex": "^" + name, "$options": "i"},
+				},
+			}},
+		}
+		orConditions = append(orConditions, guestConditions...)
+	}
+
+	// Aplicar el filtro de búsqueda
+	pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.M{
+		"$or": orConditions,
+	}}})
+
+	return pipeline
+}
+
 func (r *Repository) GetTournamentCompetitorIDs(ctx context.Context, tournamentOID *primitive.ObjectID) ([]string, error) {
-	filter := bson.M{"tournament_id": tournamentOID}
+	filter := bson.M{"tournament_id": tournamentOID, "deleted_at": bson.M{"$exists": false}}
 
 	projection := bson.M{"competitor_id": 1}
 
@@ -318,8 +434,6 @@ func (r *Repository) GetTournamentCompetitorIDs(ctx context.Context, tournamentO
 
 }
 
-
-
 func (r *Repository) VerifyCompetitorExistsInTournament(ctx context.Context, tournamentOID *primitive.ObjectID, competitorOID *primitive.ObjectID) error {
 	filter := bson.M{
 		"tournament_id": tournamentOID,
@@ -333,7 +447,6 @@ func (r *Repository) VerifyCompetitorExistsInTournament(ctx context.Context, tou
 
 	err := r.tournamentRegistrationColl.FindOne(ctx, filter, opts).Decode(&result)
 	if err != nil {
-		fmt.Printf("por aca %v", err)
 		if err == mongo.ErrNoDocuments {
 			return fmt.Errorf("%w: error when searching for competitor in tournament: %s", customerrors.ErrNotFound, err.Error())
 		}
@@ -386,17 +499,16 @@ func (r *Repository) VerifyMultipleCompetitorsExistsInTournament(ctx context.Con
 }
 
 func (s *Repository) getMissingIDs(requested []*primitive.ObjectID, found []*primitive.ObjectID) []*primitive.ObjectID {
-    foundMap := make(map[string]bool)
-    for _, id := range found {
-        foundMap[id.Hex()] = true
-    }
+	foundMap := make(map[string]bool)
+	for _, id := range found {
+		foundMap[id.Hex()] = true
+	}
 
-    var missing []*primitive.ObjectID
-    for _, id := range requested {
-        if !foundMap[id.Hex()] {
-            missing = append(missing, id)
-        }
-    }
-    return missing
+	var missing []*primitive.ObjectID
+	for _, id := range requested {
+		if !foundMap[id.Hex()] {
+			missing = append(missing, id)
+		}
+	}
+	return missing
 }
-

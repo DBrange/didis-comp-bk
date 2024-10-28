@@ -41,6 +41,11 @@ func (s *TournamentService) OrganizeTournament(ctx context.Context, organizeTour
 			return customerrors.HandleErrMsg(err, "tournament", "error when creating tournament")
 		}
 
+		if err := s.tournamentQuerier.AddTournamentInOrganizer(ctx , organizerID, tournamentID ); err != nil{
+			return customerrors.HandleErrMsg(err, "tournament", "error when adding tournament to organizer")
+		}
+
+
 		// Create availability for tournament
 		err = s.tournamentQuerier.CreateAvailability(ctx, nil, nil, &tournamentID)
 		if err != nil {

@@ -87,7 +87,7 @@ func (r *Repository) UpdateMultipleCompetitorMatches(ctx context.Context, compet
 	if len(competitorMatchDAOs) == 0 {
 		return nil // No hay nada que actualizar
 	}
-
+	
 	// Crear una operación de escritura para cada actualización
 	var operations []mongo.WriteModel
 	for _, dao := range competitorMatchDAOs {
@@ -107,7 +107,7 @@ func (r *Repository) UpdateMultipleCompetitorMatches(ctx context.Context, compet
 	if result.MatchedCount != result.ModifiedCount {
 		return fmt.Errorf("mismatch in update counts: matched %d, modified %d", result.MatchedCount, result.ModifiedCount)
 	}
-
+	fmt.Println("llegue aca al menos")
 	return nil
 }
 
@@ -150,15 +150,84 @@ func (r *Repository) VerifyCompetitorsMatch(ctx context.Context, matchOID, compe
 
 func (r *Repository) DeleteMultipleCompetitorMatches(ctx context.Context, matchesToRemove []*primitive.ObjectID) error {
 	filter := bson.M{"match_id": bson.M{"$in": matchesToRemove}}
-
+	
 	result, err := r.competitorMatchColl.DeleteMany(ctx, filter)
 	if err != nil {
 		return fmt.Errorf("%w: error deleting matches: %s", customerrors.ErrDeleted, err.Error())
 	}
-
+	
 	if result.DeletedCount == 0 {
 		return fmt.Errorf("%w: no matches found with the provided ids", customerrors.ErrNotFound)
 	}
 
 	return nil
 }
+
+
+func (r *Repository) GetCompetitorIDsFromMatches(ctx context.Context, matches []*primitive.ObjectID) ([]*primitive.ObjectID, error) {
+	// Si no se pasan matches, retorna un slice vacío
+	if len(matches) == 0 {
+		return []*primitive.ObjectID{}, nil
+	}
+
+	// Crear un filtro para buscar todos los competitorIDs de los matches proporcionados
+	filter := bson.M{"match_id": bson.M{"$in": matches}}
+
+	// Realizar la consulta a la colección
+	cursor, err := r.competitorMatchColl.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving competitor IDs from matches: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var competitorIDs []*primitive.ObjectID
+
+	// Iterar sobre el cursor para decodificar los resultados
+	for cursor.Next(ctx) {
+		var match struct {
+			CompetitorID primitive.ObjectID `bson:"competitor_id"`
+		}
+
+		if err := cursor.Decode(&match); err != nil {
+			return nil, fmt.Errorf("error decoding competitor ID: %w", err)
+		}
+
+		// Agregar el CompetitorID al slice
+		competitorIDs = append(competitorIDs, &match.CompetitorID)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating cursor: %w", err)
+	}
+
+	return competitorIDs, nil
+}
+
+func (r *Repository) GetCompetitorIDByMatchAndPosition(ctx context.Context, matchID *primitive.ObjectID, position int) (*primitive.ObjectID, error) {
+	// Validar que el matchID no sea nil
+	if matchID == nil {
+		return nil, fmt.Errorf("matchID cannot be nil")
+	}
+
+	// Crear un filtro para buscar el competitorID por matchID y position
+	filter := bson.M{
+		"match_id": matchID,
+		"position": position,
+	}
+
+	// Realizar la consulta a la colección
+	var match struct {
+		CompetitorID primitive.ObjectID `bson:"competitor_id"`
+	}
+
+	err := r.competitorMatchColl.FindOne(ctx, filter).Decode(&match)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("no competitor found for match_id: %s and position: %d", matchID.Hex(), position)
+		}
+		return nil, fmt.Errorf("error retrieving competitor ID: %w", err)
+	}
+
+	return &match.CompetitorID, nil
+}
+

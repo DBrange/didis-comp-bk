@@ -10,10 +10,13 @@ func GetCompetitorsFollowedDAOtoDTO(competitorsDAO []*dao.GetCompetitorFollowedD
 
 	for i, competitorDAO := range competitorsDAO {
 		competitorUsers := make([]*dto.GetUserCompetitorFollowedDTORes, len(competitorDAO.Users))
+		competitorGuestUsers := make([]*dto.GetUserCompetitorFollowedDTORes, len(competitorDAO.GuestUsers))
 
 		competitorsDTO[i] = &dto.GetCompetitorFollowedDTORes{
-			ID:    competitorDAO.ID.Hex(),
-			Users: competitorUsers,
+			ID:              competitorDAO.ID.Hex(),
+			CurrentPosition: competitorDAO.CurrentPosition,
+			Users:           competitorUsers,
+			GuestUsers:      competitorGuestUsers,
 		}
 
 		for j, competitorUserDAO := range competitorsDAO[i].Users {
@@ -22,8 +25,18 @@ func GetCompetitorsFollowedDAOtoDTO(competitorsDAO []*dao.GetCompetitorFollowedD
 				FirstName: competitorUserDAO.FirstName,
 				LastName:  competitorUserDAO.LastName,
 				Image:     competitorUserDAO.Image,
+				Username:  competitorUserDAO.Username,
 			}
+		}
 
+		for j, competitorGuestUserDAO := range competitorsDAO[i].GuestUsers {
+			competitorGuestUsers[j] = &dto.GetUserCompetitorFollowedDTORes{
+				ID:        competitorGuestUserDAO.ID.Hex(),
+				FirstName: competitorGuestUserDAO.FirstName,
+				LastName:  competitorGuestUserDAO.LastName,
+				Image:     competitorGuestUserDAO.Image,
+				Username:  competitorGuestUserDAO.Username,
+			}
 		}
 	}
 

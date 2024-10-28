@@ -1,11 +1,11 @@
 package mappers
 
 import (
-	"github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/avaliability/dao"
 )
 
-func UpdateAvailabilityDTOtoDAO(availabilityInfoDTO *dto.UpdateAvailabilityDTOReq) *dao.UpdateAvailabilityDAOReq {
+func UpdateAvailabilityDTOtoDAO(availabilityInfoDTO *models.UpdateAvailabilityDTOReq) *dao.UpdateAvailabilityDAOReq {
 	dailyAvailabilityDAO := updateDailyAvailabilityDAOReq(availabilityInfoDTO.DailyAvailabilities)
 
 	availabilityInfoDAO := &dao.UpdateAvailabilityDAOReq{
@@ -15,7 +15,7 @@ func UpdateAvailabilityDTOtoDAO(availabilityInfoDTO *dto.UpdateAvailabilityDTORe
 	return availabilityInfoDAO
 }
 
-func UpdateDailyAvailabilityDTOtoDAO(dailyAvailabilityDTO *dto.UpdateDailyAvailabilityDTOReq) *dao.UpdateDailyAvailabilityDAOReq {
+func UpdateDailyAvailabilityDTOtoDAO(dailyAvailabilityDTO *models.UpdateDailyAvailabilityDTOReq) *dao.UpdateDailyAvailabilityDAOReq {
 	dailyAvailabilityDAO := &dao.UpdateDailyAvailabilityDAOReq{
 		Day:       dailyAvailabilityDTO.Day,
 		TimeSlots: updateTimeSlotDAOReq(dailyAvailabilityDTO.TimeSlots),
@@ -24,7 +24,7 @@ func UpdateDailyAvailabilityDTOtoDAO(dailyAvailabilityDTO *dto.UpdateDailyAvaila
 	return dailyAvailabilityDAO
 }
 
-func updateDailyAvailabilityDAOReq(dailyAvailabilityDTO []*dto.UpdateDailyAvailabilityDTOReq) []*dao.UpdateDailyAvailabilityDAOReq {
+func updateDailyAvailabilityDAOReq(dailyAvailabilityDTO []*models.UpdateDailyAvailabilityDTOReq) []*dao.UpdateDailyAvailabilityDAOReq {
 	var dailyAvailabilityDAO []*dao.UpdateDailyAvailabilityDAOReq
 
 	for _, day := range dailyAvailabilityDTO {
@@ -39,7 +39,7 @@ func updateDailyAvailabilityDAOReq(dailyAvailabilityDTO []*dto.UpdateDailyAvaila
 	return dailyAvailabilityDAO
 }
 
-func updateTimeSlotDAOReq(timeSlotInfoDTO []*dto.UpdateTimeSlotDTOReq) []*dao.UpdateTimeSlotDAOReq {
+func updateTimeSlotDAOReq(timeSlotInfoDTO []*models.UpdateTimeSlotDTOReq) []*dao.UpdateTimeSlotDAOReq {
 	var timeSlotInfoDAO []*dao.UpdateTimeSlotDAOReq
 
 	for _, slot := range timeSlotInfoDTO {

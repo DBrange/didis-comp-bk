@@ -12,7 +12,7 @@ func CreateTeamDTOtoDAO(teamDTO *dto.CreateTeamDTOReq, convert utils.ConvertToOb
 		Name:         teamDTO.Name,
 		Image:        teamDTO.Image,
 		TotalMembers: teamDTO.TotalMembers,
-		AverageScore: teamDTO.AverageScore,
+		AverageScore: *teamDTO.AverageScore,
 	}
 
 	if teamDTO.Admins != nil {

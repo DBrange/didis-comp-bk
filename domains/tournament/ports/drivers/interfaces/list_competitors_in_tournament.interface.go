@@ -10,8 +10,7 @@ type ListCompetitorsInTournament interface {
 	ListCompetitorsInTournament(
 		ctx context.Context,
 		tournamentID,
-		categoryID,
 		lastID string,
 		limit int,
-	) ([]*dto.GetCompetitorsInTournamentDTORes, error)
+	) (*dto.GetCompetitorsInTournamentDTORes, error)
 }

@@ -8,31 +8,58 @@ import (
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
 
-func (s *ProfileService) Login(ctx context.Context, loginDTO *dto.LoginDTOReq) (string, string, error) {
-	password, userID, err := s.profileQuerier.GetUserPasswordForLogin(ctx, loginDTO.Username)
+func (s *ProfileService) Login(ctx context.Context, loginDTO *dto.LoginDTOReq) (*dto.GetUserForLoginDTO, string, string, error) {
+	userDTO, err := s.profileQuerier.GetUserForLogin(ctx, loginDTO.Username)
 	if err != nil {
-		return "", "", customerrors.HandleErrMsg(err, "profile", "error getting password")
+		return nil, "", "", customerrors.HandleErrMsg(err, "profile", "error getting password")
 	}
 
-	if !s.ComparePasswords(password, []byte(loginDTO.Password)) {
-		return "", "", customerrors.HandleErrMsg(err, "profile", "error passwords do not match")
+	organizerID, err := s.profileQuerier.GetOrganizerIDByUserID(ctx, userDTO.ID)
+	if err != nil {
+		return nil, "", "", customerrors.HandleErrMsg(err, "profile", "error getting password")
 	}
 
-	roles, err := s.profileQuerier.GetUserRoles(ctx, userID)
+	sports, err := s.profileQuerier.GetUserAllCompetitorSports(ctx, userDTO.ID)
 	if err != nil {
-		return "", "", customerrors.HandleErrMsg(err, "profile", "error getting profile roles")
+		return nil, "", "", customerrors.HandleErrMsg(err, "profile", "error getting sports")
+	}
+
+	// Add organizerID if != nil
+	userDTO.OrganizerID = organizerID
+
+	if !s.ComparePasswords(userDTO.Password, []byte(loginDTO.Password)) {
+		return nil, "", "", customerrors.HandleErrMsg(err, "profile", "error passwords do not match")
+	}
+
+	// roles, err := s.profileQuerier.GetUserRoles(ctx, userID)
+	// if err != nil {
+	// 	return nil,  "","",customerrors.HandleErrMsg(err, "profile", "error getting profile roles")
+	// }
+
+	roles := make([]string, len(userDTO.Roles))
+
+	for i, roleID := range userDTO.Roles {
+		roleStr, err := s.profileQuerier.GetRoleString(ctx, roleID)
+		if err != nil {
+			return nil, "", "", customerrors.HandleErrMsg(err, "profile", "error getting role")
+		}
+
+		roles[i] = string(roleStr)
 	}
 
 	secret := []byte(config.Envs.JWTSecret)
-	token, err := s.CreateJWT(secret, userID, roles, config.Envs.JWTExpirationInSeconds)
+	token, err := s.CreateJWT(secret, userDTO.ID, roles, config.Envs.JWTExpirationInSeconds)
 	if err != nil {
-		return "", "", customerrors.HandleErrMsg(err, "profile", "error when creating token")
+		return nil, "", "", customerrors.HandleErrMsg(err, "profile", "error when creating token")
 	}
 
-	refreshToken, err := s.CreateJWT(secret, userID, roles, config.Envs.JWTRefreshExpirationInSeconds)
+	refreshToken, err := s.CreateJWT(secret, userDTO.ID, roles, config.Envs.JWTRefreshExpirationInSeconds)
 	if err != nil {
-		return "", "", customerrors.HandleErrMsg(err, "profile", "error when creating token")
+		return nil, "", "", customerrors.HandleErrMsg(err, "profile", "error when creating token")
 	}
 
-	return token, refreshToken, nil
+	userDTO.Roles = roles
+	userDTO.Sports = sports
+
+	return userDTO, token, refreshToken, nil
 }

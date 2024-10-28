@@ -1,18 +1,16 @@
-package dto
-
-import "github.com/DBrange/didis-comp-bk/cmd/api/models"
+package models
 
 type UpdateAvailabilityDTOReq struct {
 	DailyAvailabilities []*UpdateDailyAvailabilityDTOReq `json:"daily_availabilities" validate:"dive"`
 }
 
 type UpdateDailyAvailabilityDTOReq struct {
-	Day       models.DAY                   `json:"day" validate:"day"`
+	Day       DAY                   `json:"day" validate:"day"`
 	TimeSlots []*UpdateTimeSlotDTOReq `json:"time_slots" validate:"dive"`
 }
 
 type UpdateTimeSlotDTOReq struct {
 	TimeSlot string                     `json:"time_slot" validate:"timeSlot"`
-	Status   models.AVAILABILITY_STATUS `json:"status" validate:"availStatus"`
+	Status   AVAILABILITY_STATUS `json:"status" validate:"availStatus"`
 }
 

@@ -15,6 +15,7 @@ func MapRoundWithMatchesDAOToDTO(dao *dao.GetRoundWithMatchesDAORes) *dto.GetRou
 		ID:         mapObjectIDToString(dao.ID),
 		Round:      dao.Round,
 		TotalPrize: dao.TotalPrize,
+		Points:     dao.Points,
 		Matches:    mapMatchesDAOToDTO(dao.Matches),
 	}
 	return dto
@@ -29,7 +30,9 @@ func mapMatchesDAOToDTO(daoMatches []*dao.GetRoundWithMatchesMatchDAORes) []*dto
 	for i, match := range daoMatches {
 		dtoMatches[i] = &dto.GetRoundWithMatchesMatchDTORes{
 			ID:             mapObjectIDToString(match.ID),
+			Date:           match.Date,
 			Result:         match.Result,
+			Position:       match.Position,
 			PositionWinner: match.PositionWinner,
 			Competitors:    mapCompetitorsDAOToDTO(match.Competitors),
 		}

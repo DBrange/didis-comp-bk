@@ -224,7 +224,7 @@ func (r *Repository) GetMatchChatByID(ctx context.Context, chatOID *primitive.Ob
 	} else {
 		return nil, fmt.Errorf("%w: no chat found with id: %s", customerrors.ErrNotFound, chatOID.Hex())
 	}
-	fmt.Printf("es este %+v", result)
+
 	return &result, nil
 }
 
@@ -237,7 +237,6 @@ func (r *Repository) VerifyChatExists(ctx context.Context, chatOID *primitive.Ob
 
 	err := r.chatColl.FindOne(ctx, filter, opts).Decode(&result)
 	if err != nil {
-		fmt.Printf("por aca %v", err)
 		if err == mongo.ErrNoDocuments {
 			return fmt.Errorf("%w: error when searching for chat: %s", customerrors.ErrNotFound, err.Error())
 		}

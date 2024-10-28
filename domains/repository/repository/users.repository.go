@@ -184,7 +184,7 @@ func (r *Repository) GetUserPasswordByID(ctx context.Context, userID string) (st
 	return getPassword.Password, nil
 }
 
-func (r *Repository) GetUserPasswordForLogin(ctx context.Context, username string) (string, string, error) {
+func (r *Repository) GetUserForLogin(ctx context.Context, username string) (*user_dao.GetUserForLoginDAO, error) {
 	// Filter options username
 	filterUsername := bson.M{
 		"$or": []bson.M{
@@ -201,34 +201,56 @@ func (r *Repository) GetUserPasswordForLogin(ctx context.Context, username strin
 		"active": true,
 	}
 
-	type password struct {
-		ID       string `bson:"_id"`
-		Password string `bson:"password"`
-	}
+	var userData user_dao.GetUserForLoginDAO
 
-	var getPassword password
-
-	projection := bson.M{"password": 1, "_id": 1}
+	projection := bson.M{"password": 1, "_id": 1, "first_name": 1, "last_name": 1, "roles": 1, "username": 1, "image": 1}
 
 	opts := options.FindOne().SetProjection(projection)
 
-	err := r.userColl.FindOne(ctx, filter, opts).Decode(&getPassword)
+	err := r.userColl.FindOne(ctx, filter, opts).Decode(&userData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return "", "", fmt.Errorf("%w: error when searching for the user: %s", customerrors.ErrNotFound, err.Error())
+			return nil, fmt.Errorf("%w: error when searching for the user: %s", customerrors.ErrNotFound, err.Error())
 		}
-		return "", "", fmt.Errorf("error when searching for the user: %w", err)
+		return nil, fmt.Errorf("error when searching for the user: %w", err)
 
 	}
 
-	return getPassword.Password, getPassword.ID, nil
+	return &userData, nil
+}
+
+func (r *Repository) GetUserForRefreshToken(ctx context.Context, userID *primitive.ObjectID) (*user_dao.GetUserForRefreshTokenDAO, error) {
+
+	filter := bson.M{
+		"$and": []bson.M{
+			{"_id": userID},
+			models.OmitDeleted(),
+		},
+		"active": true,
+	}
+
+	var userData user_dao.GetUserForRefreshTokenDAO
+
+	projection := bson.M{"_id": 1, "roles": 1}
+
+	opts := options.FindOne().SetProjection(projection)
+
+	err := r.userColl.FindOne(ctx, filter, opts).Decode(&userData)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for the user: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for the user: %w", err)
+
+	}
+
+	return &userData, nil
 }
 
 func (r *Repository) GetUserRoles(ctx context.Context, userID string) ([]string, error) {
 	type Roles struct {
 		Roles []primitive.ObjectID `bson:"roles"`
 	}
-
 	var roles Roles
 
 	userOID, err := r.ConvertToObjectID(userID)
@@ -238,7 +260,7 @@ func (r *Repository) GetUserRoles(ctx context.Context, userID string) ([]string,
 
 	filter := bson.M{
 		"_id":    userOID,
-		"$and":   models.OmitDeleted(),
+		"$and":   []bson.M{models.OmitDeleted()},
 		"active": true,
 	}
 
@@ -272,7 +294,6 @@ func (r *Repository) VerifyUserExists(ctx context.Context, userOID *primitive.Ob
 
 	err := r.userColl.FindOne(ctx, filter, opts).Decode(&result)
 	if err != nil {
-		fmt.Printf("por aca %v", err)
 		if err == mongo.ErrNoDocuments {
 			return fmt.Errorf("%w: error when searching for user: %s", customerrors.ErrNotFound, err.Error())
 		}
@@ -280,6 +301,34 @@ func (r *Repository) VerifyUserExists(ctx context.Context, userOID *primitive.Ob
 	}
 
 	return nil
+}
+
+func (r *Repository) GetUserPrimaryData(ctx context.Context, userOID *primitive.ObjectID) (*user_dao.GetUserPrimaryDataDAORes, error) {
+	// Filter options username
+	filter := bson.M{
+		"$and": []bson.M{
+			{"_id": userOID	},
+			models.OmitDeleted(),
+		},
+		"active": true,
+	}
+
+	var userData user_dao.GetUserPrimaryDataDAORes
+
+	projection := bson.M{ "_id": 1, "first_name": 1, "last_name": 1, "username": 1, "image": 1}
+
+	opts := options.FindOne().SetProjection(projection)
+
+	err := r.userColl.FindOne(ctx, filter, opts).Decode(&userData)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for the user: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for the user: %w", err)
+
+	}
+
+	return &userData, nil
 }
 
 // func (r *Repository) GetUserByName(ctx context.Context, name string, limit, page int) ([]*user_dao.GetUserByNameDAORes, error) {

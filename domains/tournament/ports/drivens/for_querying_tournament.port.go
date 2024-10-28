@@ -50,7 +50,8 @@ type ForQueryingTournament interface {
 		categoryID,
 		lastID string,
 		limit int,
-	) ([]*tournament_dto.GetCompetitorsInTournamentDTORes, error)
+		gerAll bool,
+	) ([]*tournament_dto.GetCompetitorsInTournamentCompetitorDTORes, error)
 	VerifyCompetitorExists(ctx context.Context, competitorID string) error
 	VerifyTournamentExists(ctx context.Context, tournamentID string) error
 	CreateCompetitorStats(ctx context.Context, competitorID string) error
@@ -134,9 +135,9 @@ type ForQueryingTournament interface {
 	GetDoubleElimInfoToFinaliseIt(ctx context.Context, doubleElimID string) (*tournament_dto.GetDoubleElimInfoToFinaliseItDTORes, error)
 	GetDoubleElimCompetitorChampion(ctx context.Context, doubleElimOID string) (string, error)
 	GetCompetitorChampion(ctx context.Context, tournamentOID string) (string, error)
-	GetMultipleAvailabilitiesByCompetitor(ctx context.Context, competitorIDs []string) ([][]*tournament_dto.GetDailyAvailabilityByIDDTORes, error)
+	GetMultipleAvailabilitiesByCompetitor(ctx context.Context, competitorIDs []string) ([][]*models.GetDailyAvailabilityByIDDTORes, error)
 	UpdateMultipleMatchesDate(ctx context.Context, matchDates []*tournament_dto.MatchDateDTOReq) error
-	GetAvailabilityByTournamentID(ctx context.Context, tournamentID string) ([]*tournament_dto.GetDailyAvailabilityByIDDTORes, error)
+	GetAvailabilityByTournamentID(ctx context.Context, tournamentID string) ([]*models.GetDailyAvailabilityByIDDTORes, error)
 	GetTournamentAvailavility(ctx context.Context, tournamentID string) (*tournament_dto.TournamentAvailabilityDTO, error)
 	CreateAvailability(ctx context.Context, userID, competitorID, tournamentID *string) error
 	GetAllDatesMatchesFromTournament(ctx context.Context, tournamentID string) ([]time.Time, error)
@@ -144,4 +145,44 @@ type ForQueryingTournament interface {
 	CreateMatchChat(ctx context.Context, matchID string, competitorIDs []string, userID string) error
 	VerifyCompetitorIDInCompetitorUser(ctx context.Context, competitorIDs []string) (bool, error)
 	UpdateTournamentStartDate(ctx context.Context, tournamentID string) error
+	GetUserTournaments(
+		ctx context.Context,
+		userID string,
+		sport models.SPORT,
+		limit int,
+		lastID string,
+	) (*tournament_dto.GetUserTournamentsDTORes, error)
+	GetTournamentPrimaryInfo(ctx context.Context, tournamentID string) (*tournament_dto.GetTournamentPrimaryInfoDTORes, error)
+	GetCompetitorsByNameInTournament(
+		ctx context.Context,
+		tournamentID, categoryID string,
+		name string,
+		limit int,
+	) ([]*tournament_dto.GetCompetitorsInTournamentCompetitorDTORes, error)
+	GetTournamentTotalCompetitors(ctx context.Context, tournamentID string) (int, error)
+	GetCategoryIDOfTournament(ctx context.Context, tournamentID string) (string, error)
+	GetCompetitorsFollowed(ctx context.Context, userID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*tournament_dto.GetCompetitorFollowedDTORes, error)
+	VerifyUserExists(ctx context.Context, userID string) error
+	CreateCompetitorUser(ctx context.Context, userID, competitorID string) error
+	CreateAvailabilityForCompetitor(ctx context.Context, competitorID string, dailyAvailability []*models.GetDailyAvailabilityByIDDTORes) error
+	GetAvailabilityDailySlice(ctx context.Context, userID, competitorID string) ([]*models.GetDailyAvailabilityByIDDTORes, error)
+	GetTournamentFilters(ctx context.Context, tournamentID string) (*tournament_dto.GetTournamentFiltersDTORes, error)
+	GetTournamentsInOrganizer(
+		ctx context.Context,
+		organizerID string,
+		sport models.SPORT,
+		limit int,
+		lastID string,
+	) (*tournament_dto.GetUserTournamentsDTORes, error)
+	AddTournamentInOrganizer(ctx context.Context, organizerOID, tournamentOID string) error
+	DeleteTournamentRegistration(ctx context.Context, tournamentRegistrationID string) error
+	DecrementTotalCompetitorsInTournament(ctx context.Context, tournamentID string) error
+	GetTournamentRegistrationByCompetitorAndTournamentID(ctx context.Context, tournamentID, competitorID string) (string, error)
+	GetTournamentMatchesByID(ctx context.Context, tournamentID string) ([]string, error)
+	GetCompetitorIDsFromMatches(ctx context.Context, matchIDs []string) ([]string, error)
+	GetCompetitorIDByMatchAndPosition(ctx context.Context, matchID string, position int) (string, error)
+	GetRoundGroups(ctx context.Context, roundID, categoryID string) (*tournament_dto.GetRoundGroupsDTORes, error)
+	GetDailyAvailabilityTournamentID(ctx context.Context, tournamentID string, day string) (*models.GetDailyAvailabilityByIDDTORes, string, error)
+	UpdateAvailability(ctx context.Context, availabilityID string, availabilityInfoDAO *models.UpdateDailyAvailabilityDTOReq) error
+	GetTournamentGroupsIDs(ctx context.Context, tournamentID string) ([]string, error)
 }

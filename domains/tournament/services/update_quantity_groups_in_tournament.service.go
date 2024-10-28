@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
@@ -46,7 +45,6 @@ func (s *TournamentService) removeGroupToTournament(ctx context.Context, tournam
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 	}
-	fmt.Printf("partiodos a remover %v", matchesToRemove)
 
 	if err := s.removeMatches(ctx, tournamentID, competitorIDs, matchesToRemove); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when eliminate group")

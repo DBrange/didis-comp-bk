@@ -13,14 +13,14 @@ func UpdateCompetitorMatchDTOtoDAO(competitorMatchDTO *dto.UpdateCompetitorMatch
 		return nil, nil, err
 	}
 
-	competitorOID, err := convert(competitorMatchDTO.CompetitorID)
+	competitorOID, err := convert(*competitorMatchDTO.CompetitorID)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	competitorMatchDAO := &dao.UpdateCompetitorMatchDAOReq{
 		MatchID: *matchOID,
-		CompetitorID: *competitorOID,
+		CompetitorID:competitorOID,
 		Position:     competitorMatchDTO.Position,
 	}
 

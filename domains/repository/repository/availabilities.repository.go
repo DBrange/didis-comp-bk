@@ -163,22 +163,36 @@ func (r *Repository) UpdateAvailability(ctx context.Context, availabilityID stri
 		return err
 	}
 
-	filter := bson.M{"_id": *availabilityOID, "daily_availabilities.day": availabilityInfoDAO.Day}
+	// Filtra por el ID de disponibilidad y el día específico
+	filter := bson.M{
+		"_id":                      *availabilityOID,
+		"daily_availabilities.day": availabilityInfoDAO.Day,
+	}
 
-	update := bson.M{"daily_availabilities.$.time_slots": availabilityInfoDAO.TimeSlots}
+	// Usar el operador $[<identifier>] para actualizar solo el time_slot correspondiente
+	update := bson.M{
+		"$set": bson.M{"daily_availabilities.$.time_slots.$[elem]": availabilityInfoDAO.TimeSlots[0]}, // Actualiza el time_slot con la información nueva
+	}
 
-	fmt.Printf("%+v", update)
+	// Definir el filtro de array (usando el campo TimeSlot como identificador)
+	arrayFilters := options.Update().SetArrayFilters(options.ArrayFilters{
+		Filters: []interface{}{
+			bson.M{"elem.time_slot": availabilityInfoDAO.TimeSlots[0].TimeSlot}, // Filtra por el campo TimeSlot
+		},
+	})
+
 	result, err := r.availabilityColl.UpdateOne(
 		ctx,
 		filter,
-		bson.M{"$set": update},
+		update,
+		arrayFilters, // Aplica el filtro de array para afectar solo el time_slot correcto
 	)
 	if err != nil {
-		return fmt.Errorf("%w: error updating 'availablility': %s", customerrors.ErrUpdated, err.Error())
+		return fmt.Errorf("%w: error updating 'availability': %s", customerrors.ErrUpdated, err.Error())
 	}
 
 	if result.MatchedCount == 0 {
-		return fmt.Errorf("%w: no 'availablility' found with id: %s", customerrors.ErrNotFound, availabilityID)
+		return fmt.Errorf("%w: no 'availability' found with id: %s", customerrors.ErrNotFound, availabilityID)
 	}
 
 	return nil
@@ -211,15 +225,16 @@ func (r *Repository) GetDailyAvailabilityByID(ctx context.Context, availabilityI
 	return availability.DailyAvailabilities[0], nil
 }
 
-func (r *Repository) GetDailyAvailabilityUserID(ctx context.Context, userID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
+func (r *Repository) GetDailyAvailabilityUserID(ctx context.Context, userID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, *primitive.ObjectID, error) {
 	userOID, err := r.ConvertToObjectID(userID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var availability availability_dao.GetAvailabilityByIDDAORes
 
 	projection := bson.M{
+		"_id":                    1,
 		"daily_availabilities.$": 1,
 	}
 
@@ -229,17 +244,19 @@ func (r *Repository) GetDailyAvailabilityUserID(ctx context.Context, userID, day
 
 	if err := r.availabilityColl.FindOne(ctx, filter, opts).Decode(&availability); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%w: error when searching for the 'availability': %s", customerrors.ErrNotFound, err.Error())
+			return nil, nil, fmt.Errorf("%w: error when searching for the 'availability': %s", customerrors.ErrNotFound, err.Error())
 		}
-		return nil, fmt.Errorf("error when searching for the 'availability': %w", err)
+		return nil, nil, fmt.Errorf("error when searching for the 'availability': %w", err)
 	}
 
-	return availability.DailyAvailabilities[0], nil
+	return availability.DailyAvailabilities[0], availability.ID, nil
 }
-func (r *Repository) GetDailyAvailabilityCompetitorID(ctx context.Context, competitorOID *primitive.ObjectID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
+
+func (r *Repository) GetDailyAvailabilityCompetitorID(ctx context.Context, competitorOID *primitive.ObjectID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, *primitive.ObjectID, error) {
 	var availability availability_dao.GetAvailabilityByIDDAORes
-	fmt.Printf("eseee %s", competitorOID)
+
 	projection := bson.M{
+		"_id":                    1,
 		"daily_availabilities.$": 1,
 	}
 
@@ -249,12 +266,34 @@ func (r *Repository) GetDailyAvailabilityCompetitorID(ctx context.Context, compe
 
 	if err := r.availabilityColl.FindOne(ctx, filter, opts).Decode(&availability); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%w: error when searching for the 'availability': %s", customerrors.ErrNotFound, err.Error())
+			return nil, nil, fmt.Errorf("%w: error when searching for the 'availability': %s", customerrors.ErrNotFound, err.Error())
 		}
-		return nil, fmt.Errorf("error when searching for the 'availability': %w", err)
+		return nil, nil, fmt.Errorf("error when searching for the 'availability': %w", err)
 	}
 
-	return availability.DailyAvailabilities[0], nil
+	return availability.DailyAvailabilities[0], availability.ID, nil
+}
+
+func (r *Repository) GetDailyAvailabilityTournamentID(ctx context.Context, tournamentOID *primitive.ObjectID, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, *primitive.ObjectID, error) {
+	var availability availability_dao.GetAvailabilityByIDDAORes
+
+	projection := bson.M{
+		"_id":                    1,
+		"daily_availabilities.$": 1,
+	}
+
+	filter := bson.M{"tournament_id": tournamentOID, "daily_availabilities.day": day}
+
+	opts := options.FindOne().SetProjection(projection)
+
+	if err := r.availabilityColl.FindOne(ctx, filter, opts).Decode(&availability); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil, fmt.Errorf("%w: error when searching for the 'availability': %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, nil, fmt.Errorf("error when searching for the 'availability': %w", err)
+	}
+
+	return availability.DailyAvailabilities[0], availability.ID, nil
 }
 
 func (r *Repository) GetAvailabilityIDByUserID(ctx context.Context, userID string) (string, error) {

@@ -320,7 +320,7 @@ func (r *Repository) GetParticipantsOfCategory(ctx context.Context, categoryOID 
 	return categoryRegistration, nil
 }
 
-func (r *Repository) GetCompetitorsOfCategoryByName(ctx context.Context, categoryOID *primitive.ObjectID, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastOID *primitive.ObjectID, name string) ([]*dao.GetCompetitorsOfCategoryDAORes, error) {
+func (r *Repository) GetCompetitorsOfCategoryByName(ctx context.Context, categoryOID *primitive.ObjectID, sport models.SPORT, competitorType models.COMPETITOR_TYPE, name string) ([]*dao.GetCompetitorsOfCategoryDAORes, error) {
 	var categoryRegistration []*dao.GetCompetitorsOfCategoryDAORes
 
 	// Si el nombre está vacío, retornar un slice vacío
@@ -342,10 +342,18 @@ func (r *Repository) GetCompetitorsOfCategoryByName(ctx context.Context, categor
 
 	pipeline := r.getParticipantsOfCategoryBasePipeline(categoryOID, sport)
 	pipeline = r.getParticipantsOfCategoryFinalStages(pipeline)
-	pipeline = r.agetParticipantsOfCategoryNameFilter(pipeline, name)
+	pipeline = r.agetParticipantsOfCategoryNameFilter(pipeline, name, true)
 	pipeline = r.singlesOrDoublesCategoryFilter(pipeline, competitorType)
-	pipeline = r.getParticipantsOfCategorySortAndPagination(pipeline, lastOID, limit)
+	// pipeline = r.getParticipantsOfCategorySortAndPagination(pipeline, lastOID, limit)
+	// Agregar etapa de ordenamiento
+	sortStage := bson.D{{Key: "$sort", Value: bson.D{
+		{Key: "_id", Value: 1}, // Siempre ordenar por _id para asegurar un orden consistente
+	}}}
+	pipeline = append(pipeline, sortStage)
 
+		limitStage := bson.D{{Key: "$limit", Value: 10}}
+	pipeline = append(pipeline, limitStage)
+	
 	cursor, err := r.categoryRegistrationColl.Aggregate(ctx, pipeline)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -382,6 +390,8 @@ func (r *Repository) singlesOrDoublesCategoryFilter(pipeline mongo.Pipeline, com
 
 	return pipeline
 }
+
+
 
 func (r *Repository) getParticipantsOfCategoryBasePipeline(categoryOID *primitive.ObjectID, sport models.SPORT) mongo.Pipeline {
 	return mongo.Pipeline{
@@ -506,41 +516,48 @@ func (r *Repository) getParticipantsOfCategoryFinalStages(pipeline mongo.Pipelin
 	return pipeline
 }
 
-func (r *Repository) agetParticipantsOfCategoryNameFilter(pipeline mongo.Pipeline, name string) mongo.Pipeline {
+func (r *Repository) agetParticipantsOfCategoryNameFilter(pipeline mongo.Pipeline, name string, guest bool) mongo.Pipeline {
+    nameParts := strings.Fields(name)
+    var firstNameQuery, lastNameQuery string
+    
+    if len(nameParts) > 0 {
+        firstNameQuery = nameParts[0]
+    }
+    if len(nameParts) > 1 {
+        lastNameQuery = strings.Join(nameParts[1:], " ")
+    }
 
-	nameParts := strings.Fields(name)
-	var firstNameQuery, lastNameQuery string
+    orConditions := bson.A{
+        // Coincidencias en usuarios regulares
+        bson.M{"$and": bson.A{
+            bson.M{"users.first_name": bson.M{"$regex": "^" + firstNameQuery, "$options": "i"}},
+            bson.M{"users.last_name": bson.M{"$regex": "^" + lastNameQuery, "$options": "i"}},
+        }},
+        bson.M{"users.first_name": bson.M{"$regex": "^" + name, "$options": "i"}},
+        bson.M{"users.last_name": bson.M{"$regex": "^" + name, "$options": "i"}},
+    }
 
-	if len(nameParts) > 0 {
-		firstNameQuery = nameParts[0]
-	}
+    // Añadir condiciones para usuarios invitados solo si guest es true
+    if guest {
+        guestConditions := bson.A{
+            bson.M{"$and": bson.A{
+                bson.M{"guest_users.first_name": bson.M{"$regex": "^" + firstNameQuery, "$options": "i"}},
+                bson.M{"guest_users.last_name": bson.M{"$regex": "^" + lastNameQuery, "$options": "i"}},
+            }},
+            bson.M{"guest_users.first_name": bson.M{"$regex": "^" + name, "$options": "i"}},
+            bson.M{"guest_users.last_name": bson.M{"$regex": "^" + name, "$options": "i"}},
+        }
+        orConditions = append(orConditions, guestConditions...)
+    }
 
-	if len(nameParts) > 1 {
-		lastNameQuery = strings.Join(nameParts[1:], " ")
-	}
+    // Aplicar el filtro de búsqueda
+    pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.M{
+        "$or": orConditions,
+    }}})
 
-	// Aplicar el filtro de búsqueda
-	pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.M{
-		"$or": bson.A{
-			// Coincidencias en usuarios
-			bson.M{"$and": bson.A{
-				bson.M{"users.first_name": bson.M{"$regex": "^" + firstNameQuery, "$options": "i"}},
-				bson.M{"users.last_name": bson.M{"$regex": "^" + lastNameQuery, "$options": "i"}},
-			}},
-			bson.M{"users.first_name": bson.M{"$regex": "^" + name, "$options": "i"}},
-			bson.M{"users.last_name": bson.M{"$regex": "^" + name, "$options": "i"}},
-			// Coincidencias en usuarios invitados
-			bson.M{"$and": bson.A{
-				bson.M{"guest_users.first_name": bson.M{"$regex": "^" + firstNameQuery, "$options": "i"}},
-				bson.M{"guest_users.last_name": bson.M{"$regex": "^" + lastNameQuery, "$options": "i"}},
-			}},
-			bson.M{"guest_users.first_name": bson.M{"$regex": "^" + name, "$options": "i"}},
-			bson.M{"guest_users.last_name": bson.M{"$regex": "^" + name, "$options": "i"}},
-		},
-	}}})
-
-	return pipeline
+    return pipeline
 }
+
 func (r *Repository) GetCompetitorsOutCategory(ctx context.Context, categoryOID *primitive.ObjectID, competitorOIDs []*primitive.ObjectID) ([]string, error) {
     // Encuentra los documentos que coincidan con los IDs en el slice.
     filter := bson.M{"category_id": categoryOID, "competitor_id": bson.M{"$in": competitorOIDs}}

@@ -7,5 +7,5 @@ import (
 )
 
 type Login interface {
-	Login(ctx context.Context, loginDTO *dto.LoginDTOReq) (string, string, error)
+	Login(ctx context.Context, loginDTO *dto.LoginDTOReq) (*dto.GetUserForLoginDTO, string, string, error)
 }

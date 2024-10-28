@@ -138,7 +138,7 @@ func (r *Repository) VerifyMatchesExist(ctx context.Context, matchOIDs []*primit
 	if len(matchOIDs) == 0 {
 		return nil // No hay competidores para verificar
 	}
-	fmt.Printf("%+v", matchOIDs)
+
 	filter := bson.M{"_id": bson.M{"$in": matchOIDs}}
 	opts := options.Find().SetProjection(bson.M{"_id": 1})
 
