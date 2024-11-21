@@ -2,6 +2,7 @@ package drivers
 
 import (
 	"context"
+	"time"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	option_models "github.com/DBrange/didis-comp-bk/cmd/api/models/options/tournament"
@@ -40,8 +41,8 @@ func (a *TournamentProxyAdapter) ListCompetitorsInTournament(
 	return a.tournamentService.ListCompetitorsInTournament(ctx, tournamentID, lastID, limit)
 }
 
-func (a *TournamentProxyAdapter) ModifyBracketMatch(ctx context.Context, tournamentID, userID string, competitors []*dto.UpdateCompetitorMatchDTOReq) error {
-	return a.tournamentService.ModifyBracketMatch(ctx, tournamentID, userID, competitors)
+func (a *TournamentProxyAdapter) ModifyBracketMatch(ctx context.Context, tournamentID string, competitors []*dto.UpdateCompetitorMatchDTOReq) error {
+	return a.tournamentService.ModifyBracketMatch(ctx, tournamentID, competitors)
 }
 
 func (a *TournamentProxyAdapter) ModifyRoundTotalPrize(ctx context.Context, roundID string, totalPrize float64) error {
@@ -52,8 +53,8 @@ func (a *TournamentProxyAdapter) GetRoundWithMatches(ctx context.Context, roundI
 	return a.tournamentService.GetRoundWithMatches(ctx, roundID, categoryID)
 }
 
-func (a *TournamentProxyAdapter) OrganizeBracket(ctx context.Context, tournamentID string, competitorMatchDTOs []*dto.UpdateCompetitorMatchDTOReq) error {
-	return a.tournamentService.OrganizeBracket(ctx, tournamentID, competitorMatchDTOs)
+func (a *TournamentProxyAdapter) OrganizeBracket(ctx context.Context, tournamentID string, competitorMatchDTOs []*dto.UpdateCompetitorMatchDTOReq, availableCourts, averageHours int) error {
+	return a.tournamentService.OrganizeBracket(ctx, tournamentID, competitorMatchDTOs, availableCourts, averageHours)
 }
 
 func (a *TournamentProxyAdapter) EndMatch(ctx context.Context, match *dto.EndMatchDTOReq) error {
@@ -72,8 +73,8 @@ func (a *TournamentProxyAdapter) AddCompetitorInTournamentGroup(ctx context.Cont
 	return a.tournamentService.AddCompetitorInTournamentGroup(ctx, groupID, tournamentID, competitorID)
 }
 
-func (a *TournamentProxyAdapter) OrganizeTournamentGroups(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT, orderType, top int) error {
-	return a.tournamentService.OrganizeTournamentGroups(ctx, tournamentID, roundID, competitorDTOs, sport, orderType, top)
+func (a *TournamentProxyAdapter) OrganizeTournamentGroups(ctx context.Context, tournamentID, roundID string, sport models.SPORT, orderType, top int, availableCourts, averageHours int) error {
+	return a.tournamentService.OrganizeTournamentGroups(ctx, tournamentID, roundID, sport, orderType, top, availableCourts, averageHours)
 }
 
 func (a *TournamentProxyAdapter) ModifyTournamentGroups(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT) error {
@@ -155,4 +156,25 @@ func (a *TournamentProxyAdapter) GetRoundGroups(ctx context.Context, roundID, ca
 
 func (a *TournamentProxyAdapter) GetTournamentAvailability(ctx context.Context, tournamentID string, day string) (*models.GetDailyAvailabilityByIDDTORes, string, error) {
 	return a.tournamentService.GetTournamentAvailability(ctx, tournamentID, day)
+}
+
+func (a *TournamentProxyAdapter) GetTournamentSportsInOrganizer(ctx context.Context, organizerID string) ([]models.SPORT, error) {
+	return a.tournamentService.GetTournamentSportsInOrganizer(ctx, organizerID)
+}
+
+func (a *TournamentProxyAdapter) ModifyTournamentAvailability(ctx context.Context, availabilityID string, availabilityInfoDTO *models.UpdateDailyAvailabilityDTOReq) error {
+	return a.tournamentService.ModifyTournamentAvailability(ctx, availabilityID, availabilityInfoDTO)
+}
+
+func (a *TournamentProxyAdapter) GetMatchByID(ctx context.Context, matchID string) (*dto.GetMatchDTORes, error) {
+	return a.tournamentService.GetMatchByID(ctx, matchID)
+}
+
+func (a *TournamentProxyAdapter) UpdateMatchDate(ctx context.Context, matchID string, date *time.Time)  error {
+	return a.tournamentService.UpdateMatchDate(ctx, matchID, date)
+}
+
+
+func (a *TournamentProxyAdapter) GetTournamentCompetitorIDsInMatches(ctx context.Context, tournamentID string) ([]string, error) {
+	return a.tournamentService.GetTournamentCompetitorIDsInMatches(ctx, tournamentID)
 }

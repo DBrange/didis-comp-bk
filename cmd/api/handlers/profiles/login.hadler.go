@@ -29,16 +29,16 @@ func (h *Handler) Login(c *gin.Context) {
 	}
 
 	type Data struct {
-		ID           string         `json:"id"`
-		FirstName    string         `json:"first_name"`
-		LastName     string         `json:"last_name"`
-		Username     string         `json:"username"`
-		Image        string         `json:"image"`
-		Roles        []string       `json:"roles"`
-		Sports       []models.SPORT `json:"sports"`
-		OrganizerID  *string        `json:"organizer_id"`
-		Token        string         `json:"token"`
-		RefreshToken string         `json:"refresh_token"`
+		ID           string                           `json:"id"`
+		FirstName    string                           `json:"first_name"`
+		LastName     string                           `json:"last_name"`
+		Username     string                           `json:"username"`
+		Image        string                           `json:"image"`
+		Roles        []string                         `json:"roles"`
+		Sports       []models.SPORT                   `json:"sports"`
+		Organizer    *dto.GetUserForLoginOrganizerDTO `json:"organizer"`
+		Token        string                           `json:"token"`
+		RefreshToken string                           `json:"refresh_token"`
 	}
 
 	data := Data{
@@ -49,7 +49,7 @@ func (h *Handler) Login(c *gin.Context) {
 		Image:        user.Image,
 		Roles:        user.Roles,
 		Sports:       user.Sports,
-		OrganizerID:  user.OrganizerID,
+		Organizer:    user.Organizer,
 		Token:        token,
 		RefreshToken: refreshToken,
 	}

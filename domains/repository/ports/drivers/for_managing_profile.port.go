@@ -12,8 +12,8 @@ import (
 	competitor_user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/competitor_user/dao"
 	follower_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/follower/dao"
 	location_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/location/dao"
-	role_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/role/dao"
 	organizer_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/organizer/dao"
+	role_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/role/dao"
 	single_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/single/dao"
 	team_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/team/dao"
 	user_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/user/dao"
@@ -72,4 +72,33 @@ type ForManagingProfile interface {
 	GetOrganizerIDByUserID(ctx context.Context, userID string) (*string, error)
 	GetUserAllCompetitorSports(ctx context.Context, userID string) ([]models.SPORT, error)
 	GetOrganizerData(ctx context.Context, userID string) (*organizer_dao.GetOrganizerDataDAORes, error)
+	GetProfileUserTournaments(
+		ctx context.Context,
+		userID string,
+		sport models.SPORT,
+		limit int,
+		lastID string, // El último ID desde el que comenzar la siguiente página
+	) (*competitor_user_dao.GetProfileUserTournamentsDAORes, error)
+	GetProfileCompetitorTournaments(
+		ctx context.Context,
+		competitorID, categoryID string,
+		sport models.SPORT,
+		limit int,
+		lastID string, // El último ID desde el que comenzar la siguiente página
+	) (*competitor_user_dao.GetProfileUserTournamentsDAORes, error)
+	GetUserCategoriesNumber(
+		ctx context.Context,
+		userID string,
+		sport models.SPORT,
+	) (int64, error)
+	GetCompetitorIDsFromUser(ctx context.Context, userID string) ([]*primitive.ObjectID, error)
+	GetUsersAvailability(
+		ctx context.Context,
+		competitorID string,
+		day models.DAY,
+		timeSlot string,
+	) ([]*availability_dao.GetDayTimeSlotDAORes, error)
+	UpdateCompetitorAvailability(ctx context.Context, competitorOID *primitive.ObjectID, availabilityInfoDAO *availability_dao.UpdateDailyAvailabilityDAOReq) error
+	GetTournamentSportsInOrganizer(ctx context.Context, organizerID string) ([]models.SPORT, error)
+	GetSportsFromOrganizerCategories(ctx context.Context, organizerID string) ([]models.SPORT, error)
 }

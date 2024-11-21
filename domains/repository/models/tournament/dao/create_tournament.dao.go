@@ -38,7 +38,6 @@ type CreateTournamentDAOReq struct {
 type TournamentAvailabilityDAO struct {
 	AvailableCourts int `bson:"available_courts"`
 	AverageHours    int `bson:"average_hours"`
-	// DailyAvailabilities []*dao.GetDailyAvailabilityByIDDAORes `bson:"daily_availabilities"`
 }
 
 func (u *CreateTournamentDAOReq) SetTimeStamp() {

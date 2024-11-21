@@ -28,7 +28,7 @@ func (h *Handler) ModifyCategoryInfo(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Category successfully updated!"})
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Category successfully updated!"})
 }
 
 func modifyCategoryInfoValidateQueries(c *gin.Context) (*dto.UpdateCategoryDTOReq, error) {

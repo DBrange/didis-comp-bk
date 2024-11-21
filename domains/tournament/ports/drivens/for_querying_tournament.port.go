@@ -185,4 +185,13 @@ type ForQueryingTournament interface {
 	GetDailyAvailabilityTournamentID(ctx context.Context, tournamentID string, day string) (*models.GetDailyAvailabilityByIDDTORes, string, error)
 	UpdateAvailability(ctx context.Context, availabilityID string, availabilityInfoDAO *models.UpdateDailyAvailabilityDTOReq) error
 	GetTournamentGroupsIDs(ctx context.Context, tournamentID string) ([]string, error)
+	UpdateTournamentAvailability(
+		ctx context.Context,
+		tournamentID string,
+		availableCourts ,
+		averageHours int) error
+		GetTournamentSportsInOrganizer(ctx context.Context, organizerID string) ([]models.SPORT, error)
+		GetMatchByID(ctx context.Context, matchID string, categoryID string) (*tournament_dto.GetMatchDTORes, error)
+		GetMatchCategoryID(ctx context.Context, matchID string) (string, error)
+		GetTournamentCompetitorIDsInMatches(ctx context.Context, tournamentID string) ([]string, error)
 }

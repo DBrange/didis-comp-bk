@@ -2,12 +2,14 @@ package dto
 
 type GetUserCategoriesDTO struct {
 	Categories []*GetUserCategoriesCategoryDTO `json:"categories"`
+	Total      int64                           `json:"total"`
 }
 
 type GetUserCategoriesCategoryDTO struct {
 	ID             string                              `json:"id"`
 	Name           string                              `json:"name"`
 	CompetitorData *GetUserCategoriesCompetitorDataDTO `json:"competitor_data"`
+	AverageScore   float64                             `json:"average_score"`
 	Organizer      *GetUserCategoriesOrganizerDTO      `json:"organizer"`
 }
 

@@ -8,5 +8,5 @@ import (
 )
 
 type SearchCompetitorInCategory interface {
-	SearchCompetitorInCategory(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, ) ([]*dto.GetCompetitorsOfCategoryDTORes, error)
+	SearchCompetitorInCategory(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, ) ([]*dto.GetCompetitorsOfCategoryCompetitorDTORes, error)
 }

@@ -10,6 +10,7 @@ func UpdateUserDTOtoDAO(newProfileInfoDTO *dto.UpdateUserDTOReq) *dao.UpdateUser
 		FirstName: newProfileInfoDTO.FirstName,
 		LastName:  newProfileInfoDTO.LastName,
 		Username:  newProfileInfoDTO.Username,
+		Birthdate:     newProfileInfoDTO.Birthdate,
 		Image:     newProfileInfoDTO.Image,
 		Phone:     newProfileInfoDTO.Phone,
 	}

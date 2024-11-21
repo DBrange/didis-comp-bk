@@ -117,10 +117,28 @@ func (r *Repository) UpdateCategoryRegistration(ctx context.Context, categoryReg
 	return nil
 }
 
-func (r *Repository) DeleteCategoryRegistration(ctx context.Context, categoryRegistrationID string) error {
-	err := r.SetDeletedAt(ctx, r.categoryRegistrationColl, categoryRegistrationID, "categoryRegistration")
+func (r *Repository) DeleteCategoryRegistration(ctx context.Context, categoryOID, competitorOID *primitive.ObjectID) error {
+	currentDate := time.Now().UTC()
+
+	update := bson.M{
+		"deleted_at": currentDate,
+		"updated_at": currentDate,
+	}
+
+	filter := bson.M{"category_id": categoryOID, "competitor_id": competitorOID}
+
+	result, err := r.categoryRegistrationColl.UpdateOne(
+		ctx,
+		filter,
+		bson.M{"$set": update},
+	)
+
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: error updating %s: %s", customerrors.ErrUpdated, "category", err.Error())
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: no %s found with category_id: %s or competitor_id: %s", customerrors.ErrNotFound, "category", categoryOID.Hex(), competitorOID.Hex())
 	}
 
 	return nil
@@ -152,8 +170,6 @@ func (r *Repository) UpdateCompetitorPoints(ctx context.Context, categoryOID, co
 
 	return nil
 }
-
-
 
 func (r *Repository) GetProfileInfoInCategory(ctx context.Context, categoryOID, competitorOID *primitive.ObjectID) (*dao.GetProfileInfoInCategoryDAORes, error) {
 	pipeline := mongo.Pipeline{
@@ -295,8 +311,8 @@ func (r *Repository) GetProfileInfoInCategory(ctx context.Context, categoryOID, 
 	return &competitorInfo, nil
 }
 
-func (r *Repository) GetParticipantsOfCategory(ctx context.Context, categoryOID *primitive.ObjectID, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastOID *primitive.ObjectID) ([]*dao.GetCompetitorsOfCategoryDAORes, error) {
-	var categoryRegistration []*dao.GetCompetitorsOfCategoryDAORes
+func (r *Repository) GetParticipantsOfCategory(ctx context.Context, categoryOID *primitive.ObjectID, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastOID *primitive.ObjectID) ([]*dao.GetCompetitorsOfCategoryCompetitorDAORes, error) {
+	var categoryRegistration []*dao.GetCompetitorsOfCategoryCompetitorDAORes
 
 	pipeline := r.getParticipantsOfCategoryBasePipeline(categoryOID, sport)
 	pipeline = r.getParticipantsOfCategoryFinalStages(pipeline)
@@ -320,8 +336,8 @@ func (r *Repository) GetParticipantsOfCategory(ctx context.Context, categoryOID 
 	return categoryRegistration, nil
 }
 
-func (r *Repository) GetCompetitorsOfCategoryByName(ctx context.Context, categoryOID *primitive.ObjectID, sport models.SPORT, competitorType models.COMPETITOR_TYPE, name string) ([]*dao.GetCompetitorsOfCategoryDAORes, error) {
-	var categoryRegistration []*dao.GetCompetitorsOfCategoryDAORes
+func (r *Repository) GetCompetitorsOfCategoryByName(ctx context.Context, categoryOID *primitive.ObjectID, sport models.SPORT, competitorType models.COMPETITOR_TYPE, name string) ([]*dao.GetCompetitorsOfCategoryCompetitorDAORes, error) {
+	var categoryRegistration []*dao.GetCompetitorsOfCategoryCompetitorDAORes
 
 	// Si el nombre está vacío, retornar un slice vacío
 	if strings.TrimSpace(name) == "" {
@@ -342,7 +358,7 @@ func (r *Repository) GetCompetitorsOfCategoryByName(ctx context.Context, categor
 
 	pipeline := r.getParticipantsOfCategoryBasePipeline(categoryOID, sport)
 	pipeline = r.getParticipantsOfCategoryFinalStages(pipeline)
-	pipeline = r.agetParticipantsOfCategoryNameFilter(pipeline, name, true)
+	pipeline = r.getParticipantsOfCategoryNameFilter(pipeline, name, true)
 	pipeline = r.singlesOrDoublesCategoryFilter(pipeline, competitorType)
 	// pipeline = r.getParticipantsOfCategorySortAndPagination(pipeline, lastOID, limit)
 	// Agregar etapa de ordenamiento
@@ -351,9 +367,9 @@ func (r *Repository) GetCompetitorsOfCategoryByName(ctx context.Context, categor
 	}}}
 	pipeline = append(pipeline, sortStage)
 
-		limitStage := bson.D{{Key: "$limit", Value: 10}}
+	limitStage := bson.D{{Key: "$limit", Value: 10}}
 	pipeline = append(pipeline, limitStage)
-	
+
 	cursor, err := r.categoryRegistrationColl.Aggregate(ctx, pipeline)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -391,11 +407,10 @@ func (r *Repository) singlesOrDoublesCategoryFilter(pipeline mongo.Pipeline, com
 	return pipeline
 }
 
-
-
 func (r *Repository) getParticipantsOfCategoryBasePipeline(categoryOID *primitive.ObjectID, sport models.SPORT) mongo.Pipeline {
 	return mongo.Pipeline{
 		bson.D{{Key: "$match", Value: bson.M{
+			"deleted_at": bson.M{"$exists": false},
 			"category_id": categoryOID,
 		}}},
 		bson.D{{Key: "$lookup", Value: bson.M{
@@ -516,87 +531,90 @@ func (r *Repository) getParticipantsOfCategoryFinalStages(pipeline mongo.Pipelin
 	return pipeline
 }
 
-func (r *Repository) agetParticipantsOfCategoryNameFilter(pipeline mongo.Pipeline, name string, guest bool) mongo.Pipeline {
-    nameParts := strings.Fields(name)
-    var firstNameQuery, lastNameQuery string
-    
-    if len(nameParts) > 0 {
-        firstNameQuery = nameParts[0]
-    }
-    if len(nameParts) > 1 {
-        lastNameQuery = strings.Join(nameParts[1:], " ")
-    }
+func (r *Repository) getParticipantsOfCategoryNameFilter(pipeline mongo.Pipeline, name string, guest bool) mongo.Pipeline {
+	nameParts := strings.Fields(name)
+	var firstNameQuery, lastNameQuery string
 
-    orConditions := bson.A{
-        // Coincidencias en usuarios regulares
-        bson.M{"$and": bson.A{
-            bson.M{"users.first_name": bson.M{"$regex": "^" + firstNameQuery, "$options": "i"}},
-            bson.M{"users.last_name": bson.M{"$regex": "^" + lastNameQuery, "$options": "i"}},
-        }},
-        bson.M{"users.first_name": bson.M{"$regex": "^" + name, "$options": "i"}},
-        bson.M{"users.last_name": bson.M{"$regex": "^" + name, "$options": "i"}},
-    }
+	if len(nameParts) > 0 {
+		firstNameQuery = nameParts[0]
+	}
+	if len(nameParts) > 1 {
+		lastNameQuery = strings.Join(nameParts[1:], " ")
+	}
 
-    // Añadir condiciones para usuarios invitados solo si guest es true
-    if guest {
-        guestConditions := bson.A{
-            bson.M{"$and": bson.A{
-                bson.M{"guest_users.first_name": bson.M{"$regex": "^" + firstNameQuery, "$options": "i"}},
-                bson.M{"guest_users.last_name": bson.M{"$regex": "^" + lastNameQuery, "$options": "i"}},
-            }},
-            bson.M{"guest_users.first_name": bson.M{"$regex": "^" + name, "$options": "i"}},
-            bson.M{"guest_users.last_name": bson.M{"$regex": "^" + name, "$options": "i"}},
-        }
-        orConditions = append(orConditions, guestConditions...)
-    }
+	orConditions := bson.A{
+		// Coincidencias en usuarios regulares
+		bson.M{"$and": bson.A{
+			bson.M{"users.first_name": bson.M{"$regex": "^" + firstNameQuery, "$options": "i"}},
+			bson.M{"users.last_name": bson.M{"$regex": "^" + lastNameQuery, "$options": "i"}},
+		}},
+		bson.M{"users.first_name": bson.M{"$regex": "^" + name, "$options": "i"}},
+		bson.M{"users.last_name": bson.M{"$regex": "^" + name, "$options": "i"}},
+	}
 
-    // Aplicar el filtro de búsqueda
-    pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.M{
-        "$or": orConditions,
-    }}})
+	// Añadir condiciones para usuarios invitados solo si guest es true
+	if guest {
+		guestConditions := bson.A{
+			bson.M{"$and": bson.A{
+				bson.M{"guest_users.first_name": bson.M{"$regex": "^" + firstNameQuery, "$options": "i"}},
+				bson.M{"guest_users.last_name": bson.M{"$regex": "^" + lastNameQuery, "$options": "i"}},
+			}},
+			bson.M{"guest_users.first_name": bson.M{"$regex": "^" + name, "$options": "i"}},
+			bson.M{"guest_users.last_name": bson.M{"$regex": "^" + name, "$options": "i"}},
+		}
+		orConditions = append(orConditions, guestConditions...)
+	}
 
-    return pipeline
+	// Aplicar el filtro de búsqueda
+	pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.M{
+		"$or": orConditions,
+	}}})
+
+	return pipeline
 }
 
 func (r *Repository) GetCompetitorsOutCategory(ctx context.Context, categoryOID *primitive.ObjectID, competitorOIDs []*primitive.ObjectID) ([]string, error) {
-    // Encuentra los documentos que coincidan con los IDs en el slice.
-    filter := bson.M{"category_id": categoryOID, "competitor_id": bson.M{"$in": competitorOIDs}}
-    cursor, err := r.categoryRegistrationColl.Find(ctx, filter)
-    if err != nil {
-        return nil, fmt.Errorf("error finding category registrations: %v", err)
-    }
-    defer cursor.Close(ctx)
+	// Encuentra los documentos que coincidan con los IDs en el slice.
+	filter := bson.M{"category_id": categoryOID, "competitor_id": bson.M{"$in": competitorOIDs}}
+	cursor, err := r.categoryRegistrationColl.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("error finding category registrations: %v", err)
+	}
+	defer cursor.Close(ctx)
 
-    // Extrae los IDs de los documentos que coincidan.
-    foundIDsMap := make(map[string]struct{})
-    for cursor.Next(ctx) {
-        var doc struct {
-            CompetitorID primitive.ObjectID `bson:"competitor_id"`
-        }
-        if err := cursor.Decode(&doc); err != nil {
-            return nil, fmt.Errorf("error decoding document: %v", err)
-        }
-        foundIDsMap[doc.CompetitorID.Hex()] = struct{}{}
-    }
+	// Extrae los IDs de los documentos que coincidan.
+	foundIDsMap := make(map[string]struct{})
+	for cursor.Next(ctx) {
+		var doc struct {
+			CompetitorID primitive.ObjectID `bson:"competitor_id"`
+		}
+		if err := cursor.Decode(&doc); err != nil {
+			return nil, fmt.Errorf("error decoding document: %v", err)
+		}
+		foundIDsMap[doc.CompetitorID.Hex()] = struct{}{}
+	}
 
-    if err := cursor.Err(); err != nil {
-        return nil, fmt.Errorf("error iterating cursor: %v", err)
-    }
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating cursor: %v", err)
+	}
 
-    // Compara los IDs encontrados con el slice original y encuentra los que no coincidan.
-    var nonMatchingIDs []string
-    for _, id := range competitorOIDs {
-        if _, found := foundIDsMap[id.Hex()]; !found {
-            nonMatchingIDs = append(nonMatchingIDs, id.Hex())
-        }
-    }
+	// Compara los IDs encontrados con el slice original y encuentra los que no coincidan.
+	var nonMatchingIDs []string
+	for _, id := range competitorOIDs {
+		if _, found := foundIDsMap[id.Hex()]; !found {
+			nonMatchingIDs = append(nonMatchingIDs, id.Hex())
+		}
+	}
 
-    return nonMatchingIDs, nil
+	return nonMatchingIDs, nil
 }
 
 func (r *Repository) GetCategoryRegistrationSortedByPoints(ctx context.Context, categoryOID *primitive.ObjectID) ([]*dao.GetCategoryRegistrationSortedByPointsDAORes, error) {
 	// Obtener todos los competidores en la categoría ordenados por puntos en orden descendente
-	filter := bson.M{"category_id": categoryOID}
+	filter := bson.M{
+		"category_id": categoryOID,
+		"deleted_at": bson.M{"$exists": false},
+	}
 
 	projection := bson.D{{Key: "points", Value: -1}}
 
@@ -636,9 +654,15 @@ func (r *Repository) UpdateCategoryRegistrationCurrentPosition(ctx context.Conte
 				},
 			}
 
+			filter := bson.M{
+				"category_id":   categoryOID,
+				"competitor_id": cr.CompetitorID,
+				"deleted_at":    bson.M{"$exists": false}, // Excluir documentos con deleted_at definido
+			}
+
 			_, err := r.categoryRegistrationColl.UpdateOne(
 				ctx,
-				bson.M{"category_id": categoryOID, "competitor_id": cr.CompetitorID},
+				filter,
 				update,
 			)
 			if err != nil {
@@ -649,6 +673,7 @@ func (r *Repository) UpdateCategoryRegistrationCurrentPosition(ctx context.Conte
 
 	return nil
 }
+
 
 func (r *Repository) AddPointsInMultipleCategoryRegistration(ctx context.Context, categoryOID *primitive.ObjectID, competitorOIDs []*primitive.ObjectID, points int) error {
 	// Filtro para seleccionar los documentos que coincidan con los IDs de los competidores
@@ -668,4 +693,160 @@ func (r *Repository) AddPointsInMultipleCategoryRegistration(ctx context.Context
 	}
 
 	return nil
+}
+
+func (r *Repository) GetCategoryCompetitorsNumber(ctx context.Context, categoryOID *primitive.ObjectID) (int64, error) {
+	// Definir el filtro para contar los competidores de una categoría específica
+	filter := bson.M{
+		"category_id": categoryOID,
+		"deleted_at":  bson.M{"$exists": false},
+	}
+
+	// Realizar el conteo de documentos
+	count, err := r.categoryRegistrationColl.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err // manejar el error si ocurre
+	}
+
+	return count, nil // devolver el conteo de competidores
+}
+
+func (r *Repository) GetCompetitorTournaments(ctx context.Context, categoryOID, competitorOID *primitive.ObjectID) (*dao.GetProfileInfoInCategoryDAORes, error) {
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"category_id": categoryOID, "competitor_id": competitorOID}}},
+
+		// Lookup competitor users and guest competitors
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "competitor_users",
+			"localField":   "competitor_id",
+			"foreignField": "competitor_id",
+			"as":           "competitor_users",
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "guest_competitors",
+			"localField":   "competitor_id",
+			"foreignField": "competitor_id",
+			"as":           "guest_competitors",
+		}}},
+
+		// Determine if it's a guest
+		bson.D{{Key: "$addFields", Value: bson.M{
+			"is_guest": bson.M{"$gt": bson.A{bson.M{"$size": "$guest_competitors"}, 0}},
+		}}},
+
+		// Lookup regular users and guest users
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "users",
+			"localField":   "competitor_users.user_id",
+			"foreignField": "_id",
+			"as":           "users",
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "guest_users",
+			"localField":   "guest_competitors.guest_user_id",
+			"foreignField": "_id",
+			"as":           "guest_users",
+		}}},
+
+		// Lookup competitor stats
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "competitor_stats",
+			"localField":   "competitor_id",
+			"foreignField": "competitor_id",
+			"as":           "competitor_stats",
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$competitor_stats", "preserveNullAndEmptyArrays": true}}}, // Preserva la estructura si no hay stats
+
+		// Unwind user and guest user arrays to simplify processing
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$users", "preserveNullAndEmptyArrays": true}}},
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$guest_users", "preserveNullAndEmptyArrays": true}}},
+
+		// Group by competitor ID and separate users and guest users based on is_guest
+		bson.D{{Key: "$group", Value: bson.M{
+			"_id":      "$competitor_id",
+			"is_guest": bson.M{"$first": "$is_guest"},
+			"users": bson.M{
+				"$push": bson.M{
+					"$cond": bson.A{
+						bson.M{"$eq": bson.A{"$is_guest", false}},
+						bson.M{
+							"_id":        "$users._id",
+							"first_name": "$users.first_name",
+							"last_name":  "$users.last_name",
+							"image":      "$users.image",
+						},
+						bson.M{"$literal": bson.A{}}, // Empty array if it's not a regular user
+					},
+				},
+			},
+			"guest_users": bson.M{
+				"$push": bson.M{
+					"$cond": bson.A{
+						bson.M{"$eq": bson.A{"$is_guest", true}},
+						bson.M{
+							"_id":        "$guest_users._id",
+							"first_name": "$guest_users.first_name",
+							"last_name":  "$guest_users.last_name",
+							"image":      "$guest_users.image",
+						},
+						bson.M{"$literal": bson.A{}}, // Empty array if it's not a guest user
+					},
+				},
+			},
+			"points":               bson.M{"$first": "$points"},
+			"current_position":     bson.M{"$first": "$current_position"},
+			"registered_positions": bson.M{"$first": "$registered_positions"},
+			"competitor_stats": bson.M{"$first": bson.M{
+				"_id":             "$competitor_stats._id",
+				"total_wins":      "$competitor_stats.total_wins",
+				"total_losses":    "$competitor_stats.total_losses",
+				"money_earned":    "$competitor_stats.money_earned",
+				"tournaments_won": "$competitor_stats.tournaments_won",
+			}},
+		}}},
+
+		// Ensure correct output structure
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":              "$_id",
+			"points":           "$points",
+			"current_position": "$current_position",
+			"users": bson.M{
+				"$cond": bson.M{
+					"if":   bson.M{"$eq": bson.A{"$is_guest", false}},
+					"then": "$users",
+					"else": bson.A{}, // Empty array if it's a guest user
+				},
+			},
+			"guest_users": bson.M{
+				"$cond": bson.M{
+					"if":   bson.M{"$eq": bson.A{"$is_guest", true}},
+					"then": "$guest_users",
+					"else": bson.A{}, // Empty array if it's a regular user
+				},
+			},
+			"competitor_stats": "$competitor_stats",
+		}}},
+	}
+
+	var competitorInfo dao.GetProfileInfoInCategoryDAORes
+
+	cursor, err := r.categoryRegistrationColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error when searching for the categoryRegistration: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&competitorInfo); err != nil {
+			return nil, fmt.Errorf("error when decoding categoryRegistration: %w", err)
+		}
+	} else {
+		return nil, fmt.Errorf("%w: no categoryRegistration found for the given IDs", customerrors.ErrNotFound)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	return &competitorInfo, nil
 }

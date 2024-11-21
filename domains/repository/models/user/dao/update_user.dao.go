@@ -10,6 +10,7 @@ type UpdateUserDAOReq struct {
 	LastName  *string   `bson:"last_name,omitempty"`
 	Username  *string   `bson:"username,omitempty"`
 	Phone     *string   `bson:"phone,omitempty"`
+	Birthdate *string   `bson:"birthdate,omitempty"`
 	Image     *string   `bson:"image,omitempty"`
 	UpdatedAt time.Time `bson:"updated_at"`
 }

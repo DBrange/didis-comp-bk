@@ -1,20 +1,22 @@
 package mappers
 
 import (
+	"fmt"
+
 	"github.com/DBrange/didis-comp-bk/domains/category/models/dto"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/intermediate_tables/category_registration/dao"
 )
 
-func GetUsersOfCategoryByNameDAOtoDTO(competitorsDAO []*dao.GetCompetitorsOfCategoryDAORes) []*dto.GetCompetitorsOfCategoryDTORes {
+func GetUsersOfCategoryByNameDAOtoDTO(competitorsDAO []*dao.GetCompetitorsOfCategoryCompetitorDAORes) []*dto.GetCompetitorsOfCategoryCompetitorDTORes {
 
 	if len(competitorsDAO) == 0 {
-		return []*dto.GetCompetitorsOfCategoryDTORes{}
+		return []*dto.GetCompetitorsOfCategoryCompetitorDTORes{}
 	}
 
-	competitorsDTO := make([]*dto.GetCompetitorsOfCategoryDTORes, len(competitorsDAO))
+	competitorsDTO := make([]*dto.GetCompetitorsOfCategoryCompetitorDTORes, len(competitorsDAO))
 
 	for i, competitor := range competitorsDAO {
-		competitorDTO := &dto.GetCompetitorsOfCategoryDTORes{
+		competitorDTO := &dto.GetCompetitorsOfCategoryCompetitorDTORes{
 			ID:                  competitor.ID.Hex(),
 			CurrentPosition:     competitor.CurrentPosition,
 			Points:              competitor.Points,
@@ -39,6 +41,7 @@ func participantsDAOtoDTO(participantsDAO []*dao.GetCompetitorsOfCategoryUserDAO
 			FirstName: paticipant.FirstName,
 			LastName:  paticipant.LastName,
 			Image:     paticipant.Image,
+			Username:     paticipant.Username,
 		}
 	}
 
@@ -48,8 +51,8 @@ func participantsDAOtoDTO(participantsDAO []*dao.GetCompetitorsOfCategoryUserDAO
 
 func MapGetUsersOfCategoryByNameRegisteredPositionDAOToDTO(dao []dao.RegistedPositionDAORes) []dto.RegistedPositionDTORes {
 	registeredPositions := make([]dto.RegistedPositionDTORes, len(dao))
-
-	for i, rp := range registeredPositions {
+fmt.Printf("aaaaaa  %+v", dao)
+	for i, rp := range dao {
 		registeredPositions[i] = dto.RegistedPositionDTORes{
 			Date:     rp.Date,
 			Position: rp.Position,

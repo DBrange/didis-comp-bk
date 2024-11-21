@@ -30,8 +30,8 @@ func (a *CategoryProxyAdapter) AddCompetitorInCategory(ctx context.Context, cate
 	return a.categoryService.AddCompetitorInCategory(ctx, categoryID, competitorID)
 }
 
-func (a *CategoryProxyAdapter) SearchCompetitorInCategory(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorsOfCategoryDTORes, error) {
-	return a.categoryService.SearchCompetitorInCategory(ctx, categoryID, name, sport, competitorType, )
+func (a *CategoryProxyAdapter) SearchCompetitorInCategory(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorsOfCategoryCompetitorDTORes, error) {
+	return a.categoryService.SearchCompetitorInCategory(ctx, categoryID, name, sport, competitorType)
 }
 
 func (a *CategoryProxyAdapter) SearchCompetitorForCategory(ctx context.Context, userID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorFollowedDTORes, error) {
@@ -46,19 +46,19 @@ func (a *CategoryProxyAdapter) GetCategoryInfo(ctx context.Context, categoryID s
 	return a.categoryService.GetCategoryInfo(ctx, categoryID)
 }
 
-func (a *CategoryProxyAdapter) GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetCompetitorsOfCategoryDTORes, error) {
+func (a *CategoryProxyAdapter) GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) (*dto.GetCompetitorsOfCategoryDTORes, error) {
 	return a.categoryService.GetParticipantsOfCategory(ctx, categoryID, sport, competitorType, limit, lastID)
 }
 
-func (a *CategoryProxyAdapter) RemoveCompetitorFromCategory(ctx context.Context, categoryRegistrationID string) error {
-	return a.categoryService.RemoveCompetitorFromCategory(ctx, categoryRegistrationID)
+func (a *CategoryProxyAdapter) RemoveCompetitorFromCategory(ctx context.Context, categoryID, competitorID string) error {
+	return a.categoryService.RemoveCompetitorFromCategory(ctx, categoryID, competitorID)
 }
 
-func (a *CategoryProxyAdapter) ListCategories(ctx context.Context, organizerID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]dto.GetCategoriesFromOrganizerDTORes, error) {
+func (a *CategoryProxyAdapter) ListCategories(ctx context.Context, organizerID string, sport models.SPORT, competitorType *models.COMPETITOR_TYPE) ([]dto.GetCategoriesFromOrganizerDTORes, error) {
 	return a.categoryService.ListCategories(ctx, organizerID, sport, competitorType)
 }
 
-func (a *CategoryProxyAdapter) GetTournamentsFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]dto.GetTournamentsFromCategoryDTORes, error) {
+func (a *CategoryProxyAdapter) GetTournamentsFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) (*dto.GetTournamentsFromCategoryDTORes, error) {
 	return a.categoryService.GetTournamentsFromCategory(ctx, categoryID, sport, competitorType, limit, lastID)
 }
 
@@ -68,4 +68,8 @@ func (a *CategoryProxyAdapter) ModifyCompetitorPoints(ctx context.Context, categ
 
 func (a *CategoryProxyAdapter) AddGuestUserInCategory(ctx context.Context, categoryID string, guestUsersDTO []*dto.CreateGuestUserDTOReq, sport models.SPORT, competitorType models.COMPETITOR_TYPE) error {
 	return a.categoryService.AddGuestUserInCategory(ctx, categoryID, guestUsersDTO, sport, competitorType)
+}
+
+func (a *CategoryProxyAdapter) GetTournamentsByNameFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, tournamentName string) ([]*dto.GetTournamentsFromCategoryTournamentDTORes, error) {
+	return a.categoryService.GetTournamentsByNameFromCategory(ctx, categoryID, sport, competitorType, tournamentName)
 }

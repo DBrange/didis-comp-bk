@@ -139,71 +139,106 @@ func (r *Repository) AddTournamentInOrganizer(ctx context.Context, organizerOID,
 	return nil
 }
 
-func (r *Repository) GetCategoriesFromOrganizer(ctx context.Context, organizerOID *primitive.ObjectID, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]dao.GetCategoriesFromOrganizerDAORes, error) {
+func (r *Repository) GetSportsFromOrganizerCategories(ctx context.Context, organizerOID *primitive.ObjectID) ([]models.SPORT, error) {
 	pipeline := mongo.Pipeline{
-		// Match the organizer by ID
 		bson.D{{Key: "$match", Value: bson.M{"_id": organizerOID}}},
-
-		// Unwind the array of category IDs
 		bson.D{{Key: "$unwind", Value: "$categories"}},
-
-		// Lookup the categories using the unwound category IDs
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         "categories",
 			"localField":   "categories",
 			"foreignField": "_id",
 			"as":           "category",
 		}}},
-
-		// Unwind the array of categories (should only be one per unwound ID)
 		bson.D{{Key: "$unwind", Value: "$category"}},
 
-		// Match the categories by sport and competitor type
-		bson.D{{Key: "$match", Value: bson.M{
-			"category.sport":           sport,
-			"category.competitor_type": competitorType,
+		// Agrupar por sport para eliminar duplicados
+		bson.D{{Key: "$group", Value: bson.M{
+			"_id": "$category.sport",
 		}}},
 
-		// Lookup the category registrations using the category IDs
+		// Proyección para devolver sólo el campo sport
+		bson.D{{Key: "$project", Value: bson.M{
+			"sport": "$_id",
+			"_id":   0,
+		}}},
+	}
+
+	cursor, err := r.organizerColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error when aggregating sports from organizer categories: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	// Decodificar los resultados y convertir a slice de models.SPORT
+	var sportDocs []struct {
+		Sport models.SPORT `bson:"sport"`
+	}
+	if err = cursor.All(ctx, &sportDocs); err != nil {
+		return nil, fmt.Errorf("error when decoding sports from organizer categories: %w", err)
+	}
+
+	// Extraer el campo Sport en un slice de models.SPORT
+	sports := make([]models.SPORT, len(sportDocs))
+	for i, doc := range sportDocs {
+		sports[i] = doc.Sport
+	}
+
+	return sports, nil
+}
+
+
+func (r *Repository) GetCategoriesFromOrganizer(ctx context.Context, organizerOID *primitive.ObjectID, sport models.SPORT, competitorType *models.COMPETITOR_TYPE) ([]dao.GetCategoriesFromOrganizerDAORes, error) {
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"_id": organizerOID}}},
+		bson.D{{Key: "$unwind", Value: "$categories"}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "categories",
+			"localField":   "categories",
+			"foreignField": "_id",
+			"as":           "category",
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$category", "preserveNullAndEmptyArrays": true}}},
+	}
+
+	// Filtro por `sport` y `competitorType` si este último no es nil
+	categoryMatch := bson.M{"category.sport": sport}
+	if competitorType != nil {
+		categoryMatch["category.competitor_type"] = *competitorType
+	}
+
+	// Añadir el filtro al pipeline
+	pipeline = append(pipeline, bson.D{{Key: "$match", Value: categoryMatch}})
+
+	// Continuar con el resto del pipeline
+	pipeline = append(pipeline,
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         "category_registrations",
 			"localField":   "category._id",
 			"foreignField": "category_id",
 			"as":           "category_registration",
 		}}},
-
-		// Unwind the array of category registrations
-		bson.D{{Key: "$unwind", Value: "$category_registration"}},
-
-		// Lookup the competitor users using the competitor IDs
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$category_registration", "preserveNullAndEmptyArrays": true}}},
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         "competitor_users",
 			"localField":   "category_registration.competitor_id",
 			"foreignField": "competitor_id",
 			"as":           "competitor_user",
 		}}},
-
-		// Unwind the array of competitor users
-		bson.D{{Key: "$unwind", Value: "$competitor_user"}},
-
-		// Lookup the users using the user IDs
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$competitor_user", "preserveNullAndEmptyArrays": true}}},
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         "users",
 			"localField":   "competitor_user.user_id",
 			"foreignField": "_id",
 			"as":           "user",
 		}}},
-
-		// Unwind the array of users
-		bson.D{{Key: "$unwind", Value: "$user"}},
-
-		// Group by category and competitor, and nest the users
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$user", "preserveNullAndEmptyArrays": true}}},
 		bson.D{{Key: "$group", Value: bson.M{
 			"_id": bson.M{
 				"category_id":   "$category._id",
 				"competitor_id": "$competitor_user.competitor_id",
 			},
 			"category_id":          bson.M{"$first": "$category._id"},
+			"name":                 bson.M{"$first": "$category.name"},
 			"competitor_id":        bson.M{"$first": "$competitor_user.competitor_id"},
 			"total_participants":   bson.M{"$first": "$category.total_participants"},
 			"points":               bson.M{"$first": "$category_registration.points"},
@@ -211,39 +246,50 @@ func (r *Repository) GetCategoriesFromOrganizer(ctx context.Context, organizerOI
 			"registered_positions": bson.M{"$first": "$category_registration.registered_positions"},
 			"users": bson.M{
 				"$push": bson.M{
-					"user_id":    "$user._id",
+					"_id":        "$user._id",
 					"first_name": "$user.first_name",
 					"last_name":  "$user.last_name",
 					"image":      "$user.image",
 				},
 			},
 		}}},
-
-		// Group by category and nest the competitors
+		bson.D{{Key: "$sort", Value: bson.M{"current_position": 1}}},
 		bson.D{{Key: "$group", Value: bson.M{
 			"_id":                "$category_id",
 			"category_id":        bson.M{"$first": "$category_id"},
 			"total_participants": bson.M{"$first": "$total_participants"},
+			"name":               bson.M{"$first": "$name"},
 			"competitors": bson.M{
 				"$push": bson.M{
-					"competitor_id":        "$competitor_id",
-					"points":               "$points",
-					"current_position":     "$current_position",
-					"registered_positions": "$registered_positions",
-					"users":                "$users",
+					"$cond": bson.M{
+						"if": bson.M{"$ne": []interface{}{"$competitor_id", nil}},
+						"then": bson.M{
+							"_id":                  "$competitor_id",
+							"points":               "$points",
+							"current_position":     "$current_position",
+							"registered_positions": "$registered_positions",
+							"users":                "$users",
+						},
+						"else": nil,
+					},
 				},
 			},
 		}}},
-
-		// Project the final structure
 		bson.D{{Key: "$project", Value: bson.M{
-			"category_id":        "$category_id",
-			"competitors":        "$competitors",
-			"total_participants": "$total_participants",
+			"_id":   "$category_id",
+			"total": "$total_participants",
+			"name":  "$name",
+			"competitors": bson.M{
+				"$filter": bson.M{
+					"input": "$competitors",
+					"as":    "competitor",
+					"cond":  bson.M{"$ne": []interface{}{"$$competitor", nil}},
+				},
+			},
 		}}},
-	}
+	)
 
-	// Execute the aggregation pipeline
+	// Ejecutar el pipeline de agregación
 	cursor, err := r.organizerColl.Aggregate(ctx, pipeline)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -261,6 +307,56 @@ func (r *Repository) GetCategoriesFromOrganizer(ctx context.Context, organizerOI
 
 	return categoriesDAO, nil
 }
+
+
+
+func (r *Repository) GetTournamentSportsInOrganizer(ctx context.Context, organizerOID *primitive.ObjectID) ([]models.SPORT, error) {
+	// Pipeline para obtener deportes únicos de los torneos del organizador
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"_id": organizerOID}}},
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "tournaments",
+			"localField":   "tournaments",
+			"foreignField": "_id",
+			"as":           "tournaments",
+		}}},
+		{{Key: "$unwind", Value: bson.M{"path": "$tournaments", "preserveNullAndEmptyArrays": true}}},
+		{{Key: "$group", Value: bson.M{
+			"_id":    nil,
+			"sports": bson.M{"$addToSet": "$tournaments.sport"}, // Usamos $addToSet para evitar duplicados
+		}}},
+		{{Key: "$project", Value: bson.M{"sports": 1, "_id": 0}}},
+	}
+
+	cursor, err := r.organizerColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error when aggregating unique sports: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	// Decodificamos el resultado para obtener los deportes únicos
+	var result []bson.M
+	if err := cursor.All(ctx, &result); err != nil {
+		return nil, fmt.Errorf("error when decoding unique sports: %w", err)
+	}
+
+	// Procesamos el resultado y convertimos cada deporte en el tipo SPORT
+	var uniqueSports []models.SPORT // Siempre inicializado como un slice vacío
+	if len(result) > 0 {
+		for _, sport := range result[0]["sports"].(bson.A) {
+			if sportStr, ok := sport.(string); ok {
+				if parsedSport, err := models.ParseSport(sportStr); err == nil {
+					uniqueSports = append(uniqueSports, parsedSport)
+				}
+			}
+		}
+	}
+fmt.Printf("nose: %+v", uniqueSports)
+	// Retornamos el slice, ya sea con datos o vacío
+	return uniqueSports, nil
+}
+
+
 
 func (r *Repository) GetTournamentsInOrganizer(
 	ctx context.Context,
@@ -300,6 +396,7 @@ func (r *Repository) GetTournamentsInOrganizer(
 	}
 
 	// Pipeline para obtener los torneos con detalles
+	// Pipeline para obtener los torneos con detalles
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: bson.M{"_id": organizerOID}}},
 		{{Key: "$lookup", Value: bson.M{
@@ -324,6 +421,9 @@ func (r *Repository) GetTournamentsInOrganizer(
 			"as":           "user",
 		}}},
 		{{Key: "$unwind", Value: "$user"}},
+
+		{{Key: "$sort", Value: bson.M{"tournaments._id": -1}}}, // Ordena por fecha de creación descendente (los más recientes primero)
+
 		{{Key: "$project", Value: bson.M{
 			"_id":           "$tournaments._id",
 			"name":          "$tournaments.name",
@@ -349,12 +449,12 @@ func (r *Repository) GetTournamentsInOrganizer(
 		}}},
 	}
 
+	// Si tienes lastOID, filtra por este campo antes de aplicar el sort
 	if lastOID != nil {
-		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.M{"_id": bson.M{"$gt": lastOID}}}})
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: bson.M{"tournaments._id": bson.M{"$lt": lastOID}}}})
 	}
 
-	pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.M{"tournaments._id": -1}}},)
-
+	// Limita los resultados
 	pipeline = append(pipeline, bson.D{{Key: "$limit", Value: limit}})
 
 	cursor, err := r.organizerColl.Aggregate(ctx, pipeline)
@@ -372,7 +472,9 @@ func (r *Repository) GetTournamentsInOrganizer(
 		Tournaments: tournaments,
 		Total:       total,
 	}
-
+	for i, v := range result.Tournaments {
+		fmt.Printf("estooo %v %+v", i, v.ID)
+	}
 	return result, nil
 }
 

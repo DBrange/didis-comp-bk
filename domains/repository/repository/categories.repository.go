@@ -48,8 +48,6 @@ func (r *Repository) CreateCategory(ctx context.Context, organizerID string, cat
 	return id, nil
 }
 
-
-
 func (r *Repository) GetCategoryByID(ctx context.Context, categoryID string) (*dao.GetCategoryByIDDAORes, error) {
 	var category dao.GetCategoryByIDDAORes
 
@@ -210,7 +208,9 @@ func (r *Repository) GetCategoryInfoByID(ctx context.Context, categoryOID *primi
 				"total_participants": 1,
 				"range_movement":     1,
 				"sport":              1,
+				"competitor_type":    1,
 				"organizer": bson.M{
+					"_id":        "$organizer._id",
 					"first_name": "$user.first_name",
 					"last_name":  "$user.last_name",
 				},
@@ -290,7 +290,7 @@ func (r *Repository) DecrementTotalParticipants(ctx context.Context, categoryOID
 	return nil
 }
 
-func (r *Repository) GetTournamentsFromCategory(ctx context.Context, categoryOID *primitive.ObjectID, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastOID *primitive.ObjectID) ([]dao.GetTournamentsFromCategoryDAORes, error) {
+func (r *Repository) GetTournamentsFromCategory(ctx context.Context, categoryOID *primitive.ObjectID, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastOID *primitive.ObjectID) ([]*dao.GetTournamentsFromCategoryDAORes, error) {
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: bson.M{"_id": categoryOID}}},
 		bson.D{{
@@ -307,6 +307,16 @@ func (r *Repository) GetTournamentsFromCategory(ctx context.Context, categoryOID
 			"tournament.sport":           sport,
 			"tournament.competitor_type": competitorType,
 		}}},
+		bson.D{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         "locations",
+				"localField":   "tournament.location_id",
+				"foreignField": "_id",
+				"as":           "location",
+			},
+		}},
+		bson.D{{Key: "$unwind", Value: "$location"}},
 	}
 
 	if lastOID != nil {
@@ -324,6 +334,15 @@ func (r *Repository) GetTournamentsFromCategory(ctx context.Context, categoryOID
 					"_id":         "$tournament._id",
 					"name":        "$tournament.name",
 					"points":      "$tournament.points",
+					"location": bson.M{
+						"state":"$location.state",
+						"country":"$location.country",
+						"city":"$location.city",
+						"lat":"$location.lat",
+						"long":"$location.long",
+					},
+					"total_prize": "$tournament.total_prize",
+					"average_score": "$tournament.average_score",
 					"start_date":  "$tournament.start_date",
 					"finish_date": "$tournament.finish_date",
 				},
@@ -345,18 +364,144 @@ func (r *Repository) GetTournamentsFromCategory(ctx context.Context, categoryOID
 	defer cursor.Close(ctx)
 
 	var result []struct {
-		Tournaments []dao.GetTournamentsFromCategoryDAORes `bson:"tournaments"`
+		Tournaments []*dao.GetTournamentsFromCategoryDAORes `bson:"tournaments"`
 	}
 	if err = cursor.All(ctx, &result); err != nil {
 		return nil, fmt.Errorf("error when decoding category: %w", err)
 	}
 
 	if len(result) == 0 {
-		return []dao.GetTournamentsFromCategoryDAORes{}, nil
+		return []*dao.GetTournamentsFromCategoryDAORes{}, nil
 	}
 
 	return result[0].Tournaments, nil
 }
+
+func (r *Repository) GetTournamentsByNameFromCategory(ctx context.Context, categoryOID *primitive.ObjectID, sport models.SPORT, competitorType models.COMPETITOR_TYPE, tournamentName string) ([]*dao.GetTournamentsFromCategoryDAORes, error) {
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"_id": categoryOID}}},
+		bson.D{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         "tournaments",
+				"localField":   "tournaments",
+				"foreignField": "_id",
+				"as":           "tournament",
+			},
+		}},
+		bson.D{{Key: "$unwind", Value: "$tournament"}},
+		bson.D{{Key: "$match", Value: bson.M{
+			"tournament.sport":           sport,
+			"tournament.competitor_type": competitorType,
+			"tournament.name":            bson.M{"$regex": "^" + tournamentName, "$options": "i"}, // Búsqueda que empieza con el nombre (insensible a mayúsculas)
+		}}},
+		bson.D{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         "locations",
+				"localField":   "tournament.location_id",
+				"foreignField": "_id",
+				"as":           "location",
+			},
+		}},
+		bson.D{{Key: "$unwind", Value: "$location"}},
+		bson.D{{Key: "$limit", Value: 10}}, // Limitar a 10 resultados
+		bson.D{{Key: "$group", Value: bson.M{
+			"_id": "$_id",
+			"tournaments": bson.M{
+				"$push": bson.M{
+					"_id":          "$tournament._id",
+					"name":         "$tournament.name",
+					"points":       "$tournament.points",
+					"location": bson.M{
+						"state":   "$location.state",
+						"country": "$location.country",
+						"city":    "$location.city",
+						"lat":     "$location.lat",
+						"long":    "$location.long",
+					},
+					"total_prize":    "$tournament.total_prize",
+					"average_score":  "$tournament.average_score",
+					"start_date":     "$tournament.start_date",
+					"finish_date":    "$tournament.finish_date",
+				},
+			},
+		}}},
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":         0,
+			"tournaments": 1,
+		}}},
+	}
+
+	cursor, err := r.categoryColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for category: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for the category: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var result []struct {
+		Tournaments []*dao.GetTournamentsFromCategoryDAORes `bson:"tournaments"`
+	}
+	if err = cursor.All(ctx, &result); err != nil {
+		return nil, fmt.Errorf("error when decoding category: %w", err)
+	}
+
+	if len(result) == 0 {
+		return []*dao.GetTournamentsFromCategoryDAORes{}, nil
+	}
+
+	return result[0].Tournaments, nil
+}
+
+
+func (r *Repository) GetTournamentsFromCategoryNumber(ctx context.Context, categoryOID *primitive.ObjectID, sport models.SPORT, competitorType models.COMPETITOR_TYPE) (int, error) {
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"_id": categoryOID}}},
+		bson.D{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         "tournaments",
+				"localField":   "tournaments",
+				"foreignField": "_id",
+				"as":           "tournament",
+			},
+		}},
+		bson.D{{Key: "$unwind", Value: "$tournament"}},
+		bson.D{{Key: "$match", Value: bson.M{
+			"tournament.sport":           sport,
+			"tournament.competitor_type": competitorType,
+		}}},
+	}
+
+	// Añadimos la etapa de $count para obtener la cantidad de documentos que cumplen los filtros
+	pipeline = append(pipeline, bson.D{{Key: "$count", Value: "tournamentCount"}})
+
+	cursor, err := r.categoryColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return 0, fmt.Errorf("%w: error when searching for category: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return 0, fmt.Errorf("error when searching for the category: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var result []struct {
+		TournamentCount int `bson:"tournamentCount"`
+	}
+	if err = cursor.All(ctx, &result); err != nil {
+		return 0, fmt.Errorf("error when decoding category count: %w", err)
+	}
+
+	if len(result) == 0 {
+		return 0, nil
+	}
+
+	return result[0].TournamentCount, nil
+}
+
 
 func (r *Repository) GetCompetitorTournamentsInCategory(ctx context.Context, categoryOID, competitorOID, lastOID *primitive.ObjectID, limit int) ([]*dao.GetTournamentsFromCategoryDAORes, error) {
 	pipeline := mongo.Pipeline{
@@ -434,4 +579,3 @@ func (r *Repository) GetCompetitorTournamentsInCategory(ctx context.Context, cat
 	return result[0].Tournaments, nil
 
 }
-

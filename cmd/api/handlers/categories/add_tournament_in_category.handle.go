@@ -20,5 +20,5 @@ func (h *Handler) AddTournamentInCategory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Tournament successfully added!"})
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Tournament successfully added!"})
 }

@@ -3,13 +3,14 @@ package dto
 import "time"
 
 type GetCategoriesFromOrganizerDTORes struct {
-	CategoryID        string                                       `json:"category_id"`
+	CategoryID        string                                       `json:"id"`
+	Name        string                                       `json:"name"`
 	Competitors       []GetCategoriesFromOrganizerCompetitorDTORes `json:"competitors"`
-	TotalParticipants int32                                        `json:"total_participants"`
+	TotalParticipants int32                                        `json:"total"`
 }
 
 type GetCategoriesFromOrganizerCompetitorDTORes struct {
-	CompetitorID        string                                 `json:"competitor_id"`
+	CompetitorID        string                                 `json:"id"`
 	CurrentPosition     *int                                   `json:"current_position"`
 	RegisteredPositions []RegistedPositionDTORes               `json:"registered_positions"`
 	Points              int                                    `json:"points"`
@@ -17,10 +18,10 @@ type GetCategoriesFromOrganizerCompetitorDTORes struct {
 }
 
 type GetCategoriesFromOrganizerUserDTORes struct {
-	UserID    string `json:"user_id"`
+	UserID    string `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
-	Image     string `json:"image"`
+	Image     *string `json:"image"`
 }
 
 type RegistedPositionDTORes struct {

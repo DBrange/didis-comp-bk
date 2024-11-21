@@ -16,4 +16,5 @@ type ForCategory interface {
 	interfaces.GetTournamentsFromCategory
 	interfaces.ModifyCompetitorPoints
 	interfaces.AddGuestUserInCategory
+	interfaces.GetTournamentsByNameFromCategory
 }

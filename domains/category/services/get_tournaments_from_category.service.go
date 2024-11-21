@@ -8,11 +8,21 @@ import (
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
 
-func (s *CategoryService) GetTournamentsFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]dto.GetTournamentsFromCategoryDTORes, error) {
+func (s *CategoryService) GetTournamentsFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) (*dto.GetTournamentsFromCategoryDTORes, error) {
 	tournamentsDTO, err := s.categoryQuerier.GetTournamentsFromCategory(ctx, categoryID, sport, competitorType, limit, lastID)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "category", "error when getting tournaments from category")
 	}
 
-	return tournamentsDTO, nil
+	tournamentsQuantity, err := s.categoryQuerier.GetTournamentsFromCategoryNumber(ctx, categoryID, sport, competitorType)
+	if err != nil {
+		return nil, customerrors.HandleErrMsg(err, "category", "error when getting tournaments quantity")
+	}
+
+	tournamentsFromCategory := &dto.GetTournamentsFromCategoryDTORes{
+		Tournaments: tournamentsDTO,
+		Total:       tournamentsQuantity,
+	}
+
+	return tournamentsFromCategory, nil
 }

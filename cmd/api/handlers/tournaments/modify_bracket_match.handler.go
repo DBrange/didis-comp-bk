@@ -16,7 +16,6 @@ func (h *Handler) ModifyBracketMatch(c *gin.Context) {
 	defer cancel()
 
 	tournamentID := c.Param("tournamentID")
-	userID := c.Param("userID")
 
 	competitors, err := modifyBracketMatchtBodyData(c)
 	if err != nil {
@@ -24,7 +23,7 @@ func (h *Handler) ModifyBracketMatch(c *gin.Context) {
 		return
 	}
 
-	if err := h.tournament.ModifyBracketMatch(ctx, tournamentID, userID, competitors); err != nil {
+	if err := h.tournament.ModifyBracketMatch(ctx, tournamentID, competitors); err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}

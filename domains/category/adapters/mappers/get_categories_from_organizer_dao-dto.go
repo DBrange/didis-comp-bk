@@ -18,6 +18,7 @@ func MapGetCategoriesFromOrganizerDAOToDTO(dao dao.GetCategoriesFromOrganizerDAO
 		CategoryID:        dao.CategoryID.Hex(),
 		Competitors:       MapGetCategoriesFromOrganizerCompetitorDAOToDTOSlice(dao.Competitors),
 		TotalParticipants: dao.TotalParticipants,
+		Name: dao.Name,
 	}
 }
 

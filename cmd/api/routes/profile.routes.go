@@ -33,17 +33,20 @@ func profileRoutes(router *gin.Engine, controlPlane ports.ForControlPlane, handl
 
 	profilesRouter.GET("/info-category/:categoryID/:competitorID", handler.GetProfileInfoInCategory)
 
-	profilesRouter.GET("/availability-category/:competitorID", handler.GetProfileAvailabilityInCategory)
+	profilesRouter.GET("/availability-competitor/:competitorID", handler.GetProfileAvailabilityCompetitor)
 
 	profilesRouter.GET("/tournaments-category/:categoryID/:competitorID", handler.GetProfileTournamentsInCategory)
 
 	profilesRouter.GET("/categories/:userID", handler.GetProfileCategories)
 
-	profilesRouter.GET("/tournaments/:userID", handler.GetProfileTournaments)
+	// profilesRouter.GET("/tournaments/:userID", handler.GetProfileTournaments)
+	profilesRouter.GET("/user-tournaments/:userID", handler.GetProfileUserTournaments)
+
+	profilesRouter.GET("/competitor-tournaments/:competitorID", handler.GetProfileCompetitorTournaments)
 
 	profilesRouter.GET("/organizer-data/:userID", handler.GetOrganizerData)
 
-	profilesRouter.PUT("/availability/:availabilityID", handler.ModifyProfileAvailability)
+	profilesRouter.PUT("/availability/:userID/:availabilityID", handler.ModifyProfileAvailability)
 
 	profilesRouter.PUT("/personal-info/:userID", handler.ModifyPersonalInfo)
 

@@ -7,6 +7,7 @@ type ModifyPersonalInfoDTOReq struct {
 	LastName  *string                           `json:"last_name,omitempty" validate:"omitempty,min=2"`
 	Username  *string                           `json:"username,omitempty" validate:"omitempty,min=3"`
 	Phone     *string                           `json:"phone,omitempty" validate:"omitempty,e164"`
+	Birthdate     *string                           `json:"birthdate,omitempty" validate:"omitempty,date"`
 	Image     *string                           `json:"image,omitempty" validate:"omitempty,url"`
 	Location  *ModifyPersonalInfoLocationDTOReq `json:"location,omitempty"`
 }

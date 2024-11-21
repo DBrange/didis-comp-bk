@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) GetProfileAvailabilityInCategory(c *gin.Context) {
+func (h *Handler) GetProfileAvailabilityCompetitor(c *gin.Context) {
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
 
@@ -17,7 +17,7 @@ func (h *Handler) GetProfileAvailabilityInCategory(c *gin.Context) {
 
 	day := c.Query("day")
 
-	availabilityInfo, availabilityID, err := h.profile.GetProfileAvailabilityInCategory(ctx, competitorID, day)
+	availabilityInfo, availabilityID, err := h.profile.GetProfileAvailabilityCompetitor(ctx, competitorID, day)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return

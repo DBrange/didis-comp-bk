@@ -23,8 +23,8 @@ func (a *ProfileProxyAdapter) RegisterUser(ctx context.Context, profileInfoDTO *
 	return a.profileService.RegisterUser(ctx, profileInfoDTO)
 }
 
-func (a *ProfileProxyAdapter) ModifyProfileAvailability(ctx context.Context, availabilityID string, availabilityDTO *models.UpdateDailyAvailabilityDTOReq) error {
-	return a.profileService.ModifyProfileAvailability(ctx, availabilityID, availabilityDTO)
+func (a *ProfileProxyAdapter) ModifyProfileAvailability(ctx context.Context,userID, availabilityID string, availabilityDTO *models.UpdateDailyAvailabilityDTOReq) error {
+	return a.profileService.ModifyProfileAvailability(ctx,userID, availabilityID, availabilityDTO)
 }
 
 func (a *ProfileProxyAdapter) ModifyPersonalInfo(ctx context.Context, userID string, userInfoDTO *profile_dto.ModifyPersonalInfoDTOReq) error {
@@ -38,6 +38,7 @@ func (a *ProfileProxyAdapter) GetProfileByID(ctx context.Context, userID string)
 func (a *ProfileProxyAdapter) GetPersonalInfoByID(ctx context.Context, userID string) (*profile_dto.GetPersonalInfoByIDDTORes, error) {
 	return a.profileService.GetPersonalInfoByID(ctx, userID)
 }
+
 func (a *ProfileProxyAdapter) GetProfileDailyAvailabilityByID(ctx context.Context, userID string, day string) (*models.GetDailyAvailabilityByIDDTORes, string, error) {
 	return a.profileService.GetProfileDailyAvailabilityByID(ctx, userID, day)
 }
@@ -70,15 +71,15 @@ func (a *ProfileProxyAdapter) GetProfileInfoInCategory(ctx context.Context, cate
 	return a.profileService.GetProfileInfoInCategory(ctx, categoryID, competitorID)
 }
 
-func (a *ProfileProxyAdapter) GetProfileAvailabilityInCategory(ctx context.Context, competitorID, day string) (*models.GetDailyAvailabilityByIDDTORes, string, error) {
-	return a.profileService.GetProfileAvailabilityInCategory(ctx, competitorID, day)
+func (a *ProfileProxyAdapter) GetProfileAvailabilityCompetitor(ctx context.Context, competitorID, day string) (*models.GetDailyAvailabilityByIDDTORes, string, error) {
+	return a.profileService.GetProfileAvailabilityCompetitor(ctx, competitorID, day)
 }
 
 func (a *ProfileProxyAdapter) GetProfileTournamentsInCategory(ctx context.Context, categoryID, competitorID, lastID string, limit int) ([]*profile_dto.GetTournamentsFromCategoryDTORes, error) {
 	return a.profileService.GetProfileTournamentsInCategory(ctx, categoryID, competitorID, lastID, limit)
 }
 
-func (a *ProfileProxyAdapter) GetProfileCategories(ctx context.Context, userID string, sport models.SPORT, limit int, lastID string) ([]*profile_dto.GetUserCategoriesCategoryDTO, error) {
+func (a *ProfileProxyAdapter) GetProfileCategories(ctx context.Context, userID string, sport models.SPORT, limit int, lastID string) (*profile_dto.GetUserCategoriesDTO, error) {
 	return a.profileService.GetProfileCategories(ctx, userID, sport, limit, lastID)
 }
 
@@ -97,3 +98,24 @@ func (a *ProfileProxyAdapter) GetUserPrimaryInfo(ctx context.Context, fromID, us
 func (a *ProfileProxyAdapter) GetOrganizerData(ctx context.Context, userID string) (*profile_dto.GetOrganizerDataDTORes, error) {
 	return a.profileService.GetOrganizerData(ctx, userID)
 }
+
+func (a *ProfileProxyAdapter) GetProfileUserTournaments(
+	ctx context.Context,
+	userID string,
+	sport models.SPORT,
+	limit int,
+	lastID string,
+) (*profile_dto.GetProfileUserTournamentsDTORes, error) {
+	return a.profileService.GetProfileUserTournaments(ctx, userID, sport, limit, lastID)
+}
+
+func (a *ProfileProxyAdapter) GetProfileCompetitorTournaments(
+	ctx context.Context,
+	competitorID, categoryID string,
+	sport models.SPORT,
+	limit int,
+	lastID string,
+) (*profile_dto.GetProfileUserTournamentsDTORes, error) {
+	return a.profileService.GetProfileCompetitorTournaments(ctx, competitorID, categoryID, sport, limit, lastID)
+}
+

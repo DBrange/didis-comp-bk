@@ -25,10 +25,14 @@ func GetTournamentPrimaryInfoDAOtoDTO(tournamentDAO *dao.GetTournamentPrimaryInf
 		Sport:            tournamentDAO.Sport,
 		CompetitorType:   tournamentDAO.CompetitorType,
 		Surface:          tournamentDAO.Surface,
-		Rounds:           GetTournamentPrimaryInfoRoundDAOtoDTO(tournamentDAO.Rounds),
-		Location:         GetTournamentPrimaryInfoLocationDAOtoDTO(tournamentDAO.Location),
-		Organizer:        GetTournamentPrimaryInfoOrganizerDAOtoDTO(tournamentDAO.Organizer),
-		Category:         GetTournamentPrimaryInfoCategoryDAOtoDTO(tournamentDAO.Category),
+		Availability: &dto.TournamentAvailabilityDTO{
+			AvailableCourts: tournamentDAO.Availability.AvailableCourts,
+			AverageHours:    tournamentDAO.Availability.AverageHours,
+		},
+		Rounds:    GetTournamentPrimaryInfoRoundDAOtoDTO(tournamentDAO.Rounds),
+		Location:  GetTournamentPrimaryInfoLocationDAOtoDTO(tournamentDAO.Location),
+		Organizer: GetTournamentPrimaryInfoOrganizerDAOtoDTO(tournamentDAO.Organizer),
+		Category:  GetTournamentPrimaryInfoCategoryDAOtoDTO(tournamentDAO.Category),
 	}
 }
 

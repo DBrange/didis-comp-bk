@@ -20,7 +20,7 @@ func (h *Handler) AddCompetitorInCategory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Competitor successfully added!"})
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Competitor successfully added!"})
 }
 
 // func organizeCategoryBodyData(c *gin.Context) (*dto.OrganizeCategoryDTOReq, error) {

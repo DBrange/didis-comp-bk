@@ -1,8 +1,6 @@
 package dao
 
 import (
-	"time"
-
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 )
 
@@ -11,7 +9,7 @@ type GetUserByIDDAORes struct {
 	FirstName  string       `bson:"first_name"`
 	LastName   string       `bson:"last_name"`
 	Username   *string      `bson:"username"`
-	Birthdate  *time.Time   `bson:"birthdate"`
+	Birthdate  *string   `bson:"birthdate"`
 	Password   *string      `bson:"password"`
 	Email      string       `bson:"email"`
 	Phone      *string      `bson:"phone"`

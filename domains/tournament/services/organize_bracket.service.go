@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
@@ -13,21 +12,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *TournamentService) OrganizeBracket(ctx context.Context, tournamentID string, competitorMatchDTOs []*dto.UpdateCompetitorMatchDTOReq) error {
+func (s *TournamentService) OrganizeBracket(ctx context.Context, tournamentID string, competitorMatchDTOs []*dto.UpdateCompetitorMatchDTOReq, availableCourts, averageHours int) error {
 	// 	categoryID, err := s.tournamentQuerier.GetCategoryIDOfTournament(ctx, tournamentID)
 	// if err != nil {
 	// 	return customerrors.HandleErrMsg(err, "tournament", "error when getting tournament competitors")
 	// }
 
-	
 	// competitorsDTO, err := s.tournamentQuerier.GetCompetitorsInTournament(ctx, tournamentID, categoryID, "", 0, true)
 	// 	if err != nil {
 	// 		return customerrors.HandleErrMsg(err, "tournament", "error when getting tournament competitors")
 	// 	}
 
-	
-	
-	
 	competitorIDs := make([]*string, len(competitorMatchDTOs))
 	matchesIDs := make([]string, 0, len(competitorMatchDTOs)/2)
 	competitorsInMatchMap := make(map[string][]string)
@@ -64,7 +59,6 @@ func (s *TournamentService) OrganizeBracket(ctx context.Context, tournamentID st
 			return customerrors.HandleErrMsg(err, "tournament", "error when eliminate group")
 		}
 
-
 		for _, competitorsDTO := range competitorMatchDTOs {
 			if competitorsDTO.CompetitorID != nil {
 				if err := s.tournamentQuerier.AddMatchInCompetitorStats(sessCtx, *competitorsDTO.CompetitorID, competitorsDTO.MatchID); err != nil {
@@ -90,13 +84,22 @@ func (s *TournamentService) OrganizeBracket(ctx context.Context, tournamentID st
 			return customerrors.HandleErrMsg(err, "tournament", "error when updating competitorMatches")
 		}
 
-		courtAvailability, tournamentAvailabilities, err := s.getPartialAvailabilityInTournament(sessCtx, tournamentID)
+		availability := &dto.TournamentAvailabilityDTO{
+			AvailableCourts: availableCourts,
+			AverageHours:    averageHours,
+		}
+
+		tournamentAvailabilities, err := s.getPartialAvailabilityInTournament(sessCtx, tournamentID)
 		if err != nil {
 			return err
 		}
 
 		timetablesNotAvailables := []time.Time{}
-		if err := s.updateMatchesDates(sessCtx, competitorsInMatchMap, courtAvailability, tournamentAvailabilities, timetablesNotAvailables); err != nil {
+		if err := s.updateMatchesDates(sessCtx, competitorsInMatchMap, availability, tournamentAvailabilities, timetablesNotAvailables); err != nil {
+			return customerrors.HandleErrMsg(err, "tournament", "error when updating competitorMatches")
+		}
+
+		if err := s.tournamentQuerier.UpdateTournamentAvailability(ctx, tournamentID, availableCourts, averageHours); err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when updating competitorMatches")
 		}
 
@@ -126,10 +129,6 @@ func (s *TournamentService) ScheduleMatches(
 	hoursForMatch time.Duration,
 ) ([]*dto.MatchDateDTOReq, error) {
 	matchesDate := make([]*dto.MatchDateDTOReq, 0, len(competitorsInMatchMap))
-for _, v := range competitorsInMatchMap{
-	fmt.Printf("el tamaño: %+v",v)
-
-}
 	for matchID, competitorIDs := range competitorsInMatchMap {
 		if len(competitorIDs) != 2 {
 			matchDate := &dto.MatchDateDTOReq{
@@ -153,14 +152,11 @@ for _, v := range competitorsInMatchMap{
 		iacSlice := [][]*models.GetDailyAvailabilityByIDDTORes{intermediateAvailabilityCompetitorDTO, tournamentAvailabilities}
 		intermediateAvailabilityCourtDTO := utils.IntermediateAvailability(iacSlice)
 
-
 		// Buscar el primer `TimeSlot` AVAILABLE o POSSIBLY_AVAILABLE
 		matchTime, err := findFirstAvailableTimeSlot(intermediateAvailabilityCourtDTO, *timetablesNotAvailables, availableCourts)
 		if err != nil {
 			return nil, err
 		}
-
-
 
 		// Guardar el `TimeSlot` encontrado
 		var matchDate *dto.MatchDateDTOReq
@@ -184,18 +180,17 @@ for _, v := range competitorsInMatchMap{
 	return matchesDate, nil
 }
 
-func (s *TournamentService) getPartialAvailabilityInTournament(ctx context.Context, tournamentID string) (*dto.TournamentAvailabilityDTO, []*models.GetDailyAvailabilityByIDDTORes, error) {
-	courtAvailability, err := s.tournamentQuerier.GetTournamentAvailavility(ctx, tournamentID)
-	if err != nil {
-		return nil, nil, customerrors.HandleErrMsg(err, "tournament", "error when updating competitorMatches")
-	}
+func (s *TournamentService) getPartialAvailabilityInTournament(ctx context.Context, tournamentID string) ([]*models.GetDailyAvailabilityByIDDTORes, error) {
+	// if err := s.tournamentQuerier.UpdateTournamentAvailability(ctx, tournamentID); err != nil {
+	// 	return nil, nil, customerrors.HandleErrMsg(err, "tournament", "error when updating competitorMatches")
+	// }
 
 	tournamentAvailabilities, err := s.tournamentQuerier.GetAvailabilityByTournamentID(ctx, tournamentID)
 	if err != nil {
-		return nil, nil, customerrors.HandleErrMsg(err, "tournament", "error when updating competitorMatches")
+		return nil, customerrors.HandleErrMsg(err, "tournament", "error when updating competitorMatches")
 	}
 
-	return courtAvailability, tournamentAvailabilities, nil
+	return tournamentAvailabilities, nil
 }
 
 func (s *TournamentService) updateMatchesDates(ctx context.Context, competitorsInMatchMap map[string][]string, courtAvailability *dto.TournamentAvailabilityDTO, tournamentAvailabilities []*models.GetDailyAvailabilityByIDDTORes, timetablesNotAvailables []time.Time) error {
@@ -205,8 +200,6 @@ func (s *TournamentService) updateMatchesDates(ctx context.Context, competitorsI
 		return customerrors.HandleErrMsg(err, "tournament", "error when set date in matches")
 	}
 
-
-	
 	// actualizar todos los matches con su nuevo date
 	if err := s.tournamentQuerier.UpdateMultipleMatchesDate(ctx, matchesDate); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when updating match date")
@@ -243,9 +236,9 @@ func findFirstAvailableTimeSlot(availability []*models.GetDailyAvailabilityByIDD
 						if timeSlot.Status == desiredStatus {
 							slotTime, _ := time.Parse("15:04", timeSlot.TimeSlot)
 							fullSlotTime := time.Date(searchDate.Year(), searchDate.Month(), searchDate.Day(), slotTime.Hour(), slotTime.Minute(), 0, 0, startDate.Location())
-							
-							fmt.Printf("Fecha evaluada: %+v\n", fullSlotTime)
-							
+
+							// fmt.Printf("Fecha evaluada: %+v\n", fullSlotTime)
+
 							// Verifica que no esté en la lista de `timetablesNotAvailables`
 							if isTimeSlotAvailable(fullSlotTime, timetablesNotAvailables, availableCourts) {
 								return fullSlotTime, nil
@@ -259,11 +252,6 @@ func findFirstAvailableTimeSlot(availability []*models.GetDailyAvailabilityByIDD
 
 	return time.Time{}, nil
 }
-
-
-
-
-
 
 // Convierte el nombre del día a un valor de `time.Weekday`
 func parseWeekday(day string) time.Weekday {
@@ -286,7 +274,6 @@ func parseWeekday(day string) time.Weekday {
 		return time.Sunday // Valor predeterminado
 	}
 }
-
 
 func isTimeSlotAvailable(timeSlot time.Time, timetablesNotAvailables []time.Time, availableCourts int) bool {
 	count := 0
@@ -322,7 +309,7 @@ func convertDayToString(day models.DAY) string {
 	}
 }
 
-func (s *TournamentService) eliminateBracketMatches(ctx context.Context,  competitorIDs, matchesToRemove []string) error {
+func (s *TournamentService) eliminateBracketMatches(ctx context.Context, competitorIDs, matchesToRemove []string) error {
 	// sacar los matches de competitorStats y cambiar las
 	if err := s.tournamentQuerier.RemoveMultipleCompetitorStatsMatches(ctx, competitorIDs, matchesToRemove); err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")

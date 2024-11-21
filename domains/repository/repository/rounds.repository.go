@@ -597,7 +597,7 @@ func processGroups(result dao.GetRoundGroupsDAORes) *dao.GetRoundGroupsDAORes {
 
 	return &result
 }
-
+ 
 func processCompetitors(competitors []*dao.GetRoundWithMatchesCompetitorDAORes) {
 	for k, competitor := range competitors {
 		if len(competitor.Users) > 0 {

@@ -1110,6 +1110,35 @@ func (r *Repository) GetTournamentAvailavility(ctx context.Context, tournamentOI
 
 }
 
+func (r *Repository) UpdateTournamentAvailability(
+	ctx context.Context,
+	tournamentOID *primitive.ObjectID,
+	availableCourts int,
+	averageHours int,
+) error {
+	// Definir el filtro para ubicar el documento del torneo
+	filter := bson.M{"_id": tournamentOID}
+
+	// Crear el conjunto de campos a actualizar
+	update := bson.M{
+		"$set": bson.M{
+			"availability.available_courts": availableCourts,
+			"availability.average_hours":    averageHours,
+		},
+	}
+
+	// Ejecutar la actualización en MongoDB
+	_, err := r.tournamentColl.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return fmt.Errorf("%w: error when updating tournament availability: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return fmt.Errorf("error when updating tournament availability: %w", err)
+	}
+
+	return nil
+}
+
 func (r *Repository) GetAllDatesMatchesFromTournament(ctx context.Context, tournamentOID *primitive.ObjectID) ([]time.Time, error) {
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: bson.M{"_id": tournamentOID}}},
@@ -1262,6 +1291,10 @@ func (r *Repository) GetTournamentPrimaryInfo(ctx context.Context, tournamentOID
 				"sport":             "$sport",
 				"competitor_type":   "$competitor_type",
 				"surface":           "$surface",
+				"availability": bson.M{
+					"available_courts": "$availability.available_courts",
+					"average_hours":    "$availability.average_hours",
+				},
 				"rounds": bson.M{
 					"$map": bson.M{
 						"input": "$rounds",
@@ -1346,7 +1379,7 @@ func (r *Repository) GetCategoryIDOfTournament(ctx context.Context, tournamentOI
 func (r *Repository) GetTournamentFilters(ctx context.Context, tournamentOID *primitive.ObjectID) (*tournament_dao.GetTournamentFiltersDAORes, error) {
 	filter := bson.M{"_id": tournamentOID}
 
-	opts := options.FindOne().SetProjection(bson.M{"surface": 1, "sport": 1, "competitor_type": 1, "max_capacity": 1, "total_competitors": 1})
+	opts := options.FindOne().SetProjection(bson.M{"surface": 1, "sport": 1, "competitor_type": 1, "max_capacity": 1, "total_competitors": 1, "category_id": 1})
 
 	var result tournament_dao.GetTournamentFiltersDAORes
 
@@ -1379,3 +1412,63 @@ func (r *Repository) GetTournamentMatchesByID(ctx context.Context, tournamentOID
 
 	return result.Matches, nil
 }
+
+func (r *Repository) GetTournamentCompetitorIDsInMatches(ctx context.Context, tournamentOID *primitive.ObjectID) ([]string, error) {
+
+	// Definimos el pipeline de agregación.
+	pipeline := mongo.Pipeline{
+		// Filtro para el torneo (excluyendo los documentos con deleted_at)
+		bson.D{{Key: "$match", Value: bson.M{"_id": tournamentOID, "deleted_at": bson.M{"$exists": false}}}},
+		// Realizamos el lookup para obtener los match de "competitor_matches"
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "competitor_matches",
+			"localField":   "matches",
+			"foreignField": "match_id",
+			"as":           "competitor_match",
+		}}},
+		// Hacemos el unwind para obtener los documentos de la colección "competitor_matches"
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$competitor_match"}}},
+		// Filtro para excluir los competidores con ID nulo
+		bson.D{{Key: "$match", Value: bson.M{
+			"competitor_match.competitor_id": bson.M{"$ne": nil},
+		}}},
+		// Agrupamos por competitor_id para eliminar duplicados
+		bson.D{{Key: "$group", Value: bson.M{
+			"_id": "$competitor_match.competitor_id",
+		}}},
+		// Proyectamos solo el campo "competitor_id"
+		bson.D{{Key: "$project", Value: bson.M{
+			"competitor_id": "$_id",
+		}}},
+	}
+
+	// Ejecutamos el query en la colección de torneos
+	cursor, err := r.tournamentColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: no documents found for tournamentRegistration", customerrors.ErrNotFound)
+		}
+		return nil, fmt.Errorf("error when searching for tournamentRegistration: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	// Extraemos los IDs de los documentos encontrados
+	var competitorIDs []string
+	for cursor.Next(ctx) {
+		var doc struct {
+			CompetitorID primitive.ObjectID `bson:"competitor_id"`
+		}
+		if err := cursor.Decode(&doc); err != nil {
+			return nil, err
+		}
+		competitorIDs = append(competitorIDs, doc.CompetitorID.Hex())
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	// Devolvemos los IDs de los competidores encontrados
+	return competitorIDs, nil
+}
+

@@ -12,10 +12,12 @@ type GetCategoryInfoByIDDAORes struct {
 	TotalParticipants int                                `bson:"total_participants"`
 	RangeMovement     models.RANGE_MOVEMENT              `bson:"range_movement"`
 	Sport             models.SPORT                       `bson:"sport"`
+	CompetitorType    models.COMPETITOR_TYPE             `bson:"competitor_type"`
 	Organizer         GetCategoryInfoOrganizerByIDDAORes `bson:"organizer"`
 }
 
 type GetCategoryInfoOrganizerByIDDAORes struct {
-	FirstName string `bson:"first_name"`
-	LastName  string `bson:"last_name"`
+	ID        primitive.ObjectID `bson:"_id"`
+	FirstName string             `bson:"first_name"`
+	LastName  string             `bson:"last_name"`
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/DBrange/didis-comp-bk/cmd/api/utils"
-	"github.com/DBrange/didis-comp-bk/domains/tournament/models/dto"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	validate_util "github.com/DBrange/didis-comp-bk/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -20,61 +19,25 @@ func (h *Handler) OrganizeTournamentGroups(c *gin.Context) {
 	tournamentID := c.Param("tournamentID")
 	roundID := c.Param("roundID")
 
-	orderType, err := utils.ParseToInt(c, "order_type")
-	if err != nil {
-		customerrors.ErrorResponse(err, c)
-		return
-	}
-
-	top, err := utils.ParseToInt(c, "top")
-	if err != nil {
-		customerrors.ErrorResponse(err, c)
-		return
-	}
-
-	competitorDTOs, err := organizeTournamentGroupsBodyData(c)
-	if err != nil {
-		customerrors.ErrorResponse(err, c)
-		return
-	}
-
 	sport, err := organizeTournamentGroupsValidateQueries(c)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	if err := h.tournament.OrganizeTournamentGroups(ctx, tournamentID, roundID, competitorDTOs, *sport, orderType, top); err != nil {
+	orderType, top, availableCourts, averageHours, err := OrganizeTournamentGroupsValidateQueries(c, "order_type", "top", "available_courts", "average_hours")
+	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Matches succsessfully updated!"})
-
-}
-
-func organizeTournamentGroupsBodyData(c *gin.Context) ([]*dto.AddCompetitorsToTournamentGroupsDTOReq, error) {
-	var competitors struct {
-		Groups []*dto.AddCompetitorsToTournamentGroupsDTOReq `json:"groups"`
+	if err := h.tournament.OrganizeTournamentGroups(ctx, tournamentID, roundID, *sport, orderType, top, availableCourts, averageHours); err != nil {
+		customerrors.ErrorResponse(err, c)
+		return
 	}
 
-	if err := c.ShouldBindJSON(&competitors); err != nil {
-		err = fmt.Errorf("%w: error binding json: %v", customerrors.ErrGetJSON, err.Error())
-		tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")
-		errMsgTemplate := "error getting tournament"
-		return nil, customerrors.HandleError(err, tournamentErrorHandlers, errMsgTemplate)
-	}
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Matches succsessfully updated!"})
 
-	// Validar la estructura excepto el campo Location
-	err := validate_util.Validate.Struct(competitors)
-	if err != nil {
-		err = fmt.Errorf("%w: validation failed: %v", customerrors.ErrValidationFailed, err.Error())
-		tournamentErrorHandlers := customerrors.CreateErrorHandlers("tournament")
-		errMsgTemplate := "error validation tournament"
-		return nil, customerrors.HandleError(err, tournamentErrorHandlers, errMsgTemplate)
-	}
-
-	return competitors.Groups, nil
 }
 
 func organizeTournamentGroupsValidateQueries(c *gin.Context) (*models.SPORT, error) {
@@ -95,4 +58,28 @@ func organizeTournamentGroupsValidateQueries(c *gin.Context) (*models.SPORT, err
 	}
 
 	return &validateQueries.Sport, nil
+}
+
+func OrganizeTournamentGroupsValidateQueries(c *gin.Context, orderType, top, availableCourts, averageHours string) (int, int, int, int, error) {
+	orderTypeParsed, err := utils.ParseToInt(c, "order_type")
+	if err != nil {
+		return 0, 0, 0, 0, err
+	}
+
+	topParsed, err := utils.ParseToInt(c, "top")
+	if err != nil {
+		return 0, 0, 0, 0, err
+	}
+
+	availableCourtsParsed, err := utils.ParseToInt(c, "available_courts")
+	if err != nil {
+		return 0, 0, 0, 0, err
+	}
+
+	averageHoursParsed, err := utils.ParseToInt(c, "average_hours")
+	if err != nil {
+		return 0, 0, 0, 0, err
+	}
+
+	return orderTypeParsed, topParsed, availableCourtsParsed, averageHoursParsed, nil
 }

@@ -61,7 +61,7 @@ type ForManagingTournament interface {
 	CreateSingle(ctx context.Context, singleInfoDAO *single_dao.CreateSingleDAOReq) (string, error)
 	CreateDouble(ctx context.Context, doubleInfoDAO *double_dao.CreateDoubleDAOReq) (string, error)
 	CreateTeam(ctx context.Context, teamInfoDAO *team_dao.CreateTeamDAOReq) (string, error)
-	ListCompetitorsInTournament(ctx context.Context, tournamentID, categoryID, lastID string, limit int,getAll bool) ([]*tournament_registration_dao.GetCompetitorsInTournamentDAORes, error)
+	ListCompetitorsInTournament(ctx context.Context, tournamentID, categoryID, lastID string, limit int, getAll bool) ([]*tournament_registration_dao.GetCompetitorsInTournamentDAORes, error)
 	VerifyCompetitorExists(ctx context.Context, competitorOID *primitive.ObjectID) error
 	VerifyTournamentExists(ctx context.Context, tournamentOID *primitive.ObjectID) error
 	CreateCompetitorStats(ctx context.Context, competitorOID *primitive.ObjectID) error
@@ -194,4 +194,14 @@ type ForManagingTournament interface {
 	GetDailyAvailabilityTournamentID(ctx context.Context, tournamentID string, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, *primitive.ObjectID, error)
 	UpdateAvailability(ctx context.Context, availabilityID string, availabilityInfoDAO *availability_dao.UpdateDailyAvailabilityDAOReq) error
 	GetTournamentGroupsIDs(ctx context.Context, tournamentID string) ([]*primitive.ObjectID, error)
+	UpdateTournamentAvailability(
+		ctx context.Context,
+		tournamentOID *primitive.ObjectID,
+		availableCourts int,
+		averageHours int,
+	) error
+	GetTournamentSportsInOrganizer(ctx context.Context, organizerID string) ([]models.SPORT, error)
+	 GetMatchByID(ctx context.Context, matchID string, categoryID string) (*match_dao.GetMatchDAORes, error)
+	 GetMatchCategoryID(ctx context.Context, matchID string) (*primitive.ObjectID, error)
+	 GetTournamentCompetitorIDsInMatches(ctx context.Context, tournamentID string) ([]string, error)
 }

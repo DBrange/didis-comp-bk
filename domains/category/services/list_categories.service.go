@@ -8,7 +8,7 @@ import (
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
 
-func (s *CategoryService) ListCategories(ctx context.Context, organizerID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]dto.GetCategoriesFromOrganizerDTORes, error) {
+func (s *CategoryService) ListCategories(ctx context.Context, organizerID string, sport models.SPORT, competitorType *models.COMPETITOR_TYPE) ([]dto.GetCategoriesFromOrganizerDTORes, error) {
 	categoriesDTO, err := s.categoryQuerier.GetCategoriesFromOrganizer(ctx, organizerID, sport, competitorType)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "category", "error when getting categories")

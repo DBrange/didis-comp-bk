@@ -14,12 +14,16 @@ func (h *Handler) GetTournamentCompetitorIDs(c *gin.Context) {
 
 	tournamentID := c.Param("tournamentID")
 
-	round, err := h.tournament.GetTournamentCompetitorIDs(ctx, tournamentID)
+	competitorIds, err := h.tournament.GetTournamentCompetitorIDs(ctx, tournamentID)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": round, "status": http.StatusOK, "message": "Competitor IDs successfully found!"})
+	if competitorIds == nil{
+		competitorIds = []string{}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": competitorIds, "status": http.StatusOK, "message": "Competitor IDs successfully found!"})
 
 }

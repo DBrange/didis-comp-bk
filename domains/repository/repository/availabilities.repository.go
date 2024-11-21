@@ -197,6 +197,41 @@ func (r *Repository) UpdateAvailability(ctx context.Context, availabilityID stri
 
 	return nil
 }
+func (r *Repository) UpdateCompetitorAvailability(ctx context.Context, competitorOID *primitive.ObjectID, availabilityInfoDAO *availability_dao.UpdateDailyAvailabilityDAOReq) error {
+	// Filtra por el ID de disponibilidad y el día específico
+	filter := bson.M{
+		"competitor_id":            competitorOID,
+		"daily_availabilities.day": availabilityInfoDAO.Day,
+	}
+
+	// Usar el operador $[<identifier>] para actualizar solo el time_slot correspondiente
+	update := bson.M{
+		"$set": bson.M{"daily_availabilities.$.time_slots.$[elem]": availabilityInfoDAO.TimeSlots[0]}, // Actualiza el time_slot con la información nueva
+	}
+
+	// Definir el filtro de array (usando el campo TimeSlot como identificador)
+	arrayFilters := options.Update().SetArrayFilters(options.ArrayFilters{
+		Filters: []interface{}{
+			bson.M{"elem.time_slot": availabilityInfoDAO.TimeSlots[0].TimeSlot}, // Filtra por el campo TimeSlot
+		},
+	})
+
+	result, err := r.availabilityColl.UpdateOne(
+		ctx,
+		filter,
+		update,
+		arrayFilters, // Aplica el filtro de array para afectar solo el time_slot correcto
+	)
+	if err != nil {
+		return fmt.Errorf("%w: error updating 'availability': %s", customerrors.ErrUpdated, err.Error())
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: no 'availability' found with competitor_id: %s", customerrors.ErrNotFound, competitorOID.Hex())
+	}
+
+	return nil
+}
 
 func (r *Repository) GetDailyAvailabilityByID(ctx context.Context, availabilityID string, day string) (*availability_dao.GetDailyAvailabilityByIDDAORes, error) {
 	availabilityOID, err := r.ConvertToObjectID(availabilityID)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/DBrange/didis-comp-bk/cmd/api/utils"
 	"github.com/DBrange/didis-comp-bk/domains/tournament/models/dto"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	validate_util "github.com/DBrange/didis-comp-bk/pkg/utils"
@@ -23,7 +24,19 @@ func (h *Handler) OrganizeBracket(c *gin.Context) {
 		return
 	}
 
-	if err := h.tournament.OrganizeBracket(ctx,tournamentID, competitorMatch); err != nil {
+	availableCourts, err := utils.ParseToInt(c, "available_courts")
+	if err != nil {
+		customerrors.ErrorResponse(err, c)
+		return
+	}
+
+	averageHours, err := utils.ParseToInt(c, "average_hours")
+	if err != nil {
+		customerrors.ErrorResponse(err, c)
+		return
+	}
+
+	if err := h.tournament.OrganizeBracket(ctx, tournamentID, competitorMatch, availableCourts, averageHours); err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}

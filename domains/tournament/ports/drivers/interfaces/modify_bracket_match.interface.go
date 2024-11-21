@@ -7,5 +7,5 @@ import (
 )
 
 type ModifyBracketMatch interface {
-	ModifyBracketMatch(ctx context.Context, tournamentID, userID string, competitors []*dto.UpdateCompetitorMatchDTOReq) error
+	ModifyBracketMatch(ctx context.Context, tournamentID string, competitors []*dto.UpdateCompetitorMatchDTOReq) error
 }

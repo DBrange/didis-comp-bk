@@ -40,7 +40,7 @@ func (s *ProfileService) RegisterUser(ctx context.Context, profileInfoDTO *dto.R
 
 	wg.Add(2)
 	go s.createLocationConcurrently(ctx, locationDTO, wg, locationCh)
-	go s.getRoleByNameAndTypeConcurrently(ctx, "FREE", "COMPETITOR", wg, roleCh)
+	go s.getRoleByNameAndTypeConcurrently(ctx, "COMPETITOR", "USER", wg, roleCh)
 
 	// Esperar a que todas las goroutines terminen y cerrar los canales
 	go func() {

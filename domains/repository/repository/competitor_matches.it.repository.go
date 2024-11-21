@@ -107,7 +107,7 @@ func (r *Repository) UpdateMultipleCompetitorMatches(ctx context.Context, compet
 	if result.MatchedCount != result.ModifiedCount {
 		return fmt.Errorf("mismatch in update counts: matched %d, modified %d", result.MatchedCount, result.ModifiedCount)
 	}
-	fmt.Println("llegue aca al menos")
+
 	return nil
 }
 

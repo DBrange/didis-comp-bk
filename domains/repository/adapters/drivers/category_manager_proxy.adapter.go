@@ -69,12 +69,11 @@ func (a *CategoryManagerProxyAdapter) VerifyCategoryExistsRelation(ctx context.C
 	return a.repository.VerifyCategoryExistsRelation(ctx, categoryRegistrationDAO)
 }
 
-func (a *CategoryManagerProxyAdapter) GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*category_registration_dao.GetCompetitorsOfCategoryDAORes, error) {
+func (a *CategoryManagerProxyAdapter) GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*category_registration_dao.GetCompetitorsOfCategoryCompetitorDAORes, error) {
 	categoryOID, err := a.ConvertToObjectID(categoryID)
 	if err != nil {
 		return nil, err
 	}
-
 
 	return a.repository.GetCompetitorsOfCategoryByName(ctx, categoryOID, sport, competitorType, name)
 }
@@ -115,7 +114,7 @@ func (a *CategoryManagerProxyAdapter) DecrementTotalParticipants(ctx context.Con
 	return a.repository.DecrementTotalParticipants(ctx, categoryOID)
 }
 
-func (a *CategoryManagerProxyAdapter) GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*category_registration_dao.GetCompetitorsOfCategoryDAORes, error) {
+func (a *CategoryManagerProxyAdapter) GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*category_registration_dao.GetCompetitorsOfCategoryCompetitorDAORes, error) {
 	categoryOID, err := a.ConvertToObjectID(categoryID)
 	if err != nil {
 		return nil, err
@@ -142,11 +141,15 @@ func (a *CategoryManagerProxyAdapter) PermaDeleteCategoryRegistration(ctx contex
 	return a.repository.PermaDeleteCategoryRegistration(ctx, mc, categoryRegistrationID)
 }
 
+func (a *CategoryManagerProxyAdapter) DeleteCategoryRegistration(ctx context.Context, categoryOID, competitorOID *primitive.ObjectID) error {
+	return a.repository.DeleteCategoryRegistration(ctx,categoryOID, competitorOID)
+}
+
 func (a *CategoryManagerProxyAdapter) AddCategoryInOrganizer(ctx context.Context, organizerOID, categoryOID *primitive.ObjectID) error {
 	return a.repository.AddCategoryInOrganizer(ctx, organizerOID, categoryOID)
 }
 
-func (a *CategoryManagerProxyAdapter) GetCategoriesFromOrganizer(ctx context.Context, organizerID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]organizer_dao.GetCategoriesFromOrganizerDAORes, error) {
+func (a *CategoryManagerProxyAdapter) GetCategoriesFromOrganizer(ctx context.Context, organizerID string, sport models.SPORT, competitorType *models.COMPETITOR_TYPE) ([]organizer_dao.GetCategoriesFromOrganizerDAORes, error) {
 	organizerOID, err := a.ConvertToObjectID(organizerID)
 	if err != nil {
 		return nil, err
@@ -155,12 +158,12 @@ func (a *CategoryManagerProxyAdapter) GetCategoriesFromOrganizer(ctx context.Con
 	return a.repository.GetCategoriesFromOrganizer(ctx, organizerOID, sport, competitorType)
 }
 
-func (a *CategoryManagerProxyAdapter) GetTournamentsFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]category_dao.GetTournamentsFromCategoryDAORes, error) {
+func (a *CategoryManagerProxyAdapter) GetTournamentsFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*category_dao.GetTournamentsFromCategoryDAORes, error) {
 	categoryOID, err := a.ConvertToObjectID(categoryID)
 	if err != nil {
 		return nil, err
 	}
-
+	
 	var lastOID *primitive.ObjectID
 	if lastID != "" {
 		lastOID, err = a.ConvertToObjectID(lastID)
@@ -227,4 +230,32 @@ func (a *CategoryManagerProxyAdapter) VerifyTournamentGroupInTournament(ctx cont
 
 func (a *CategoryManagerProxyAdapter) DeletePotByPosition(ctx context.Context, position int, tournamentOID *primitive.ObjectID) error {
 	return a.repository.DeletePotByPosition(ctx, position, tournamentOID)
+}
+
+func (a *CategoryManagerProxyAdapter) GetCategoryCompetitorsNumber(ctx context.Context, categoryID string) (int64, error) {
+	categoryOID, err := a.ConvertToObjectID(categoryID)
+	if err != nil {
+		return 0, err
+	}
+
+	return a.repository.GetCategoryCompetitorsNumber(ctx, categoryOID)
+}
+
+	func (a *CategoryManagerProxyAdapter)GetTournamentsFromCategoryNumber(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) (int, error) {
+		categoryOID, err := a.ConvertToObjectID(categoryID)
+		if err != nil {
+			return 0, err
+		}
+		
+		return a.repository.GetTournamentsFromCategoryNumber(ctx, categoryOID, sport, competitorType)
+	}
+	
+	func (a *CategoryManagerProxyAdapter)	GetTournamentsByNameFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, tournamentName string) ([]*category_dao.GetTournamentsFromCategoryDAORes, error){
+	categoryOID, err := a.ConvertToObjectID(categoryID)
+	if err != nil {
+		return nil, err
+	}
+	
+	return a.repository.GetTournamentsByNameFromCategory(ctx, categoryOID, sport, competitorType,tournamentName)
+
 }

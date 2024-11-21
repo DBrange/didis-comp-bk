@@ -27,5 +27,5 @@ func (h *Handler) ModifyCompetitorPoints(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusOK, "message": "Competitor has successfully updated!"})
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Competitor has successfully updated!"})
 }

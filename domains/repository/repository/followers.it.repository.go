@@ -128,118 +128,103 @@ func (r *Repository) DeleteFollower(ctx context.Context, followerID string) erro
 }
 
 func (r *Repository) GetCompetitorsFollowed(ctx context.Context, userOID *primitive.ObjectID, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dao.GetCompetitorFollowedDAORes, error) {
-    var followers []*dao.GetCompetitorFollowedDAORes
+	var followers []*dao.GetCompetitorFollowedDAORes
 
-    if name == "" {
-        return followers, nil
-    }
+	if name == "" {
+		return followers, nil
+	}
 
-    pipeline := mongo.Pipeline{
-        {{Key: "$match", Value: bson.M{"from": userOID}}},
-        {{Key: "$lookup", Value: bson.M{
-            "from":         "users",
-            "localField":   "to_user",
-            "foreignField": "_id",
-            "as":           "user",
-        }}},
-        {{Key: "$unwind", Value: bson.M{"path": "$user", "preserveNullAndEmptyArrays": true}}},
-        {{Key: "$lookup", Value: bson.M{
-            "from":         "competitor_users",
-            "localField":   "user._id",
-            "foreignField": "user_id",
-            "as":           "competitor_user",
-        }}},
-        {{Key: "$unwind", Value: bson.M{"path": "$competitor_user", "preserveNullAndEmptyArrays": true}}},
-        {{Key: "$lookup", Value: bson.M{
-            "from":         "competitors",
-            "localField":   "competitor_user.competitor_id",
-            "foreignField": "_id",
-            "as":           "competitor",
-        }}},
-        {{Key: "$unwind", Value: bson.M{"path": "$competitor", "preserveNullAndEmptyArrays": true}}},
-        {{Key: "$match", Value: bson.M{"competitor.sport": sport}}},
-        {{Key: "$group", Value: bson.M{
-            "_id": "$competitor_user.competitor_id",
-            "users": bson.M{"$push": "$user"},
-            "guest_users": bson.M{"$push": "$guest_users"},
-        }}},
-        {{Key: "$lookup", Value: bson.M{
-            "from":         "competitor_users",
-            "localField":   "_id",
-            "foreignField": "competitor_id",
-            "as":           "competitor_users",
-        }}},
-        {{Key: "$lookup", Value: bson.M{
-            "from":         "guest_competitors",
-            "localField":   "_id",
-            "foreignField": "competitor_id",
-            "as":           "guest_competitors",
-        }}},
-        {{Key: "$lookup", Value: bson.M{
-            "from":         "users",
-            "localField":   "competitor_users.user_id",
-            "foreignField": "_id",
-            "as":           "users",
-        }}},
-        {{Key: "$lookup", Value: bson.M{
-            "from":         "guest_users",
-            "localField":   "guest_competitors.guest_user_id",
-            "foreignField": "_id",
-            "as":           "guest_users",
-        }}},
-        {{Key: "$project", Value: bson.M{
-            "_id": 1,
-						"current_position": nil,
-            "users": bson.M{
-                "$map": bson.M{
-                    "input": "$users",
-                    "as": "user",
-                    "in": bson.M{
-                        "_id":        "$$user._id",
-                        "first_name": "$$user.first_name",
-                        "last_name":  "$$user.last_name",
-                        "image":      "$$user.image",
-                        "username":   "$$user.username",
-                    },
-                },
-            },
-            "guest_users": bson.M{
-                "$map": bson.M{
-                    "input": "$guest_users",
-                    "as": "guest",
-                    "in": bson.M{
-                        "_id":        "$$guest._id",
-                        "first_name": "$$guest.first_name",
-                        "last_name":  "$$guest.last_name",
-                        "image":      "$$guest.image",
-                        "username":   nil, // Devuelves nil para guest_users
-                    },
-                },
-            },
-        }}},
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{
+			"from": userOID,
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "users",
+			"localField":   "to_user",
+			"foreignField": "_id",
+			"as":           "user",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$user"}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "competitor_users",
+			"localField":   "user._id",
+			"foreignField": "user_id",
+			"as":           "competitor_user",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$competitor_user"}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "competitor_users",
+			"localField":   "user._id",
+			"foreignField": "user_id",
+			"as":           "competitor_user",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$competitor_user"}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "competitors",
+			"localField":   "competitor_user.competitor_id",
+			"foreignField": "_id",
+			"as":           "competitor",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$competitor"}},
+		bson.D{{Key: "$match", Value: bson.M{
+			"competitor.sport": sport,
+		}}},
+		bson.D{{Key: "$limit", Value: 10}},
+		bson.D{{Key: "$group", Value: bson.M{
+			"_id": "$competitor_user.competitor_id",
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "competitor_users",
+			"localField":   "_id",
+			"foreignField": "competitor_id",
+			"as":           "all_competitor_users",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$all_competitor_users"}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "users",
+			"localField":   "all_competitor_users.user_id",
+			"foreignField": "_id",
+			"as":           "all_users",
+		}}},
+		bson.D{{Key: "$unwind", Value: "$all_users"}},
+		bson.D{{Key: "$group", Value: bson.M{
+			"_id": "$_id",
+			"users": bson.M{
+				"$push": bson.M{
+					"_id":        "$all_users._id",
+					"first_name": "$all_users.first_name",
+					"last_name":  "$all_users.last_name",
+					"image":      "$all_users.image",
+				},
+			},
+		}}},
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":   "$_id",
+			"users": 1,
+		}}},
+	}
 
-    }
+	pipeline = r.getParticipantsOfCategoryNameFilter(pipeline, name,true)
+	pipeline = r.singlesOrDoublesCategoryFilter(pipeline, competitorType)
 
-    // Applying filters for name and competitor type
-    pipeline = r.agetParticipantsOfCategoryNameFilter(pipeline, name, true)
-    pipeline = r.singlesOrDoublesFollowersFilter(pipeline, competitorType)
-    pipeline = append(pipeline, bson.D{{Key: "$limit", Value: 10}})
+	cursor, err := r.followerColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("%w: error when searching for follower: %s", customerrors.ErrNotFound, err.Error())
+		}
+		return nil, fmt.Errorf("error when searching for the follower: %w", err)
+	}
 
-    cursor, err := r.followerColl.Aggregate(ctx, pipeline)
-    if err != nil {
-        if err == mongo.ErrNoDocuments {
-            return nil, fmt.Errorf("%w: error when searching for follower: %s", customerrors.ErrNotFound, err.Error())
-        }
-        return nil, fmt.Errorf("error when searching for the follower: %w", err)
-    }
+	defer cursor.Close(ctx)
 
-    defer cursor.Close(ctx)
+	if err = cursor.All(ctx, &followers); err != nil {
+		return nil, fmt.Errorf("error when decoding follower: %w", err)
+	}
+	for _, f := range followers {
 
-    if err = cursor.All(ctx, &followers); err != nil {
-        return nil, fmt.Errorf("error when decoding follower: %w", err)
-    }
-
-    return followers, nil
+		fmt.Printf("asas %+v", f)
+	}
+	return followers, nil
 }
 
 func (r *Repository) singlesOrDoublesFollowersFilter(pipeline mongo.Pipeline, competitorType models.COMPETITOR_TYPE) mongo.Pipeline {
@@ -325,7 +310,7 @@ func (r *Repository) GetUserFollowers(
 
 	// Aplicar filtro de nombre si se proporciona
 	if name != "" {
-		pipeline = r.agetParticipantsOfCategoryNameFilter(pipeline, name, false)
+		pipeline = r.getParticipantsOfCategoryNameFilter(pipeline, name, false)
 	}
 
 	// Clonar el pipeline para el conteo total antes de aplicar el límite

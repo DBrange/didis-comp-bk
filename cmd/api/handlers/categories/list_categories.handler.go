@@ -22,13 +22,13 @@ func (h *Handler) ListCategories(c *gin.Context) {
 		return
 	}
 
-	categories, err := h.category.ListCategories(ctx, organizerID, *sport, *competitorType)
+	categories, err := h.category.ListCategories(ctx, organizerID, *sport, competitorType)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": categories, "status": http.StatusOK, "message": "List categories finded!"})
+	c.JSON(http.StatusOK, gin.H{"data": categories, "status": http.StatusOK, "message": "List categories finded!"})
 }
 
 func listCategoriesValidateQueries(c *gin.Context) (*model_utils.SPORT, *model_utils.COMPETITOR_TYPE, error) {
@@ -36,11 +36,11 @@ func listCategoriesValidateQueries(c *gin.Context) (*model_utils.SPORT, *model_u
 	competitorType := c.Query("competitor_type")
 
 	type validateSearchCompetitorForCategoryQueries struct {
-		Sport          string `json:"sport" validate:"sport,required"`
-		CompetitorType string `json:"competitor_type" validate:"competitorType,required"`
+		Sport          string  `json:"sport" validate:"sport,required"`
+		CompetitorType *string `json:"competitor_type" validate:"omitempty"` // Permitimos omitir competitorType
 	}
 
-	validateQueries := &validateSearchCompetitorForCategoryQueries{Sport: sport, CompetitorType: competitorType}
+	validateQueries := &validateSearchCompetitorForCategoryQueries{Sport: sport, CompetitorType: &competitorType}
 
 	err := validate_utils.Validate.Struct(validateQueries)
 	if err != nil {
@@ -50,24 +50,29 @@ func listCategoriesValidateQueries(c *gin.Context) (*model_utils.SPORT, *model_u
 		return nil, nil, customerrors.HandleError(err, categoryErrorHandlers, errMsgTemplate)
 	}
 
-	sportParsed, competcompetitorTypeParsed, err := listCategoriesQueriesParser(sport, competitorType)
+	sportParsed, competitorTypeParsed, err := listCategoriesQueriesParser(sport, validateQueries.CompetitorType)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return &sportParsed, &competcompetitorTypeParsed, nil
+	return &sportParsed, competitorTypeParsed, nil
 }
 
-func listCategoriesQueriesParser(sport, competitorType string) (model_utils.SPORT, model_utils.COMPETITOR_TYPE, error) {
+func listCategoriesQueriesParser(sport string, competitorType *string) (model_utils.SPORT, *model_utils.COMPETITOR_TYPE, error) {
 	sportParsed, err := model_utils.ParseSport(sport)
 	if err != nil {
-		return "", "", err
+		return "", nil, err
 	}
 
-	competitorTypeParsed, err := model_utils.ParseCompetitorType(competitorType)
-	if err != nil {
-		return "", "", err
+	var competitorTypeParsed *model_utils.COMPETITOR_TYPE
+	if competitorType != nil && *competitorType != "" {
+		parsedType, err := model_utils.ParseCompetitorType(*competitorType)
+		if err != nil {
+			return "", nil, err
+		}
+		competitorTypeParsed = &parsedType
 	}
 
 	return sportParsed, competitorTypeParsed, nil
 }
+

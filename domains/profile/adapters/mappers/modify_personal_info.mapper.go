@@ -9,6 +9,7 @@ func ModifyPersonalInfoMapper(profileDTO *dto.ModifyPersonalInfoDTOReq) (*dto.Up
 		FirstName: profileDTO.FirstName,
 		LastName:  profileDTO.LastName,
 		Username:  profileDTO.Username,
+		Birthdate: profileDTO.Birthdate,
 		Image:     profileDTO.Image,
 		Phone:     profileDTO.Phone,
 	}

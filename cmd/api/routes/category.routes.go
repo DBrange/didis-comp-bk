@@ -10,10 +10,6 @@ func categoryRoutes(router *gin.Engine, handler *handlers.Handler) {
 
 	categoriesRouter.POST("/organize/:organizerID", handler.OrganizeCategory)
 
-	categoriesRouter.POST("/add-tournament/:categoryID/:tournamentID", handler.AddTournamentInCategory)
-
-	categoriesRouter.POST("/add-competitor/:categoryID/:competitorID", handler.AddCompetitorInCategory)
-	
 	categoriesRouter.POST("/register-guest-competitor/:categoryID", handler.AddGuestUserInCategory)
 
 	categoriesRouter.GET("/search-competitor-in-category/:categoryID", handler.SearchCompetitorInCategory)
@@ -28,9 +24,15 @@ func categoryRoutes(router *gin.Engine, handler *handlers.Handler) {
 
 	categoriesRouter.GET("/list-tournaments/:categoryID", handler.GetTournamentsFromCategory)
 
+	categoriesRouter.GET("/list-tournaments-by-name/:categoryID", handler.GetTournamentsByNameFromCategory)
+
 	categoriesRouter.PUT("/modify-info/:categoryID", handler.ModifyCategoryInfo)
 
 	categoriesRouter.PUT("/modify-competitor-points/:categoryID/:competitorID", handler.ModifyCompetitorPoints)
 
-	categoriesRouter.DELETE("/remove-competitor/:category_registrationID", handler.RemoveCompetitorFromCategory)
+	categoriesRouter.PUT("/add-tournament/:categoryID/:tournamentID", handler.AddTournamentInCategory)
+
+	categoriesRouter.PUT("/add-competitor/:categoryID/:competitorID", handler.AddCompetitorInCategory)
+
+	categoriesRouter.DELETE("/remove-competitor/:categoryID/:competitorID", handler.RemoveCompetitorFromCategory)
 }

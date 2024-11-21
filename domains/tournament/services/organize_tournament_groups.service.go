@@ -13,7 +13,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *TournamentService) OrganizeTournamentGroups(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT, orderType, top int) error {
+func (s *TournamentService) OrganizeTournamentGroups(
+	ctx context.Context,
+	tournamentID, roundID string,
+	sport models.SPORT,
+	orderType, top, availableCourts, averageHours int,
+) error {
 	categoryID, err := s.tournamentQuerier.GetCategoryIDOfTournament(ctx, tournamentID)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when getting tournament competitors")
@@ -44,7 +49,7 @@ func (s *TournamentService) OrganizeTournamentGroups(ctx context.Context, tourna
 		}
 
 		// Create matches alghoritm
-		if err := s.createRoundRobin(sessCtx, tournamentID, roundID, competitors, sport); err != nil {
+		if err := s.createRoundRobin(sessCtx, tournamentID, roundID, competitors, sport, availableCourts, availableCourts); err != nil {
 			return customerrors.HandleErrMsg(err, "tournament", "error when adding competitors in groups")
 		}
 
@@ -182,20 +187,29 @@ func distributeCompetitorsByPosition(
 	return groups
 }
 
-func (s *TournamentService) createRoundRobin(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT) error {
+func (s *TournamentService) createRoundRobin(ctx context.Context, tournamentID, roundID string, competitorDTOs []*dto.AddCompetitorsToTournamentGroupsDTOReq, sport models.SPORT, availableCourts, averageHours int) error {
 	competitorsInMatchMap, err := s.createMatchesFromRoundRobin(ctx, tournamentID, roundID, competitorDTOs, sport)
 	if err != nil {
 		return err
 	}
 
-	courtAvailability, tournamentAvailabilities, err := s.getPartialAvailabilityInTournament(ctx, tournamentID)
+	tournamentAvailabilities, err := s.getPartialAvailabilityInTournament(ctx, tournamentID)
 	if err != nil {
 		return err
 	}
 
+	availability := &dto.TournamentAvailabilityDTO{
+		AvailableCourts: availableCourts,
+		AverageHours:    averageHours,
+	}
+
 	timetablesNotAvailables := []time.Time{}
-	if err := s.updateMatchesDates(ctx, competitorsInMatchMap, courtAvailability, tournamentAvailabilities, timetablesNotAvailables); err != nil {
+	if err := s.updateMatchesDates(ctx, competitorsInMatchMap, availability, tournamentAvailabilities, timetablesNotAvailables); err != nil {
 		return err
+	}
+
+	if err := s.tournamentQuerier.UpdateTournamentAvailability(ctx, tournamentID, availableCourts, averageHours); err != nil {
+		return customerrors.HandleErrMsg(err, "tournament", "error when updating competitorMatches")
 	}
 
 	return nil

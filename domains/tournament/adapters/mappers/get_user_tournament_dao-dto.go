@@ -7,12 +7,11 @@ import (
 )
 
 func GetUserTournamentsDAOtoDTO(userTournametsDAO *tournament_dao.GetUserTournamentsDAORes) *dto.GetUserTournamentsDTORes {
-return &dto.GetUserTournamentsDTORes{
-	Tournaments: getUserTournamentsTournamentDAOtoDTO(userTournametsDAO.Tournaments),
-	Total: userTournametsDAO.Total,
+	return &dto.GetUserTournamentsDTORes{
+		Tournaments: getUserTournamentsTournamentDAOtoDTO(userTournametsDAO.Tournaments),
+		Total:       userTournametsDAO.Total,
+	}
 }
-}
-
 
 func getUserTournamentsTournamentDAOtoDTO(tournametsDAO []*tournament_dao.GetUserTournamentDAORes) []*dto.GetUserTournamentDTORes {
 	tournametsDTO := make([]*dto.GetUserTournamentDTORes, len(tournametsDAO))
@@ -24,9 +23,9 @@ func getUserTournamentsTournamentDAOtoDTO(tournametsDAO []*tournament_dao.GetUse
 			StartDate:    tournamentDAO.StartDate,
 			FinishDate:   tournamentDAO.FinishDate,
 			Points:       tournamentDAO.Points,
-			Image:       tournamentDAO.Image,
+			Image:        tournamentDAO.Image,
 			AverageScore: tournamentDAO.AverageScore,
-			TotalPrize: tournamentDAO.TotalPrize,
+			TotalPrize:   tournamentDAO.TotalPrize,
 			Location:     getUserTournamentsLocationDAOtoDTO(tournamentDAO.Location),
 			Organizer:    getUserTournamentsOrganizerDAOtoDTO(tournamentDAO.Organizer),
 		}

@@ -8,6 +8,7 @@ import (
 	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	api_assets "github.com/DBrange/didis-comp-bk/cmd/api/utils"
 	"github.com/DBrange/didis-comp-bk/domains/repository/models/match/dao"
+	round_dao "github.com/DBrange/didis-comp-bk/domains/repository/models/round/dao"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -36,26 +37,26 @@ func (r *Repository) CreateMatch(ctx context.Context, matchDAO *dao.CreateMatchD
 	return id, nil
 }
 
-func (r *Repository) GetMatchByID(ctx context.Context, matchID string) (*dao.GetMatchByIDDAORes, error) {
-	var match dao.GetMatchByIDDAORes
+// func (r *Repository) GetMatchByID(ctx context.Context, matchID string) (*dao.GetMatchByIDDAORes, error) {
+// 	var match dao.GetMatchByIDDAORes
 
-	matchOID, err := r.ConvertToObjectID(matchID)
-	if err != nil {
-		return nil, err
-	}
+// 	matchOID, err := r.ConvertToObjectID(matchID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	filter := bson.M{"_id": *matchOID}
+// 	filter := bson.M{"_id": *matchOID}
 
-	err = r.matchColl.FindOne(ctx, filter).Decode(&match)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%w: error when searching for match: %s", customerrors.ErrNotFound, err.Error())
-		}
-		return nil, fmt.Errorf("error when searching for the match: %w", err)
-	}
+// 	err = r.matchColl.FindOne(ctx, filter).Decode(&match)
+// 	if err != nil {
+// 		if err == mongo.ErrNoDocuments {
+// 			return nil, fmt.Errorf("%w: error when searching for match: %s", customerrors.ErrNotFound, err.Error())
+// 		}
+// 		return nil, fmt.Errorf("error when searching for the match: %w", err)
+// 	}
 
-	return &match, nil
-}
+// 	return &match, nil
+// }
 
 func (r *Repository) FindMatchID(ctx context.Context, position int, roundOID *primitive.ObjectID) (string, error) {
 	var findID struct {
@@ -413,4 +414,170 @@ func (r *Repository) UpdateMatchDate(ctx context.Context, matchOID *primitive.Ob
 	}
 
 	return nil
+}
+
+func (r *Repository) GetMatchByID(ctx context.Context, matchOID *primitive.ObjectID, categoryOID *primitive.ObjectID) (*dao.GetMatchDAORes, error) {
+	pipeline := buildMatchByIDPipeline(matchOID, categoryOID)
+
+	var result dao.GetMatchDAORes
+	cursor, err := r.matchColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error executing aggregate pipeline: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("error decoding result: %w", err)
+		}
+	} else {
+		return nil, fmt.Errorf("match not found: %s", matchOID.Hex())
+	}
+
+	processMatchCompetitors(&result)
+	return &result, nil
+}
+
+func buildMatchByIDPipeline(matchOID, categoryOID *primitive.ObjectID) mongo.Pipeline {
+	return mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{"_id": matchOID}}},
+		bson.D{{Key: "$lookup", Value: buildLookupStage("rounds", "round_id", "_id", "round")}},
+		bson.D{{Key: "$lookup", Value: buildLookupStage("tournaments", "tournament_id", "_id", "tournament")}},
+		bson.D{{Key: "$lookup", Value: buildLookupStage("competitor_matches", "_id", "match_id", "competitor_matches")}},
+		bson.D{{Key: "$lookup", Value: buildLookupStage("competitor_users", "competitor_matches.competitor_id", "competitor_id", "competitor_users")}},
+		bson.D{{Key: "$lookup", Value: buildLookupStage("users", "competitor_users.user_id", "_id", "users")}},
+		bson.D{{Key: "$lookup", Value: buildLookupStage("guest_competitors", "competitor_matches.competitor_id", "competitor_id", "guest_competitors")}},
+		bson.D{{Key: "$lookup", Value: buildLookupStage("guest_users", "guest_competitors.guest_user_id", "_id", "guest_users")}},
+		bson.D{{Key: "$lookup", Value: buildLookupStage("category_registrations", "competitor_matches.competitor_id", "competitor_id", "category_registration")}},
+		bson.D{{Key: "$project", Value: buildMatchByIDProjection(categoryOID)}},
+	}
+}
+
+func buildMatchByIDProjection(categoryOID *primitive.ObjectID) bson.M {
+	return bson.M{
+		"_id":      1,
+		"date":     1,
+		"result":   1,
+		"winner":   1,
+		"position": 1,
+		"sport":    1,
+		"round": bson.M{
+			"$arrayElemAt": bson.A{
+				bson.M{"$map": bson.M{
+					"input": "$round",
+					"as":    "r",
+					"in": bson.M{
+						"_id":   "$$r._id",
+						"round": "$$r.round",
+					},
+				}}, 0,
+			},
+		},
+		"tournament": bson.M{
+			"$arrayElemAt": bson.A{
+				bson.M{"$map": bson.M{
+					"input": "$tournament",
+					"as":    "t",
+					"in": bson.M{
+						"_id":  "$$t._id",
+						"name": "$$t.name",
+					},
+				}}, 0,
+			},
+		},
+		"competitors": bson.M{
+			"$map": bson.M{
+				"input": "$competitor_matches",
+				"as":    "cm",
+				"in": bson.M{
+					"_id":              "$$cm.competitor_id",
+					"current_position": buildCurrentPositionProjection(categoryOID),
+					"position":         "$$cm.position",
+					"users":            buildUsersProjection(),
+					"guest_users":      buildGuestUsersProjection(),
+				},
+			},
+		},
+	}
+}
+
+func processMatchCompetitors(result *dao.GetMatchDAORes) {
+	for i, competitor := range result.Competitors {
+		if len(competitor.Users) > 0 {
+			result.Competitors[i].GuestUsers = []*round_dao.GetRoundWithMatchesUserDAORes{}
+		} else if len(competitor.GuestUsers) > 0 {
+			result.Competitors[i].Users = []*round_dao.GetRoundWithMatchesUserDAORes{}
+		} else {
+			result.Competitors[i].Users = []*round_dao.GetRoundWithMatchesUserDAORes{}
+			result.Competitors[i].GuestUsers = []*round_dao.GetRoundWithMatchesUserDAORes{}
+		}
+	}
+
+	if result.Winner != nil {
+		result.PositionWinner = findCompetitorPosition(result.Competitors, *result.Winner)
+	}
+}
+
+func (r *Repository) GetMatchCategoryID(ctx context.Context, matchOID *primitive.ObjectID) (*primitive.ObjectID, error) {
+	// Define el pipeline de agregación
+	pipeline := mongo.Pipeline{
+		// Filtro inicial para encontrar el match por su ID
+		bson.D{
+			{Key: "$match", Value: bson.M{"_id": matchOID}},
+		},
+
+		// Lookup para obtener el torneo (tournament_id)
+		bson.D{
+			{Key: "$lookup", Value: bson.M{
+				"from":         "tournaments",
+				"localField":   "tournament_id",
+				"foreignField": "_id",
+				"as":           "tournament",
+			}},
+		},
+
+		// Unwind del torneo (permitiendo valores nulos)
+		bson.D{
+			{Key: "$unwind", Value: bson.M{
+				"path":                       "$tournament",
+				"preserveNullAndEmptyArrays": true,
+			}},
+		},
+
+		// Proyección para acceder al campo category_id del torneo
+		bson.D{
+			{Key: "$project", Value: bson.M{
+				"category_id": "$tournament.category_id",
+			}},
+		},
+	}
+
+	// Ejecuta el pipeline de agregación
+	cursor, err := r.matchColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error during aggregation: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	// Decode el primer resultado
+	var result struct {
+		CategoryID *primitive.ObjectID `bson:"category_id"`
+	}
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("error decoding cursor result: %w", err)
+		}
+	}
+
+	// Maneja errores de cursor
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	// Si no hay resultado, retorna nil
+	if result.CategoryID == nil {
+		return nil, nil
+	}
+
+	return result.CategoryID, nil
 }

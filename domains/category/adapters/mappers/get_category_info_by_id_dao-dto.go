@@ -7,15 +7,17 @@ import (
 
 func GetCategoryInfoByIDDAOtoDTO(categoryInfoDAO *dao.GetCategoryInfoByIDDAORes) *dto.GetCategoryInfoByIDDTORes {
 	categoryInfoDTO := &dto.GetCategoryInfoByIDDTORes{
-		ID: categoryInfoDAO.ID.Hex(),
-		Name: categoryInfoDAO.Name,
-		Genre: categoryInfoDAO.Genre,
+		ID:                categoryInfoDAO.ID.Hex(),
+		Name:              categoryInfoDAO.Name,
+		Genre:             categoryInfoDAO.Genre,
 		TotalParticipants: categoryInfoDAO.TotalParticipants,
-		RangeMovement: categoryInfoDAO.RangeMovement,
-		Sport: categoryInfoDAO.Sport,
+		RangeMovement:     categoryInfoDAO.RangeMovement,
+		Sport:             categoryInfoDAO.Sport,
+		CompetitorType:    categoryInfoDAO.CompetitorType,
 		Organizer: dto.GetCategoryInfoOrganizerByIDDTORes{
+			ID:        categoryInfoDAO.Organizer.ID.Hex(),
 			FirstName: categoryInfoDAO.Organizer.FirstName,
-			LastName: categoryInfoDAO.Organizer.LastName,
+			LastName:  categoryInfoDAO.Organizer.LastName,
 		},
 	}
 

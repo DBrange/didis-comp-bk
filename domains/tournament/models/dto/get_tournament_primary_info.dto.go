@@ -22,6 +22,7 @@ type GetTournamentPrimaryInfoDTORes struct {
 	Sport            models.SPORT                            `json:"sport"`
 	CompetitorType   models.SPORT                            `json:"competitor_type"`
 	Surface          models.TENNIS_SURFACE                   `json:"surface"`
+	Availability     *TournamentAvailabilityDTO              `json:"availability"`
 	Rounds           []*GetTournamentPrimaryInforRoundDTORes `json:"rounds"`
 	Location         *dto.GetLocationByIDDTORes              `json:"location"`
 	Organizer        *GetUserTournamentOrganizerDTORes       `json:"organizer"`

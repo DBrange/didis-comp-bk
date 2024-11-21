@@ -150,7 +150,7 @@ func (a *TournamentManagerProxyAdapter) CreateTeam(ctx context.Context, teamInfo
 
 func (a *TournamentManagerProxyAdapter) ListCompetitorsInTournament(
 	ctx context.Context,
-	tournamentID, categoryID,	lastID string, 
+	tournamentID, categoryID, lastID string,
 	limit int,
 	getAll bool,
 ) ([]*tournament_registration_dao.GetCompetitorsInTournamentDAORes, error) {
@@ -179,7 +179,7 @@ func (a *TournamentManagerProxyAdapter) ListCompetitorsInTournament(
 		lastOID = nil
 	}
 
-	return a.repository.GetCompetitorsInTournament(ctx, tournamentOID, categoryOID, lastOID, limit,getAll)
+	return a.repository.GetCompetitorsInTournament(ctx, tournamentOID, categoryOID, lastOID, limit, getAll)
 }
 
 func (a *TournamentManagerProxyAdapter) VerifyCompetitorExists(ctx context.Context, competitorOID *primitive.ObjectID) error {
@@ -677,8 +677,8 @@ func (a *TournamentManagerProxyAdapter) GetAllDatesMatchesFromTournament(ctx con
 	return a.repository.GetAllDatesMatchesFromTournament(ctx, tournamentOID)
 }
 
-func (a *TournamentManagerProxyAdapter) UpdateMatchDate(ctx context.Context, matchID *primitive.ObjectID, date *time.Time) error {
-	return a.repository.UpdateMatchDate(ctx, matchID, date)
+func (a *TournamentManagerProxyAdapter) UpdateMatchDate(ctx context.Context, matchOID *primitive.ObjectID, date *time.Time) error {
+	return a.repository.UpdateMatchDate(ctx, matchOID, date)
 }
 
 func (a *TournamentManagerProxyAdapter) VerifyCompetitorIDInCompetitorUser(ctx context.Context, competitorIDs []*primitive.ObjectID) (bool, error) {
@@ -928,3 +928,60 @@ func (a *TournamentManagerProxyAdapter) GetTournamentGroupsIDs(ctx context.Conte
 
 	return a.repository.GetTournamentGroupsIDs(ctx, tournamentOID)
 }
+
+func (a *TournamentManagerProxyAdapter) UpdateTournamentAvailability(
+	ctx context.Context,
+	tournamentOID *primitive.ObjectID,
+	availableCourts int,
+	averageHours int,
+	) error {
+	return a.repository.UpdateTournamentAvailability(ctx, tournamentOID, availableCourts, averageHours)
+}
+
+	
+	func (a *TournamentManagerProxyAdapter) GetTournamentSportsInOrganizer(ctx context.Context, organizerID string) ([]models.SPORT, error) {
+		organizerOID, err := a.ConvertToObjectID(organizerID)
+		if err != nil {
+			return nil, err
+		}
+	
+		return a.repository.GetTournamentSportsInOrganizer(ctx, organizerOID)
+	}
+
+	func (a *TournamentManagerProxyAdapter) GetMatchByID(ctx context.Context, matchID string, categoryID string) (*match_dao.GetMatchDAORes, error) {
+		matchOID, err := a.ConvertToObjectID(matchID)
+		if err != nil {
+			return nil, err
+		}
+
+	var categoryOID *primitive.ObjectID
+	if categoryID != "" {
+		categoryOID, err = a.ConvertToObjectID(categoryID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		categoryOID = nil
+	}
+	
+		return a.repository.GetMatchByID(ctx, matchOID,categoryOID)
+	}
+
+	func (a *TournamentManagerProxyAdapter) GetMatchCategoryID(ctx context.Context, matchID string) (*primitive.ObjectID, error) {
+		matchOID, err := a.ConvertToObjectID(matchID)
+		if err != nil {
+			return nil, err
+		}
+
+	
+		return a.repository.GetMatchCategoryID(ctx, matchOID)
+	}
+	func (a *TournamentManagerProxyAdapter) GetTournamentCompetitorIDsInMatches(ctx context.Context, tournamentID string) ([]string, error) {
+		tournamentOID, err := a.ConvertToObjectID(tournamentID)
+		if err != nil {
+			return nil, err
+		}
+
+	
+		return a.repository.GetTournamentCompetitorIDsInMatches(ctx, tournamentOID)
+	}

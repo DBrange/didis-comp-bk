@@ -16,15 +16,16 @@ func (h *Handler) ModifyProfileAvailability(c *gin.Context) {
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
 
+	userID := c.Param("userID")
 	availabilityID := c.Param("availabilityID")
-	
+
 	availabilityInfo, err := modifyProfileAvailabilityBody(c)
 	if err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	if err = h.profile.ModifyProfileAvailability(ctx, availabilityID, availabilityInfo); err != nil {
+	if err = h.profile.ModifyProfileAvailability(ctx, userID, availabilityID, availabilityInfo); err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}

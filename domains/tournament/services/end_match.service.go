@@ -180,9 +180,11 @@ func (s *TournamentService) updateCompetitorStats(ctx context.Context, match *dt
 		var winner bool
 
 		if i == 0 {
+			fmt.Printf("soy el ganador: %+v", match.WinnerCompetitorID)
 			competitorID = match.WinnerCompetitorID
 			winner = true
-		} else if i == 1 {
+			} else if i == 1 {
+			fmt.Printf("soy el perdedor: %+v", match.LosserCompetitorID)
 			competitorID = match.LosserCompetitorID
 			winner = false
 		}

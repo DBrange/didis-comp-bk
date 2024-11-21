@@ -195,7 +195,6 @@ func (r *Repository) AddPrizeInMultipleCompetitorStats(ctx context.Context, comp
 
 func (r *Repository) RemoveMultipleCompetitorStatsMatches(ctx context.Context, competitorOIDs, matchesToRemove []*primitive.ObjectID) error {
 	filter := bson.M{"competitor_id": bson.M{"$in": competitorOIDs}}
-		fmt.Println("a")
 		
 		cursor, err := r.competitorStatsColl.Find(ctx, filter)
 		if err != nil {
@@ -208,13 +207,11 @@ func (r *Repository) RemoveMultipleCompetitorStatsMatches(ctx context.Context, c
 				Matches      []*primitive.ObjectID `bson:"matches"`
 				CompetitorID *primitive.ObjectID `bson:"competitor_id"`
 			}
-			fmt.Println("b")
 			
 			if err := cursor.Decode(&result); err != nil {
 				return fmt.Errorf("error decoding competitor: %w", err)
 			}
 			
-			fmt.Println("c")
 		competitorFilter := bson.M{"competitor_id": result.CompetitorID}
 
 		update := bson.M{

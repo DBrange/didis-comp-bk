@@ -5,12 +5,11 @@ type UpdateAvailabilityDTOReq struct {
 }
 
 type UpdateDailyAvailabilityDTOReq struct {
-	Day       DAY                   `json:"day" validate:"day"`
+	Day       DAY                     `json:"day" validate:"day"`
 	TimeSlots []*UpdateTimeSlotDTOReq `json:"time_slots" validate:"dive"`
 }
 
 type UpdateTimeSlotDTOReq struct {
-	TimeSlot string                     `json:"time_slot" validate:"timeSlot"`
+	TimeSlot string              `json:"time_slot" validate:"timeSlot"`
 	Status   AVAILABILITY_STATUS `json:"status" validate:"availStatus"`
 }
-

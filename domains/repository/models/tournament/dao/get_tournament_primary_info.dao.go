@@ -24,6 +24,7 @@ type GetTournamentPrimaryInfoDAORes struct {
 	Sport            models.SPORT                            `bson:"sport"`
 	CompetitorType   models.SPORT                            `bson:"competitor_type"`
 	Surface          models.TENNIS_SURFACE                   `bson:"surface"`
+	Availability     *TournamentAvailabilityDAO              `bson:"availability"`
 	Rounds           []*GetTournamentPrimaryInforRoundDAORes `bson:"rounds"`
 	Location         *location_dao.GetLocationByIDDAORes     `bson:"location"`
 	Organizer        *dao.GetUserTournamentsOrganizerDAO     `bson:"organizer"`

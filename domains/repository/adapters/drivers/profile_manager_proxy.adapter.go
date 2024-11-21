@@ -347,3 +347,119 @@ func (a *ProfileManagerProxyAdapter) GetOrganizerData(ctx context.Context, userI
 
 	return a.repository.GetOrganizerData(ctx, userOID)
 }
+
+func (a *ProfileManagerProxyAdapter) GetProfileUserTournaments(
+	ctx context.Context,
+	userID string,
+	sport models.SPORT,
+	limit int,
+	lastID string,
+) (*competitor_user_dao.GetProfileUserTournamentsDAORes, error) {
+	userOID, err := a.ConvertToObjectID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var lastOID *primitive.ObjectID
+	if lastID != "" {
+		lastOID, err = a.ConvertToObjectID(lastID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		lastOID = nil
+	}
+
+	return a.repository.GetProfileUserTournaments(ctx, userOID, sport, limit, lastOID)
+}
+func (a *ProfileManagerProxyAdapter) GetProfileCompetitorTournaments(
+	ctx context.Context,
+	competitorID, categoryID string,
+	sport models.SPORT,
+	limit int,
+	lastID string,
+) (*competitor_user_dao.GetProfileUserTournamentsDAORes, error) {
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	var categoryOID *primitive.ObjectID
+	if categoryID != "" {
+		categoryOID, err = a.ConvertToObjectID(categoryID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		categoryOID = nil
+	}
+	var lastOID *primitive.ObjectID
+	if lastID != "" {
+		lastOID, err = a.ConvertToObjectID(lastID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		lastOID = nil
+	}
+
+	return a.repository.GetProfileCompetitorTournaments(ctx, competitorOID, categoryOID, sport, limit, lastOID)
+}
+
+func (a *ProfileManagerProxyAdapter) GetUserCategoriesNumber(
+	ctx context.Context,
+	userID string,
+	sport models.SPORT,
+) (int64, error) {
+	userOID, err := a.ConvertToObjectID(userID)
+	if err != nil {
+		return 0, err
+	}
+
+	return a.repository.GetUserCategoriesNumber(ctx, userOID, sport)
+}
+
+func (a *ProfileManagerProxyAdapter) GetCompetitorIDsFromUser(ctx context.Context, userID string) ([]*primitive.ObjectID, error) {
+	userOID, err := a.ConvertToObjectID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.repository.GetCompetitorIDsFromUser(ctx, userOID)
+}
+
+func (a *ProfileManagerProxyAdapter) GetUsersAvailability(
+	ctx context.Context,
+	competitorID string,
+	day models.DAY,
+	timeSlot string,
+) ([]*availability_dao.GetDayTimeSlotDAORes, error) {
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.repository.GetUsersAvailability(ctx, competitorOID, day, timeSlot)
+}
+
+func (a *ProfileManagerProxyAdapter) UpdateCompetitorAvailability(ctx context.Context, competitorOID *primitive.ObjectID, availabilityInfoDAO *availability_dao.UpdateDailyAvailabilityDAOReq) error {
+	return a.repository.UpdateCompetitorAvailability(ctx, competitorOID, availabilityInfoDAO)
+}
+
+func (a *ProfileManagerProxyAdapter) GetTournamentSportsInOrganizer(ctx context.Context, organizerID string) ([]models.SPORT, error) {
+	organizerOID, err := a.ConvertToObjectID(organizerID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.repository.GetTournamentSportsInOrganizer(ctx, organizerOID)
+}
+
+func (a *ProfileManagerProxyAdapter) GetSportsFromOrganizerCategories(ctx context.Context, organizerID string) ([]models.SPORT, error) {
+	organizerOID, err := a.ConvertToObjectID(organizerID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.repository.GetSportsFromOrganizerCategories(ctx, organizerOID)
+}

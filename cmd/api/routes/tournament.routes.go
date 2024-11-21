@@ -18,7 +18,7 @@ func tournamentRoutes(router *gin.Engine, handler *handlers.Handler) {
 
 	tournamnetsRouter.PUT("/register-double-competitor/:tournamentID", handler.RegisterDoubleCompetitorInTournament)
 
-	tournamnetsRouter.PUT("/modify-bracket-match/:tournamentID/:userID", handler.ModifyBracketMatch)
+	tournamnetsRouter.PUT("/modify-bracket-match/:tournamentID", handler.ModifyBracketMatch)
 
 	tournamnetsRouter.PUT("/organize-bracket/:tournamentID", handler.OrganizeBracket)
 
@@ -57,12 +57,22 @@ func tournamentRoutes(router *gin.Engine, handler *handlers.Handler) {
 	tournamnetsRouter.GET("/filters/:tournamentID", handler.GetTournamentFilters)
 
 	tournamnetsRouter.GET("/competitor-ids/:tournamentID", handler.GetTournamentCompetitorIDs)
+	
+	tournamnetsRouter.GET("/competitor-ids-in-matches/:tournamentID", handler.GetTournamentCompetitorIDsInMatches)
 
 	tournamnetsRouter.GET("/availability-tournament/:tournamentID", handler.GetTournamentAvailability)
+
+	tournamnetsRouter.GET("/organizer-tournament-sports/:organizerID", handler.GetTournamentSportsInOrganizer)
+
+	tournamnetsRouter.GET("/match/:matchID", handler.GetMatchByID)
 
 	tournamnetsRouter.PUT("/round-total-prize/:roundID", handler.ModifyRoundTotalPrize)
 
 	tournamnetsRouter.PUT("/round-points/:roundID", handler.ModifyRoundPoints)
 
+	tournamnetsRouter.PUT("/availability/:availabilityID", handler.ModifyTournamentAvailability)
+
 	tournamnetsRouter.PUT("/remove-competitor/:tournamentID/:competitorID", handler.RemoveCompetitorFromTournament)
+
+	tournamnetsRouter.PUT("/match-date/:matchID", handler.UpdateMatchDate)
 }

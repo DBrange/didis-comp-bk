@@ -8,7 +8,7 @@ import (
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
 
-func (s *CategoryService) SearchCompetitorInCategory(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorsOfCategoryDTORes, error) {
+func (s *CategoryService) SearchCompetitorInCategory(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorsOfCategoryCompetitorDTORes, error) {
 	competitorDTOs, err := s.categoryQuerier.GetCompetitorsOfCategoryByName(ctx, categoryID, name, sport, competitorType)
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "category", "error when searching competitor name")

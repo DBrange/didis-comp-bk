@@ -15,6 +15,7 @@ func GetUserCategoriesDAOtoDTO(daoCategories []*dao.GetUserCategoriesCategoryDAO
 		dtoCategory := &dto.GetUserCategoriesCategoryDTO{
 			ID:   daoCategory.ID.Hex(), // Convertir ObjectID a string
 			Name: daoCategory.Name,
+			AverageScore: daoCategory.AverageScore,
 		}
 
 		// Mapear CompetitorData si existe
@@ -22,7 +23,7 @@ func GetUserCategoriesDAOtoDTO(daoCategories []*dao.GetUserCategoriesCategoryDAO
 			dtoCategory.CompetitorData = &dto.GetUserCategoriesCompetitorDataDTO{
 				Points:          daoCategory.CompetitorData.Points,
 				CurrentPosition: daoCategory.CompetitorData.CurrentPosition,
-				Users:           mapUsersDAOtoDTO(daoCategory.CompetitorData.Users), // Mapear usuarios
+				Users:           MapUsersDAOtoDTO(daoCategory.CompetitorData.Users), // Mapear usuarios
 			}
 		}
 
@@ -42,8 +43,8 @@ func GetUserCategoriesDAOtoDTO(daoCategories []*dao.GetUserCategoriesCategoryDAO
 	return dtoCategories
 }
 
-// mapUsersDAOtoDTO mapea un slice de GetUserCategoriesUserDAO a GetUserCategoriesUserDTO
-func mapUsersDAOtoDTO(daoUsers []*dao.GetUserCategoriesUserDAO) []*dto.GetUserCategoriesUserDTO {
+// MapUsersDAOtoDTO mapea un slice de GetUserCategoriesUserDAO a GetUserCategoriesUserDTO
+func MapUsersDAOtoDTO(daoUsers []*dao.GetUserCategoriesUserDAO) []*dto.GetUserCategoriesUserDTO {
 	if len(daoUsers) == 0 {
 		return []*dto.GetUserCategoriesUserDTO{} // Retornar un slice vacío en vez de nil
 	}

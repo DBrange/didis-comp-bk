@@ -8,5 +8,5 @@ import (
 )
 
 type GetParticipantsOfCategory interface {
-	GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetCompetitorsOfCategoryDTORes, error)
+	GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) (*dto.GetCompetitorsOfCategoryDTORes, error)
 }

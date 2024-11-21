@@ -12,13 +12,13 @@ func (s *CategoryService) ModifyCompetitorPoints(ctx context.Context, categoryID
 	}
 
 	// Si hay cambios en el ranking de algun competidor, agregarlos al slice de registered_positions (numero y hora)
-	if err := s.updateCategoryRanking(ctx, categoryID); err != nil {
+	if err := s.UpdateCategoryRanking(ctx, categoryID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *CategoryService) updateCategoryRanking(ctx context.Context, categoryID string) error {
+func (s *CategoryService) UpdateCategoryRanking(ctx context.Context, categoryID string) error {
 	rankingSorted, err := s.categoryQuerier.GetCategoryRegistrationSortedByPoints(ctx, categoryID)
 	if err != nil {
 		return customerrors.HandleErrMsg(err, "tournament", "error when getting categoryRegistration serted")

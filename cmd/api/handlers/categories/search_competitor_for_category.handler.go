@@ -34,7 +34,7 @@ func (h *Handler) SearchCompetitorForCategory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": competitors, "status": http.StatusOK, "message": "Competitor finded!"})
+	c.JSON(http.StatusOK, gin.H{"data": competitors, "status": http.StatusOK, "message": "Competitor finded!"})
 
 }
 

@@ -8,7 +8,7 @@ import (
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
 )
 
-func (s *CategoryService) GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetCompetitorsOfCategoryDTORes, error) {
+func (s *CategoryService) GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) (*dto.GetCompetitorsOfCategoryDTORes, error) {
 	if err := s.categoryQuerier.VerifyCategoryExists(ctx, categoryID); err != nil {
 		return nil, customerrors.HandleErrMsg(err, "category", "error category not exits")
 	}
@@ -17,6 +17,15 @@ func (s *CategoryService) GetParticipantsOfCategory(ctx context.Context, categor
 	if err != nil {
 		return nil, customerrors.HandleErrMsg(err, "category", "error when getting competitors")
 	}
+	competitorsNumber, err := s.categoryQuerier.GetCategoryCompetitorsNumber(ctx, categoryID)
+	if err != nil {
+		return nil, customerrors.HandleErrMsg(err, "category", "error when searching competitor name")
+	}
 
-	return competitorDTOs, nil
+	competitors := &dto.GetCompetitorsOfCategoryDTORes{
+		Competitors: competitorDTOs,
+		Total:       competitorsNumber,
+	}
+
+	return competitors, nil
 }

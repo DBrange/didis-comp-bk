@@ -7,10 +7,11 @@ import (
 
 func GetUserPrimaryDataDAOtoDTO(userDAO *dao.GetUserPrimaryDataDAORes) *dto.GetUserPrimaryDataDTORes {
 	return &dto.GetUserPrimaryDataDTORes{
-		ID:        userDAO.ID.Hex(),
-		FirstName: userDAO.FirstName,
-		LastName:  userDAO.LastName,
-		Username:  userDAO.Username,
-		Image:     userDAO.Image,
+		ID:         userDAO.ID.Hex(),
+		FirstName:  userDAO.FirstName,
+		LastName:   userDAO.LastName,
+		Username:   userDAO.Username,
+		Image:      userDAO.Image,
+		LocationID: userDAO.LocationID.Hex(),
 	}
 }

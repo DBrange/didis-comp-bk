@@ -6,12 +6,12 @@ import (
 )
 
 type GetAvailabilityByIDDAORes struct {
-	ID *primitive.ObjectID `bson:"_id"`
+	ID                  *primitive.ObjectID               `bson:"_id"`
 	DailyAvailabilities []*GetDailyAvailabilityByIDDAORes `bson:"daily_availabilities"`
 }
 
 type GetDailyAvailabilityByIDDAORes struct {
-	Day       models.DAY                         `bson:"day"`
+	Day       models.DAY                    `bson:"day"`
 	TimeSlots []*GetDailyTimeSlotByIDDAORes `bson:"time_slots"`
 }
 

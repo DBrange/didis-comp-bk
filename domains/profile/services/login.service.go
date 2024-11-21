@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"github.com/DBrange/didis-comp-bk/cmd/api/models"
 	"github.com/DBrange/didis-comp-bk/config"
 	"github.com/DBrange/didis-comp-bk/domains/profile/models/dto"
 	customerrors "github.com/DBrange/didis-comp-bk/pkg/custom_errors"
@@ -25,7 +26,24 @@ func (s *ProfileService) Login(ctx context.Context, loginDTO *dto.LoginDTOReq) (
 	}
 
 	// Add organizerID if != nil
-	userDTO.OrganizerID = organizerID
+
+	if organizerID != nil {
+		tournamentSports, err := s.profileQuerier.GetTournamentSportsInOrganizer(ctx, *organizerID)
+		if err != nil {
+			return nil, "", "", customerrors.HandleErrMsg(err, "profile", "error getting sports")
+		}
+		categorySports, err := s.profileQuerier.GetSportsFromOrganizerCategories(ctx, *organizerID)
+		if err != nil {
+			return nil, "", "", customerrors.HandleErrMsg(err, "profile", "error getting sports")
+		}
+
+		userDTO.Organizer = &dto.GetUserForLoginOrganizerDTO{
+			ID:               organizerID,
+			TournamentSports: append([]models.SPORT{}, tournamentSports...),
+			CategorySports:   append([]models.SPORT{}, categorySports...),
+		}
+
+	}
 
 	if !s.ComparePasswords(userDTO.Password, []byte(loginDTO.Password)) {
 		return nil, "", "", customerrors.HandleErrMsg(err, "profile", "error passwords do not match")

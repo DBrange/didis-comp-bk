@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *TournamentService) ModifyBracketMatch(ctx context.Context, tournamentID, userID string, competitorDTOs []*dto.UpdateCompetitorMatchDTOReq) error {
+func (s *TournamentService) ModifyBracketMatch(ctx context.Context, tournamentID string, competitorDTOs []*dto.UpdateCompetitorMatchDTOReq) error {
 	err := s.tournamentQuerier.WithTransaction(ctx, func(sessCtx mongo.SessionContext) error {
 		for _, competitorDTO := range competitorDTOs {
 			if err := s.tournamentQuerier.VerifyMatchExists(ctx, competitorDTO.MatchID); err != nil {

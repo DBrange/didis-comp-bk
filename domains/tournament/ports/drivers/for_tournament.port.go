@@ -32,4 +32,9 @@ type ForTournament interface {
 	interfaces.RemoveCompetitorFromTournament
 	interfaces.GetRoundGroups
 	interfaces.GetTournamentAvailability
+	interfaces.GetTournamentSportsInOrganizer
+	interfaces.ModifyTournamentAvailability
+	interfaces.GetMatchByID
+	interfaces.UpdateMatchDate
+	interfaces.GetTournamentCompetitorIDsInMatches
 }

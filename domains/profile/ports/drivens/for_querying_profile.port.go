@@ -50,7 +50,7 @@ type ForQueryingProfile interface {
 	GetProfileInfoInCategory(ctx context.Context, categoryID, competitorID string) (*profile_dto.GetProfileInfoInCategoryDTORes, error)
 	CreateAvailabilityForCompetitor(ctx context.Context, competitorID string, dailyAvailability []*models.GetDailyAvailabilityByIDDTORes) error
 	GetAvailabilityDailySlice(ctx context.Context, userID, competitorID string) ([]*models.GetDailyAvailabilityByIDDTORes, error)
-	GetDailyAvailabilityCompetitorID(ctx context.Context, competitorID string, day string) (*models.GetDailyAvailabilityByIDDTORes,string, error)
+	GetDailyAvailabilityCompetitorID(ctx context.Context, competitorID string, day string) (*models.GetDailyAvailabilityByIDDTORes, string, error)
 	GetCompetitorTournamentsInCategory(ctx context.Context, categoryID, competitorID, lastID string, limit int) ([]*profile_dto.GetTournamentsFromCategoryDTORes, error)
 	VerifyFollowerExistsRelation(ctx context.Context, followerDAO *profile_dto.CreateFollowerDTOReq) error
 	GetUserCategories(ctx context.Context, userID string, sport models.SPORT, limit int, lastID string) ([]*profile_dto.GetUserCategoriesCategoryDTO, error)
@@ -64,4 +64,34 @@ type ForQueryingProfile interface {
 	GetOrganizerIDByUserID(ctx context.Context, userID string) (*string, error)
 	GetUserAllCompetitorSports(ctx context.Context, userID string) ([]models.SPORT, error)
 	GetOrganizerData(ctx context.Context, userID string) (*profile_dto.GetOrganizerDataDTORes, error)
+	GetProfileUserTournaments(
+		ctx context.Context,
+		userID string,
+		sport models.SPORT,
+		limit int,
+		lastID string,
+	) (*profile_dto.GetProfileUserTournamentsDTORes, error)
+	GetProfileCompetitorTournaments(
+		ctx context.Context,
+		competitorID, categoryID string,
+		sport models.SPORT,
+		limit int,
+		lastID string,
+	) (*profile_dto.GetProfileUserTournamentsDTORes, error)
+	GetUserCategoriesNumber(
+		ctx context.Context,
+		userID string,
+		sport models.SPORT,
+	) (int64, error)
+	GetCompetitorIDsFromUser(ctx context.Context, userID string) ([]string, error)
+	GetUsersAvailability(
+		ctx context.Context,
+		competitorID string,
+		day models.DAY,
+		timeSlot string,
+	) ([]*profile_dto.GetDayTimeSlotDTORes, error)
+	UpdateCompetitorAvailability(ctx context.Context, competitorID string, availabilityInfoDAO *models.UpdateDailyAvailabilityDTOReq) error
+GetTournamentSportsInOrganizer(ctx context.Context, organizerID string) ([]models.SPORT, error)
+	GetSportsFromOrganizerCategories(ctx context.Context, organizerID string) ([]models.SPORT, error)
 }
+

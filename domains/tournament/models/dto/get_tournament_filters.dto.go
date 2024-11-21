@@ -8,4 +8,5 @@ type GetTournamentFiltersDTORes struct {
 	CompetitorType   models.COMPETITOR_TYPE `json:"competitor_type"`
 	MaxCapacity      int                    `json:"max_capacity"`
 	TotalCompetitors int                    `json:"total_competitors"`
+	CategoryID       *string                `json:"category_id"`
 }

@@ -315,7 +315,7 @@ func (r *Repository) GetUserPrimaryData(ctx context.Context, userOID *primitive.
 
 	var userData user_dao.GetUserPrimaryDataDAORes
 
-	projection := bson.M{ "_id": 1, "first_name": 1, "last_name": 1, "username": 1, "image": 1}
+	projection := bson.M{ "_id": 1, "first_name": 1, "last_name": 1, "username": 1, "image": 1, "location_id": 1}
 
 	opts := options.FindOne().SetProjection(projection)
 

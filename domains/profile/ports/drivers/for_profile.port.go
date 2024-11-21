@@ -17,11 +17,13 @@ type ForProfile interface {
 	interfaces.RefreshToken
 	interfaces.FollowProfile
 	interfaces.GetProfileInfoInCategory
-	interfaces.GetProfileAvailabilityInCategory
+	interfaces.GetProfileAvailabilityCompetitor
 	interfaces.GetProfileTournamentsInCategory
 	interfaces.GetProfileCategories
 	interfaces.GetNumberFollowers
 	interfaces.GetUserFollowers
 	interfaces.GetUserPrimaryInfo
 	interfaces.GetOrganizerData
+	interfaces.GetProfileUserTournaments
+	interfaces.GetProfileCompetitorTournaments
 }

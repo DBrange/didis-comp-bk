@@ -69,8 +69,8 @@ func (a *CategoryQuerierAdapter) VerifyCategoryExistsRelation(ctx context.Contex
 	return a.adapter.VerifyCategoryExistsRelation(ctx, categoryRegistrationDAO)
 }
 
-func (a *CategoryQuerierAdapter) GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE,) ([]*dto.GetCompetitorsOfCategoryDTORes, error) {
-	categoryRegistrationDAO, err := a.adapter.GetCompetitorsOfCategoryByName(ctx, categoryID, name, sport, competitorType, )
+func (a *CategoryQuerierAdapter) GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorsOfCategoryCompetitorDTORes, error) {
+	categoryRegistrationDAO, err := a.adapter.GetCompetitorsOfCategoryByName(ctx, categoryID, name, sport, competitorType)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (a *CategoryQuerierAdapter) DecrementTotalParticipants(ctx context.Context,
 	return a.adapter.DecrementTotalParticipants(ctx, categoryOID)
 }
 
-func (a *CategoryQuerierAdapter) GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetCompetitorsOfCategoryDTORes, error) {
+func (a *CategoryQuerierAdapter) GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetCompetitorsOfCategoryCompetitorDTORes, error) {
 	categoryRegistrationDAO, err := a.adapter.GetParticipantsOfCategory(ctx, categoryID, sport, competitorType, limit, lastID)
 	if err != nil {
 		return nil, err
@@ -154,6 +154,20 @@ func (a *CategoryQuerierAdapter) PermaDeleteCategoryRegistration(ctx context.Con
 	return a.adapter.PermaDeleteCategoryRegistration(ctx, mc, ID)
 }
 
+func (a *CategoryQuerierAdapter) DeleteCategoryRegistration(ctx context.Context, categoryID, competitorID string) error {
+	categoryOID, err := a.ConvertToObjectID(categoryID)
+	if err != nil {
+		return err
+	}
+
+	competitorOID, err := a.ConvertToObjectID(competitorID)
+	if err != nil {
+		return err
+	}
+
+	return a.adapter.DeleteCategoryRegistration(ctx, categoryOID, competitorOID)
+}
+
 func (a *CategoryQuerierAdapter) AddCategoryInOrganizer(ctx context.Context, organizerID, categoryID string) error {
 	organizerOID, err := a.ConvertToObjectID(organizerID)
 	if err != nil {
@@ -168,7 +182,7 @@ func (a *CategoryQuerierAdapter) AddCategoryInOrganizer(ctx context.Context, org
 	return a.adapter.AddCategoryInOrganizer(ctx, organizerOID, categoryOID)
 }
 
-func (a *CategoryQuerierAdapter) GetCategoriesFromOrganizer(ctx context.Context, organizerID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]dto.GetCategoriesFromOrganizerDTORes, error) {
+func (a *CategoryQuerierAdapter) GetCategoriesFromOrganizer(ctx context.Context, organizerID string, sport models.SPORT, competitorType *models.COMPETITOR_TYPE) ([]dto.GetCategoriesFromOrganizerDTORes, error) {
 	categoriesDAO, err := a.adapter.GetCategoriesFromOrganizer(ctx, organizerID, sport, competitorType)
 	if err != nil {
 		return nil, err
@@ -179,7 +193,7 @@ func (a *CategoryQuerierAdapter) GetCategoriesFromOrganizer(ctx context.Context,
 	return categoryRegistrationDTO, nil
 }
 
-func (a *CategoryQuerierAdapter) GetTournamentsFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]dto.GetTournamentsFromCategoryDTORes, error) {
+func (a *CategoryQuerierAdapter) GetTournamentsFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetTournamentsFromCategoryTournamentDTORes, error) {
 	tournamentsDAO, err := a.adapter.GetTournamentsFromCategory(ctx, categoryID, sport, competitorType, limit, lastID)
 	if err != nil {
 		return nil, err
@@ -275,4 +289,23 @@ func (a *CategoryQuerierAdapter) UpdateCategoryRegistrationCurrentPosition(ctx c
 	}
 
 	return a.adapter.UpdateCategoryRegistrationCurrentPosition(ctx, categoryOID, categoryRegistrationDAO)
+}
+
+func (a *CategoryQuerierAdapter) GetCategoryCompetitorsNumber(ctx context.Context, categoryID string) (int64, error) {
+	return a.adapter.GetCategoryCompetitorsNumber(ctx, categoryID)
+}
+
+func (a *CategoryQuerierAdapter) GetTournamentsFromCategoryNumber(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) (int, error) {
+	return a.adapter.GetTournamentsFromCategoryNumber(ctx, categoryID, sport, competitorType)
+}
+
+func (a *CategoryQuerierAdapter) GetTournamentsByNameFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, tournamentName string) ([]*dto.GetTournamentsFromCategoryTournamentDTORes, error) {
+	tournamentsDAO, err := a.adapter.GetTournamentsByNameFromCategory(ctx, categoryID, sport, competitorType, tournamentName)
+	if err != nil {
+		return nil, err
+	}
+
+	tournamentsDTO := mappers.GetTournamentsFromCategoryDAOtoDTO(tournamentsDAO)
+
+	return tournamentsDTO, nil
 }

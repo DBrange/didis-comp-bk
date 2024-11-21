@@ -20,5 +20,5 @@ func (h *Handler) GetCategoryInfo(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": categoryInfoDTO,"status": http.StatusCreated, "message": "Category information was successfully found!"})
+	c.JSON(http.StatusOK, gin.H{"data": categoryInfoDTO,"status": http.StatusOK, "message": "Category information was successfully found!"})
 }

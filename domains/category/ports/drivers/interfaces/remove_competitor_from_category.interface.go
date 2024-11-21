@@ -3,5 +3,5 @@ package interfaces
 import "context"
 
 type RemoveCompetitorFromCategory interface {
-	RemoveCompetitorFromCategory(ctx context.Context, categoryRegistrationID string) error
+	RemoveCompetitorFromCategory(ctx context.Context, categoryID,competitorID string) error
 }

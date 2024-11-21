@@ -12,12 +12,13 @@ func (h *Handler) RemoveCompetitorFromCategory(c *gin.Context) {
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
 
-	categoryRegistrationID := c.Param("category_registrationID")
+	categoryID := c.Param("categoryID")
+	competitorID := c.Param("competitorID")
 
-	if err := h.category.RemoveCompetitorFromCategory(ctx, categoryRegistrationID); err != nil {
+	if err := h.category.RemoveCompetitorFromCategory(ctx, categoryID, competitorID); err != nil {
 		customerrors.ErrorResponse(err, c)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "CategoryRegistration was successfully deleted!"})
+	c.JSON(http.StatusNoContent, gin.H{"status": http.StatusNoContent, "message": "CategoryRegistration was successfully deleted!"})
 }

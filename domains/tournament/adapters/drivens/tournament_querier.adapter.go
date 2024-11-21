@@ -1266,13 +1266,13 @@ func (a *TournamentQuerierAdapter) GetTournamentsInOrganizer(
 	limit int,
 	lastID string,
 ) (*tournament_dto.GetUserTournamentsDTORes, error) {
-	dailyAvailabilityDAO, err := a.repo_adapter.GetTournamentsInOrganizer(ctx, organizerID, sport, limit, lastID)
+	tournamentsDAO, err := a.repo_adapter.GetTournamentsInOrganizer(ctx, organizerID, sport, limit, lastID)
 	if err != nil {
 		return nil, err
 	}
 
-	dailyAvailabilitiesDTO := mappers.GetUserTournamentsDAOtoDTO(dailyAvailabilityDAO)
-	return dailyAvailabilitiesDTO, nil
+	tournamentsDTO := mappers.GetUserTournamentsDAOtoDTO(tournamentsDAO)
+	return tournamentsDTO, nil
 }
 
 func (a *TournamentQuerierAdapter) DeleteTournamentRegistration(ctx context.Context, tournamentRegistrationID string) error {
@@ -1381,3 +1381,54 @@ func (a *TournamentQuerierAdapter) GetTournamentGroupsIDs(ctx context.Context, t
 
 	return groupIDs, nil
 }
+
+func (a *TournamentQuerierAdapter) UpdateTournamentAvailability(
+	ctx context.Context,
+	tournamentID string,
+	availableCourts,
+	averageHours int) error {
+	tournamentOID, err := a.ConvertToObjectID(tournamentID)
+	if err != nil {
+		return err
+	}
+
+	return a.repo_adapter.UpdateTournamentAvailability(ctx, tournamentOID, availableCourts, averageHours)
+}
+
+func (a *TournamentQuerierAdapter) GetTournamentSportsInOrganizer(ctx context.Context, organizerID string) ([]models.SPORT, error) {
+	return a.repo_adapter.GetTournamentSportsInOrganizer(ctx, organizerID)
+}
+
+func (a *TournamentQuerierAdapter) GetMatchByID(ctx context.Context, matchID string, categoryID string) (*tournament_dto.GetMatchDTORes, error) {
+	matchDAO, err := a.repo_adapter.GetMatchByID(ctx, matchID, categoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	matchDTO := mappers.GetMatchByIDDAOToDTO(matchDAO)
+
+	return matchDTO, nil
+}
+
+func (a *TournamentQuerierAdapter) GetMatchCategoryID(ctx context.Context, matchID string) (string, error) {
+	// Llama al repositorio para obtener el ObjectID de la categoría
+	categoryOID, err := a.repo_adapter.GetMatchCategoryID(ctx, matchID)
+	if err != nil {
+		return "", err
+	}
+
+	// Si es nil, retorna un string vacío para representar nil
+	if categoryOID == nil {
+		return "", nil
+	}
+
+	// Convierte el ObjectID a string
+	categoryID := categoryOID.Hex()
+
+	return categoryID, nil
+}
+
+	func (a *TournamentQuerierAdapter) GetTournamentCompetitorIDsInMatches(ctx context.Context, tournamentID string) ([]string, error) {
+		return a.repo_adapter.GetTournamentCompetitorIDsInMatches(ctx, tournamentID)
+
+	}

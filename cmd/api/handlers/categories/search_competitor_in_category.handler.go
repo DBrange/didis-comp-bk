@@ -29,7 +29,7 @@ func (h *Handler) SearchCompetitorInCategory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": competitors, "status": http.StatusOK, "message": "Competitor finded!"})
+	c.JSON(http.StatusOK, gin.H{"data": competitors, "status": http.StatusOK, "message": "Competitor finded!"})
 }
 
 func searchCompetitorInCategoryValidateQueries(c *gin.Context) (*model_utils.SPORT, *model_utils.COMPETITOR_TYPE, error) {

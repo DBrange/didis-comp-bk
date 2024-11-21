@@ -21,6 +21,6 @@ func (h *Handler) GetProfileInfoInCategory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": profile, "status": http.StatusOK, "message": "Profile has been successfully found!"})
+	c.JSON(http.StatusOK, gin.H{"data": profile, "status": http.StatusOK, "message": "Profile has been successfully found!"})
 
 }

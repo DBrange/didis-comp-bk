@@ -19,7 +19,7 @@ type ForQueryingCategory interface {
 	VerifyCategoryExists(ctx context.Context, categoryID string) error
 	VerifyCompetitorExists(ctx context.Context, competitorID string) error
 	VerifyCategoryExistsRelation(ctx context.Context, categoryRegistrationDTO *dto.CreateCategoryRegistrationDTOReq) error
-	GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorsOfCategoryDTORes, error)
+	GetCompetitorsOfCategoryByName(ctx context.Context, categoryID string, name string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]*dto.GetCompetitorsOfCategoryCompetitorDTORes, error)
 	GetCompetitorsFollowed(
 		ctx context.Context,
 		userID string,
@@ -31,12 +31,13 @@ type ForQueryingCategory interface {
 	GetCategoryInfoByID(ctx context.Context, categoryOID string) (*dto.GetCategoryInfoByIDDTORes, error)
 	IncrementTotalParticipants(ctx context.Context, categoryID string) error
 	DecrementTotalParticipants(ctx context.Context, categoryID string) error
-	GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetCompetitorsOfCategoryDTORes, error)
+	GetParticipantsOfCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetCompetitorsOfCategoryCompetitorDTORes, error)
 	CategoryRegistrationColl() *mongo.Collection
 	PermaDeleteCategoryRegistration(ctx context.Context, mc *mongo.Collection, categoryRegistrationID string) error
+	DeleteCategoryRegistration(ctx context.Context, categoryID, competitorID string) error
 	AddCategoryInOrganizer(ctx context.Context, organizerID, categoryID string) error
-	GetCategoriesFromOrganizer(ctx context.Context, organizerID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) ([]dto.GetCategoriesFromOrganizerDTORes, error)
-	GetTournamentsFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]dto.GetTournamentsFromCategoryDTORes, error)
+	GetCategoriesFromOrganizer(ctx context.Context, organizerID string, sport models.SPORT, competitorType *models.COMPETITOR_TYPE) ([]dto.GetCategoriesFromOrganizerDTORes, error)
+	GetTournamentsFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, limit int, lastID string) ([]*dto.GetTournamentsFromCategoryTournamentDTORes, error)
 	UpdateCompetitorPoints(ctx context.Context, categoryID, competitorID string, points int) error
 	CreateGuestUser(ctx context.Context, guestUserInfoDTO *dto.CreateGuestUserDTOReq) (string, error)
 	CreateCompetitor(ctx context.Context, sport models.SPORT, competitorType models.COMPETITOR_TYPE, ID string) (string, error)
@@ -47,4 +48,7 @@ type ForQueryingCategory interface {
 	CreateCompetitorStats(ctx context.Context, competitorID string) error
 	GetCategoryRegistrationSortedByPoints(ctx context.Context, categoryID string) ([]*dto.GetCategoryRegistrationSortedByPointsDTORes, error)
 	UpdateCategoryRegistrationCurrentPosition(ctx context.Context, categoryID string, categoryRegistrationDTO []*dto.GetCategoryRegistrationSortedByPointsDTORes) error
+	GetCategoryCompetitorsNumber(ctx context.Context, categoryID string) (int64, error)
+	GetTournamentsFromCategoryNumber(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE) (int, error)
+GetTournamentsByNameFromCategory(ctx context.Context, categoryID string, sport models.SPORT, competitorType models.COMPETITOR_TYPE, tournamentName string) ([]*dto.GetTournamentsFromCategoryTournamentDTORes, error)
 }
